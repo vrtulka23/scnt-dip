@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+include("${CMAKE_CURRENT_LIST_DIR}/scnt-dip-targets.cmake")
+
+include("${CMAKE_CURRENT_LIST_DIR}/scnt-dip-config-version.cmake")
+
+include_directories("@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+set(SCNT-DIP_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+message("-- Found scnt-dip: ${SCNT-DIP_INCLUDE_DIR} ${SCNT-DIP_VERSION}")
