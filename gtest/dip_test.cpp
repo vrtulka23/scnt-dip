@@ -5,7 +5,7 @@
 TEST(DIP, Initialization) {
 
   dip::DIP d;    
-  EXPECT_EQ(d.to_string(), "1");  
+  EXPECT_EQ(d.to_string(), "DIP");  
   
 }
 
