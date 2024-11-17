@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libdip-cpp.a "CMakeFiles/dip-cpp.dir/src/dip.cpp.o"
-/Library/Developer/CommandLineTools/usr/bin/ranlib libdip-cpp.a

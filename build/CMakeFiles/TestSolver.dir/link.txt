@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/c++  -Wno-deprecated -O3 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.0.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/TestSolver.dir/gtest/dip_test.cpp.o -o TestSolver  /opt/homebrew/lib/libgtest_main.a libdip-cpp.a /opt/homebrew/lib/libgtest.a
