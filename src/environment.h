@@ -1,7 +1,8 @@
 #ifndef DIP_ENVIRONMENT_H
 #define DIP_ENVIRONMENT_H
 
-#import "lists/sources.h"
+#include "lists/nodes.h"
+#include "lists/sources.h"
 
 namespace dip {
 
@@ -9,6 +10,7 @@ namespace dip {
   private:
   public:
     SourceList sources;
+    NodeList nodes;
     Environment();
   };
 

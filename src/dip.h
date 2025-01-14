@@ -7,11 +7,6 @@
 
 namespace dip {
 
-  struct Line {
-    std::string code;
-    Source source;
-  };
-  
   class DIP {
   private:
     static int num_instances;
@@ -23,6 +18,9 @@ namespace dip {
     
     size_t num_files = 0;
     size_t num_strings = 0;
+    
+    Environment _get_queue();
+    std::shared_ptr<BaseNode> _determine_node(const Line& line);
   public:
     DIP(const Environment* e = NULL);
     void add_file(const std::string file_path, const std::string source_name, const bool absolute=true);

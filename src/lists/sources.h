@@ -1,10 +1,10 @@
 #ifndef DIP_SOURCES_H
 #define DIP_SOURCES_H
 
-#import <map>
+#include <map>
 
-#import "../settings.h"
-#import "nodes.h"
+#include "../settings.h"
+#include "nodes.h"
 
 namespace dip {
 
