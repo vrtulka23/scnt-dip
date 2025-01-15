@@ -48,7 +48,6 @@ namespace dip {
     while (lines.size()>0) {
       Line line = lines.front();
       lines.pop();
-      std::cout << line.source.line_number << " " << line.code << std::endl;
       // TODO: Group block structures """text"""
       std::shared_ptr<BaseNode> node = _determine_node(line);
       queue.push_back(node);
@@ -70,10 +69,6 @@ namespace dip {
     if (node==nullptr) node = IntegerNode::is_node(parser);
     if (node==nullptr) node = FloatNode::is_node(parser);
     if (node==nullptr) node = StringNode::is_node(parser);
-    if (node==nullptr)
-      std::cout << "parser: " << parser.to_string() << std::endl;
-    else
-      std::cout << "node:   " << node->to_string() << std::endl;
     // TODO: decode symbols
     return node;
   }
@@ -84,6 +79,7 @@ namespace dip {
     while (queue.size()>0) {
       std::shared_ptr<BaseNode> node = queue.pop_front();
       // TODO: value injecting
+      // Perform specific node parsing only outside of case or inside of valid case
       BaseNode::NodeListType parsed = node->parse(target);
       if (parsed.size()>0) {
 	while (parsed.size()>0) {
@@ -92,6 +88,9 @@ namespace dip {
 	}
 	continue;
       }
+      //Create hierarchical name
+      target.hierarchy.record(node, nodes_nohierarchy);
+      
       // TODO: rest of the parsing
       target.nodes.push_back(node);
     }

@@ -12,8 +12,9 @@ namespace dip {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
     enum NodeKeyword {
-      NODE_NONE, NODE_EMPTY, NODE_GROUP,
-      NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE
+      NODE_NONE, NODE_EMPTY, NODE_GROUP, NODE_UNIT, NODE_SOURCE,
+      NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE,
+      NODE_OPTION, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
     };
     Line line;   // in Python code/source
     int indent;
