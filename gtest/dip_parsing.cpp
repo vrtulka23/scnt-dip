@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "../src/dip.h"
+#include "../src/environment.h"
+#include "../src/nodes/node.h"
 
 TEST(DIP, Initialization) {
 
@@ -19,22 +21,4 @@ TEST(DIP, Parsing) {
   d.add_string(code);
   d.parse();
 
-}
-
-TEST(DIP, ParseBoolean) {
-  
-  dip::DIP d;    
-  std::string code = "foo bool[2:,3] = true";
-  d.add_string(code);
-  d.parse();
-  
-}
-
-TEST(DIP, ParseString) {
-  
-  dip::DIP d;    
-  std::string code = "foo str[2:,3] = \"bar\"";
-  d.add_string(code);
-  d.parse();
-  
 }

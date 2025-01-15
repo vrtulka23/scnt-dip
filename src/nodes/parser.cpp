@@ -116,17 +116,17 @@ namespace dip {
     part_reference(true);
     if (is_parsed(PART_REFERENCE)) {
       parsed.push_back(PART_VALUE);
-      return
+      return;
     }
     part_function();
     if (is_parsed(PART_FUNCTION)) {
       parsed.push_back(PART_VALUE);
-      return
+      return;
     }
     part_expression();
     if (is_parsed(PART_EXPRESSION)) {
       parsed.push_back(PART_VALUE);
-      return
+      return;
     }
     std::regex pattern("^(\"\"\"(.*)\"\"\"|\"(.*)\"|\'(.*)\'|([^# ]+))");
     std::smatch matchResult;
@@ -141,10 +141,10 @@ namespace dip {
       _strip(matchResult[0].str(), PART_VALUE);
     }
   }
-    
+  
   void Parser::part_reference(const bool inject) {
   }
-    
+  
   void Parser::part_slice() {
   }
     

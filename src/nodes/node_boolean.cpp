@@ -18,6 +18,12 @@ namespace dip {
   }
 
   // TODO: set_value
-  // TODO: parse
+
+  BaseNode::NodeListType BooleanNode::parse(Environment& env) {
+    // TODO: process function
+    // TODO: process expression
+    // TODO: process units
+    return {};
+  }
   
 }

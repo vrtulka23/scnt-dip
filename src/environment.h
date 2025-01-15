@@ -1,8 +1,8 @@
 #ifndef DIP_ENVIRONMENT_H
 #define DIP_ENVIRONMENT_H
 
-#include "lists/nodes.h"
-#include "lists/sources.h"
+#include "lists/node_list.h"
+#include "lists/source_list.h"
 
 namespace dip {
 

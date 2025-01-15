@@ -24,6 +24,9 @@ namespace dip {
     std::string code;
     Source source;
   };  
+
+  // Forward declarations
+  class Environment;
   
 }
 

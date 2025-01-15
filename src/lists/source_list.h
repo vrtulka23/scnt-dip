@@ -4,7 +4,7 @@
 #include <map>
 
 #include "../settings.h"
-#include "nodes.h"
+#include "node_list.h"
 
 namespace dip {
 

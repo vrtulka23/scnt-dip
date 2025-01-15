@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#import "sources.h"
+#import "source_list.h"
 
 namespace dip {
 

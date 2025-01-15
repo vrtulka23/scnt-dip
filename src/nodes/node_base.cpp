@@ -13,5 +13,9 @@ namespace dip {
     dtype_prop = parser.dtype_prop;
     dimension = parser.dimension;
   }
+
+  BaseNode::NodeListType BaseNode::parse(const Environment& env) {
+    return {};
+  }
   
 }

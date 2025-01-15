@@ -9,7 +9,6 @@ namespace dip {
     if (parser.is_parsed(Parser::PART_COMMENT))
       return std::make_shared<GroupNode>(parser);
     return nullptr;
-  }
-  
+  }  
   
 }

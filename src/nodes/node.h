@@ -2,16 +2,17 @@
 #define DIP_NODE_H
 
 #include <vector>
+#include <deque>
 
 #include "../settings.h"
 
 namespace dip {
-
+  
   class Node {
   public:
+    typedef std::vector<std::tuple<int,int>> DimensionType;
     enum NodeKeyword {
-      UNKNOWN_NODE,
-      NODE_EMPTY, NODE_GROUP,
+      NODE_NONE, NODE_EMPTY, NODE_GROUP,
       NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE
     };
     Line line;   // in Python code/source
@@ -22,8 +23,8 @@ namespace dip {
     std::string dtype;
     std::vector<std::string> dtype_prop;
     bool defined;
-    std::vector<std::tuple<int,int>> dimension;
-    Node(): indent(0), defined(false), keyword(UNKNOWN_NODE) {};
+    DimensionType dimension;
+    Node(): indent(0), defined(false), keyword(NODE_NONE) {};
     bool has_keyword(NodeKeyword kwd);
     std::string to_string();
   };
@@ -31,7 +32,8 @@ namespace dip {
   class Parser: public Node {
   public:
     enum ParsingFlag {
-      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_COMMENT
+      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_COMMENT,
+      PART_REFERENCE, PART_FUNCTION, PART_EXPRESSION
     };
     Line line;  // in Python code/source
     std::string code;
@@ -60,33 +62,51 @@ namespace dip {
 
   class BaseNode: public Node {
   public:
+    typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
     BaseNode();
     BaseNode(Parser& parser);
     BaseNode(Parser& parser, const NodeKeyword kwd): BaseNode(parser) {keyword = kwd;};
+    NodeListType parse(const Environment& env);
   };
   
   class EmptyNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    EmptyNode(Parser& parser): BaseNode(parser,Node::NODE_EMPTY) {};
+    EmptyNode(Parser& parser): BaseNode(parser, Node::NODE_EMPTY) {};
   };
 
   class GroupNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    GroupNode(Parser& parser): BaseNode(parser,Node::NODE_GROUP) {};
+    GroupNode(Parser& parser): BaseNode(parser, Node::NODE_GROUP) {};
   };
   
   class BooleanNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    BooleanNode(Parser& parser): BaseNode(parser,Node::NODE_BOOLEAN) {};
+    BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN) {};
+    NodeListType parse(Environment& env);
+  };  
+  
+  class IntegerNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {};
+    NodeListType parse(Environment& env);
+  };  
+  
+  class FloatNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    FloatNode(Parser& parser): BaseNode(parser, Node::NODE_FLOAT) {};
+    NodeListType parse(Environment& env);
   };  
   
   class StringNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    StringNode(Parser& parser): BaseNode(parser,Node::NODE_STRING) {};
+    StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING) {};
+    NodeListType parse(Environment& env);
   };  
   
 }
