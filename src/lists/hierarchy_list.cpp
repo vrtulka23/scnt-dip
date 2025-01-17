@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "hierarchy_list.h"
+#include "lists.h"
 
 namespace dip {
 

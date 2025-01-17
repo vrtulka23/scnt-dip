@@ -2,7 +2,7 @@
 
 #include "../src/dip.h"
 #include "../src/environment.h"
-#include "../src/nodes/node.h"
+#include "../src/nodes/nodes.h"
 
 TEST(DIP, Initialization) {
 
