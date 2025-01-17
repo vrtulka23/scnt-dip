@@ -31,7 +31,7 @@ namespace dip {
     std::string code;
     Source parent;
     NodeList nodes;
-    SourceList* sources = NULL;
+    std::shared_ptr<SourceList> sources = NULL;
   };
   
   class SourceList {
