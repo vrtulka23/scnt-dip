@@ -57,7 +57,7 @@ namespace dip {
   class HierarchyList {
   public:
     std::vector<Parent> parents;
-    void record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeKeyword>& excluded);
+    void record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeDtype>& excluded);
   };
 
   // Branching list

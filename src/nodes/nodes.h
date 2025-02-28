@@ -15,43 +15,54 @@ namespace dip {
   class Node {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
-    enum NodeKeyword {
-      NODE_NONE, NODE_EMPTY, NODE_GROUP, NODE_UNIT, NODE_SOURCE, NODE_CASE,
+    enum NodeDtype {
+      NODE_NONE, NODE_EMPTY, NODE_GROUP, NODE_UNIT, NODE_SOURCE, NODE_CASE, NODE_MODIFICATION,
       NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE,
       NODE_OPTION, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
     };
-    Line line;   // in Python code/source
+    Line line;                             // in Python this were 'code' & 'source' variables
     int indent;
     std::string name;
     std::string value_raw;
-    NodeKeyword keyword;
-    std::string dtype;
+    NodeDtype dtype;                       // in Python this was 'keyword' variable
+    std::string dtype_raw;                 // in Python this was 'dtype' variable
     std::vector<std::string> dtype_prop;
-    bool defined;
+    bool declared;                         // in Python this was 'defined' variable
     DimensionType dimension;
-    Node(): indent(0), defined(false), keyword(NODE_NONE) {};
-    Node(const NodeKeyword kwd): indent(0), defined(false), keyword(kwd) {};
+    Node(): indent(0), declared(false), dtype(NODE_NONE) {};
+    Node(const Line& l): line(l), indent(0), declared(false), dtype(NODE_NONE) {};
+    Node(const NodeDtype kwd): indent(0), declared(false), dtype(kwd) {};
     virtual ~Node() = default;
-    bool has_keyword(NodeKeyword kwd);
+    bool has_dtype(NodeDtype kwd);
     std::string to_string();
   };
   
   class Parser: public Node {
   public:
     enum ParsingFlag {
+      KWD_CASE, KWD_UNIT, KWD_SOURCE,
+      KWD_OPTIONS, KWD_CONSTANT, KWD_FORMAT, KWD_TAGS, KWD_DESCRIPTION, KWD_CONDITION,
       PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_COMMENT,
       PART_REFERENCE, PART_FUNCTION, PART_EXPRESSION
     };
-    Line line;  // in Python code/source
-    std::string code;
+    std::string code;                      // in Python this was 'ccode', the original 'code' is now in the 'line' struct
     std::string comment;
     std::vector<ParsingFlag> parsed;
   private:
     void _strip(const std::string text, ParsingFlag flag);
   public:
-    Parser(const Line& l): line(l), code(l.code) {};
+    Parser(const Line& l): Node(l), code(l.code) {};
     bool do_continue();
     bool is_parsed(ParsingFlag flag);
+    // void kwd_case();
+    // void kwd_unit();
+    // void kwd_source();
+    // void kwd_options();
+    void kwd_constant();
+    // void kwd_format();
+    // void kwd_tags();
+    void kwd_description();
+    // void kwd_condition();
     void part_indent();
     void part_name(const bool path=true);
     void part_type();
@@ -69,12 +80,14 @@ namespace dip {
   
   class BaseNode: virtual public Node {
   public:
+    bool constant;
+    std::string description;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
-    BaseNode();
+    BaseNode(): constant(false) {};
     BaseNode(Parser& parser);
-    BaseNode(Parser& parser, const NodeKeyword kwd);
+    BaseNode(Parser& parser, const NodeDtype kwd);
     virtual ~BaseNode() = default;
-    virtual NodeListType parse(const Environment& env);
+    virtual NodeListType parse(Environment& env);
     std::string clean_name();
   };
 
@@ -84,10 +97,30 @@ namespace dip {
     EmptyNode(Parser& parser): BaseNode(parser, Node::NODE_EMPTY) {};
   };
 
+  class ConstantNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    ConstantNode(Parser& parser): BaseNode(parser, Node::NODE_CONSTANT) {};
+    BaseNode::NodeListType parse(Environment& env) override;
+  };
+  
+  class DescriptionNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    DescriptionNode(Parser& parser): BaseNode(parser, Node::NODE_CONSTANT) {};
+    BaseNode::NodeListType parse(Environment& env) override;
+  };
+  
   class GroupNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     GroupNode(Parser& parser): BaseNode(parser, Node::NODE_GROUP) {};
+  };
+  
+  class ModificationNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    ModificationNode(Parser& parser): BaseNode(parser, Node::NODE_MODIFICATION) {};
   };
   
   class ValueNode: virtual public BaseNode {
@@ -99,45 +132,45 @@ namespace dip {
     std::unique_ptr<BaseValue> cast_value();
     std::unique_ptr<BaseValue> cast_value(std::string value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
-    void modify_value(std::shared_ptr<ValueNode> node, Environment& env);
+    void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
   };
   
   class BooleanNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input);
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape);
+    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
+    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN) {};
-    BaseNode::NodeListType parse(Environment& env);
+    BaseNode::NodeListType parse(Environment& env) override;
   };  
   
   class IntegerNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input);
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape);
+    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
+    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {};
-    BaseNode::NodeListType parse(Environment& env);
+    BaseNode::NodeListType parse(Environment& env) override;
   };  
   
   class FloatNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input);
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape);
+    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
+    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     FloatNode(Parser& parser): BaseNode(parser, Node::NODE_FLOAT) {};
-    BaseNode::NodeListType parse(Environment& env);
+    BaseNode::NodeListType parse(Environment& env) override;
   };  
   
   class StringNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input);
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape);
+    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
+    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING) {};
-    BaseNode::NodeListType parse(Environment& env);
+    BaseNode::NodeListType parse(Environment& env) override;
   };  
   
 }

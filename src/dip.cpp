@@ -62,13 +62,26 @@ namespace dip {
     std::shared_ptr<BaseNode> node(nullptr);
     node = EmptyNode::is_node(parser);
     if (node==nullptr) parser.part_indent();
+    // if (node==nullptr) node = ImportNode::is_node(parser);
+    // if (node==nullptr) node = UnitNode::is_node(parser);
+    // if (node==nullptr) node = SourceNode::is_node(parser);
+    // if (node==nullptr) node = CaseNode::is_node(parser);
+    // if (node==nullptr) node = OptionNode::is_node(parser);
+    if (node==nullptr) node = ConstantNode::is_node(parser);
+    // if (node==nullptr) node = FormatNode::is_node(parser);
+    // if (node==nullptr) node = TagsNode::is_node(parser);
+    if (node==nullptr) node = DescriptionNode::is_node(parser);
+    // if (node==nullptr) node = ConditionNode::is_node(parser);
     if (node==nullptr) parser.part_name();
     if (node==nullptr) node = GroupNode::is_node(parser);
+    // if (node==nullptr) node = ImportNode::is_node(parser);
+    if (node==nullptr) node = ModificationNode::is_node(parser);
     if (node==nullptr) parser.part_type();
     if (node==nullptr) node = BooleanNode::is_node(parser);
     if (node==nullptr) node = IntegerNode::is_node(parser);
     if (node==nullptr) node = FloatNode::is_node(parser);
     if (node==nullptr) node = StringNode::is_node(parser);
+    // TODO: TableNode
     // TODO: decode symbols
     return node;
   }
@@ -78,7 +91,7 @@ namespace dip {
     Environment target = env;
     while (queue.size()>0) {
       std::shared_ptr<BaseNode> node = queue.pop_front();
-      if (!target.branching.false_case() or node->has_keyword(Node::NODE_CASE)) {
+      if (!target.branching.false_case() or node->has_dtype(Node::NODE_CASE)) {
 	// TODO: value injecting
 	// Perform specific node parsing only outside of case or inside of valid case
 	BaseNode::NodeListType parsed = node->parse(target);
@@ -93,9 +106,9 @@ namespace dip {
       // Create hierarchical names
       target.hierarchy.record(node, nodes_nohierarchy);
       // Add nodes to the node list
-      if (std::find(nodes_notypes.begin(), nodes_notypes.end(), node->keyword) != nodes_notypes.end()) {
+      if (std::find(nodes_notypes.begin(), nodes_notypes.end(), node->dtype) != nodes_notypes.end()) {
 	continue;
-      } else if (node->keyword==Node::NODE_CASE) {
+      } else if (node->dtype==Node::NODE_CASE) {
 	target.branching.solve_case(node);
       }	else if (target.branching.false_case()) {
 	continue;
@@ -104,26 +117,48 @@ namespace dip {
 	// Clean node name from cases
 	node->name = node->clean_name();
 	// Set the node value
-	bool new_node = true;
+	// TODO: maybe this can be done after modifications?!
 	std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
 	if (vnode) {
 	  vnode->set_value();
-	  // If node was previously defined, modify its value
-	  for (size_t i=0; i<target.nodes.size(); i++) {
-	    if (target.nodes[i]->name==node->name) {
-	      // TODO: exception if node is set as constant
-	      std::shared_ptr<ValueNode> vnode2 = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
-	      vnode2->modify_value(vnode, target);
-	      new_node = false;
-	    }
+	}
+	// If node was previously defined, modify its value
+	bool new_node = true;
+	for (size_t i=0; i<target.nodes.size(); i++) {
+	  if (target.nodes[i]->name==node->name) {
+	    if (target.nodes[i]->constant)
+	      throw std::runtime_error("Node '"+target.nodes[i]->name+"' is constant and cannot be modified: "+node->line.to_string());
+	    std::shared_ptr<ValueNode> pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+	    pnode->modify_value(node, target);
+	    new_node = false;
 	  }
 	}
 	if (new_node) {
-	  // TODO: exception when modifying undefined node
+	  if (node->dtype==Node::NODE_MODIFICATION) {
+	    std::string prefix = "DIP"+std::to_string(name)+"_"+std::string(STRING_SOURCE);
+	    if (node->line.source.name.compare(0, prefix.size(), prefix) == 0)
+	      throw std::runtime_error("Modifying undefined node: "+node->line.to_string());
+	  }
 	  target.nodes.push_back(node);
 	}
       }      
-      // TODO: rest of the parsing
+    }
+    // Validate nodes
+    for (ssize_t i=0; i<target.nodes.size(); i++) {
+      std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+      if (vnode) {
+	// Check if all declared nodes have assigned value
+	if (vnode->declared and vnode->value==nullptr) 
+	  throw std::runtime_error("Declared node has <undefined value: "+vnode->line.to_string());
+	// Check if node value is in options
+	// TODO
+	// Check conditions
+	// TODO
+	// Check formats if set for strings
+	// TODO
+      } else {
+	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.to_string());
+      }
     }
     // TODO: node validation
     return target;

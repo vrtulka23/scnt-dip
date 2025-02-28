@@ -22,6 +22,72 @@ namespace dip {
 	return true;
     return false;
   }
+
+  /*
+   * Directive keywords
+   */
+
+  /*
+  void Parser::kwd_case() {
+  }
+  */
+  
+  /*
+  void Parser::kwd_unit() {
+  }
+  */
+  
+  /*
+  void Parser::kwd_source() {
+  }
+  */
+  
+  /*
+  void Parser::kwd_options() {
+  }
+  */
+  
+  void Parser::kwd_constant() {
+    std::ostringstream oss;
+    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_CONSTANT;
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      _strip(matchResult[0].str(), KWD_CONSTANT);
+    }    
+  } 
+  
+  /*
+  void Parser::kwd_format() {
+  }
+  */
+  
+  /*
+  void Parser::kwd_tags() {
+  }
+  */
+  
+  void Parser::kwd_description() {
+    std::ostringstream oss;
+    oss << "^((";
+    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_DESCRIPTION << "|";
+    oss << "^[" << SIGN_VALIDATION << "]" << std::string(KEYWORD_DESCRIPTION).substr(0,4);
+    oss << ")[ ]*)";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      _strip(matchResult[1].str(), KWD_DESCRIPTION);
+    }    
+  }
+  
+  /*
+  void Parser::kwd_condition() {
+  }
+  */
+  
+  /*
+   * Node Parts
+   */
   
   void Parser::part_indent() {
     std::regex pattern("^[ ]+");
@@ -48,23 +114,23 @@ namespace dip {
   void Parser::part_type() {
     std::smatch matchResult;
     std::regex pattern;
-    pattern = "^[ ]+(u|)(bool|str|table|int|float)(16|32|64|128|)";
+    pattern = "^[ ]+(u|)(bool|str|table|int|float)(16|32|64|128|x|)";
     if (std::regex_search(code, matchResult, pattern)) {
-      dtype = matchResult[2].str();
-      if (dtype=="int") {
-	keyword = Node::NODE_INTEGER;
+      dtype_raw = matchResult[2].str();
+      if (dtype_raw=="int") {
+	dtype = Node::NODE_INTEGER;
 	dtype_prop = {matchResult[1].str(), matchResult[3].str()};
-      } else if (dtype=="float") {
-	keyword = Node::NODE_FLOAT;
+      } else if (dtype_raw=="float") {
+	dtype = Node::NODE_FLOAT;
 	dtype_prop = {matchResult[3].str()};
       } else if (matchResult[1].str()!="" or matchResult[3].str()!="") {
 	throw std::runtime_error("Incorrect type: "+line.code);
-      } else if (dtype=="table") {
-	keyword = Node::NODE_TABLE;
-      } else if (dtype=="bool") {
-	keyword = Node::NODE_BOOLEAN;
-      } else if (dtype=="str") {
-	keyword = Node::NODE_STRING;
+      } else if (dtype_raw=="table") {
+	dtype = Node::NODE_TABLE;
+      } else if (dtype_raw=="bool") {
+	dtype = Node::NODE_BOOLEAN;
+      } else if (dtype_raw=="str") {
+	dtype = Node::NODE_STRING;
       } else {
 	throw std::runtime_error("Type not recognized: "+line.code);
       }

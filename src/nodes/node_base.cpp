@@ -4,29 +4,31 @@
 
 namespace dip {
 
-  BaseNode::BaseNode(Parser& parser) {
+  BaseNode::BaseNode(Parser& parser): constant(false) {
     line = parser.line;
     indent = parser.indent;
     name = parser.name;
     value_raw = parser.value_raw;
-    keyword = parser.keyword;
     dtype = parser.dtype;
+    dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
     dimension = parser.dimension;
+    declared = parser.declared;
   }
 
-  BaseNode::BaseNode(Parser& parser, const NodeKeyword kwd) {
+  BaseNode::BaseNode(Parser& parser, const NodeDtype dt): constant(false) {
     line = parser.line;
     indent = parser.indent;
     name = parser.name;
     value_raw = parser.value_raw;
-    keyword = kwd;
-    dtype = parser.dtype;
+    dtype = dt;
+    dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
     dimension = parser.dimension;
+    declared = parser.declared;
   }
 
-  BaseNode::NodeListType BaseNode::parse(const Environment& env) {
+  BaseNode::NodeListType BaseNode::parse(Environment& env) {
     return {};
   }
 

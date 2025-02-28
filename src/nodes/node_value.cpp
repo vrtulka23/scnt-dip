@@ -86,10 +86,9 @@ namespace dip {
       value = nullptr;
   }
 
-  void ValueNode::modify_value(std::shared_ptr<ValueNode> node, Environment& env) {
-    // TODO: no exception if node->keyword is 'mod'
-    if (node->dtype!=dtype)
-	throw std::runtime_error("Node '"+name+"' with type '"+dtype+"' cannot modify node '"+node->name+"' with type '"+node->dtype+"'");
+  void ValueNode::modify_value(std::shared_ptr<BaseNode> node, Environment& env) {
+    if (node->dtype!=Node::NODE_MODIFICATION and node->dtype!=dtype)
+	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw+"'");
     std::unique_ptr<BaseValue> value = cast_value(node->value_raw);
     // TODO: add conversion to original units
     set_value(std::move(value));

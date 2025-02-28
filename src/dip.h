@@ -18,18 +18,18 @@ namespace dip {
 
     Source source;
 
-    static constexpr std::array<Node::NodeKeyword,3> nodes_special = {
+    static constexpr std::array<Node::NodeDtype,3> nodes_special = {
       BaseNode::NODE_EMPTY,BaseNode::NODE_UNIT,BaseNode::NODE_SOURCE
     };
-    static constexpr std::array<Node::NodeKeyword,6> nodes_properties = {
+    static constexpr std::array<Node::NodeDtype,6> nodes_properties = {
       BaseNode::NODE_OPTION,BaseNode::NODE_CONSTANT,BaseNode::NODE_FORMAT,
       BaseNode::NODE_CONDITION,BaseNode::NODE_TAGS,BaseNode::NODE_DESCRIPTION
     };
-    static constexpr std::array<Node::NodeKeyword,1> nodes_hierarchy  = {
+    static constexpr std::array<Node::NodeDtype,1> nodes_hierarchy  = {
       BaseNode::NODE_GROUP
     };
-    std::vector<Node::NodeKeyword> nodes_nohierarchy;
-    std::vector<Node::NodeKeyword> nodes_notypes;
+    std::vector<Node::NodeDtype> nodes_nohierarchy;
+    std::vector<Node::NodeDtype> nodes_notypes;
     
     size_t num_files = 0;
     size_t num_strings = 0;

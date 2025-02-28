@@ -5,14 +5,14 @@ namespace dip {
 
   class BaseValue {
   public:
-    enum DataType {
-      BOOL, STRING,
-      INT16, INT32, INT64,
-      UINT16, UINT32, UINT64,
-      FLOAT32, FLOAT64, FLOAT128
+    enum ValueDtype { // TODO: INTX and FLOATX should support arbitrary precision types
+      VALUE_BOOL,    VALUE_STRING,
+      VALUE_INT16,   VALUE_INT32,   VALUE_INT64,    VALUE_INTX,   
+      VALUE_UINT16,  VALUE_UINT32,  VALUE_UINT64,  
+      VALUE_FLOAT32, VALUE_FLOAT64, VALUE_FLOAT128, VALUE_FLOATX
     };
-    DataType dtype;
-    BaseValue(DataType dt): dtype(dt) {};
+    ValueDtype dtype;
+    BaseValue(ValueDtype dt): dtype(dt) {};
     virtual ~BaseValue() = default;
     virtual void print() = 0;
     virtual std::string to_string(int precision=0) = 0;
@@ -25,7 +25,7 @@ namespace dip {
   protected:
     T value;
   public:
-    BaseScalarValue(const T& val, const DataType dt): value(val), BaseValue(dt) {};
+    BaseScalarValue(const T& val, const ValueDtype dt): value(val), BaseValue(dt) {};
     void print() {std::cout << value << std::endl;};
     T get_value() {return value;};
   protected:
@@ -41,7 +41,7 @@ namespace dip {
   template <typename T>
   class ScalarValue: public BaseScalarValue<T> {
   public:
-    ScalarValue(const T& val, const BaseValue::DataType dt): BaseScalarValue<T>(val, dt) {};
+    ScalarValue(const T& val, const BaseValue::ValueDtype dt): BaseScalarValue<T>(val, dt) {};
   protected:
     void value_to_string(std::ostringstream& oss, int precision=0) {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
@@ -57,7 +57,7 @@ namespace dip {
   template <>
   class ScalarValue<std::string> : public BaseScalarValue<std::string> {
   public:
-    ScalarValue(const std::string& val, const BaseValue::DataType dt) : BaseScalarValue(val,dt) {};
+    ScalarValue(const std::string& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    
       if (precision==0)
@@ -70,14 +70,14 @@ namespace dip {
   template <>
   class ScalarValue<bool> : public BaseScalarValue<bool> {
   public:
-    ScalarValue(const bool& val, const BaseValue::DataType dt) : BaseScalarValue(val,dt) {};
+    ScalarValue(const bool& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    
       if (precision==0)
 	if (value)
-	  oss << KWD_TRUE;
+	  oss << KEYWORD_TRUE;
 	else
-	  oss << KWD_FALSE;
+	  oss << KEYWORD_FALSE;
       else
 	throw std::runtime_error("Boolean value does not support precision parameter for to_string() method.");
     };
@@ -91,8 +91,8 @@ namespace dip {
     std::vector<T> value;
     std::vector<int> shape;
   public:
-    BaseArrayValue(const T& val, const std::vector<int>& sh, const DataType dt): value({val}), shape(sh), BaseValue(dt) {};
-    BaseArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const DataType dt): value(arr), shape(sh), BaseValue(dt) {};
+    BaseArrayValue(const T& val, const std::vector<int>& sh, const ValueDtype dt): value({val}), shape(sh), BaseValue(dt) {};
+    BaseArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const ValueDtype dt): value(arr), shape(sh), BaseValue(dt) {};
     void print() {std::cout << to_string() << std::endl;};
     std::vector<T> get_value() {return value;};
     std::vector<int> get_shape() {return shape;};
@@ -127,8 +127,8 @@ namespace dip {
   template <typename T>
   class ArrayValue: public BaseArrayValue<T> {
   public:
-    ArrayValue(const T& val, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<T>(val,sh,dt) {};
-    ArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<T>(arr,sh,dt) {};
+    ArrayValue(const T& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
+    ArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
@@ -144,8 +144,8 @@ namespace dip {
   template <>
   class ArrayValue<std::string>: public BaseArrayValue<std::string> {
   public:
-    ArrayValue(const std::string& val, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<std::string>(val,sh,dt) {};
-    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<std::string>(arr,sh,dt) {};
+    ArrayValue(const std::string& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
+    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
       oss << "'" << value[offset] << "'";
@@ -164,14 +164,14 @@ namespace dip {
   template <>
   class ArrayValue<bool>: public BaseArrayValue<bool> {
   public:
-    ArrayValue(const bool& val, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<bool>(val,sh,dt) {};
-    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh, const BaseValue::DataType dt): BaseArrayValue<bool>(arr,sh,dt) {};
+    ArrayValue(const bool& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
+    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
       if (value[offset])
-	oss << KWD_TRUE;
+	oss << KEYWORD_TRUE;
       else
-	oss << KWD_FALSE;
+	oss << KEYWORD_FALSE;
     }
   public:
     std::string to_string(int precision=0) {

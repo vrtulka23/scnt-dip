@@ -2,6 +2,7 @@
 #define DIP_SETTINGS_H
 
 #include <string>
+#include <sstream>
 
 namespace dip {
 
@@ -26,9 +27,11 @@ namespace dip {
   constexpr char SIGN_NEWLINE        = '\n';
 
   // Keywords
-  constexpr std::string_view KWD_TRUE  = "true";
-  constexpr std::string_view KWD_FALSE = "false";
-
+  constexpr std::string_view KEYWORD_TRUE        = "true";
+  constexpr std::string_view KEYWORD_FALSE       = "false";
+  constexpr std::string_view KEYWORD_CONSTANT    = "constant";
+  constexpr std::string_view KEYWORD_DESCRIPTION = "description";
+  
   // Various settings
   constexpr int DISPLAY_FLOAT_PRECISION = 4;
   
@@ -40,6 +43,11 @@ namespace dip {
   struct Line {
     std::string code;
     Source source;
+    std::string to_string() {
+      std::ostringstream oss;
+      oss << "[" << source.name << ":" << source.line_number << "] " << code;
+      return oss.str();
+    };
   };  
 
   // Forward declarations

@@ -5,11 +5,11 @@
 
 namespace dip {
 
-  void HierarchyList::record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeKeyword>& excluded) {
+  void HierarchyList::record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeDtype>& excluded) {
     if (node->name=="")
       return;
-    for (auto kwd: excluded)
-      if (node->keyword==kwd)
+    for (auto dtype: excluded)
+      if (node->dtype==dtype)
 	return;
 
     // closed children nodes and register new parent

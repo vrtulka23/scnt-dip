@@ -32,5 +32,5 @@ namespace dip {
     else
       throw std::invalid_argument("Index "+std::to_string(index)+" exceded number of nodes: "+std::to_string(nodes.size()));
   }
-
+  
 }

@@ -16,13 +16,13 @@ TEST(ParseScalars, BooleanValue) {
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
   EXPECT_EQ(node->value_raw, "true");
-  EXPECT_EQ(node->keyword, dip::Node::NODE_BOOLEAN);
+  EXPECT_EQ(node->dtype, dip::Node::NODE_BOOLEAN);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
   
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "true");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::DataType::BOOL);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_BOOL);
 	
   node = env.nodes[1];
   EXPECT_EQ(node->value_raw, "false");
@@ -40,13 +40,13 @@ TEST(ParseScalars, IntegerValue) {
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
   EXPECT_EQ(node->value_raw, "23");
-  EXPECT_EQ(node->keyword, dip::Node::NODE_INTEGER);
+  EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
   
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "23");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::DataType::INT32);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_INT32);
   
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[1]);
   EXPECT_EQ(vnode->value->to_string(), "23456789");
@@ -67,13 +67,13 @@ TEST(ParseScalars, FloatValue) {
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
   EXPECT_EQ(node->value_raw, "23");
-  EXPECT_EQ(node->keyword, dip::Node::NODE_FLOAT);
+  EXPECT_EQ(node->dtype, dip::Node::NODE_FLOAT);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
   
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "23.000");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::DataType::FLOAT64);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_FLOAT64);
   
   node = env.nodes[1];
   EXPECT_EQ(node->value_raw, "23.456");
@@ -108,13 +108,13 @@ TEST(ParseScalars, StringValue) {
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
   EXPECT_EQ(node->value_raw, "bar");
-  EXPECT_EQ(node->keyword, dip::Node::NODE_STRING);
+  EXPECT_EQ(node->dtype, dip::Node::NODE_STRING);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "bar");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::DataType::STRING);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_STRING);
   
 }
 
