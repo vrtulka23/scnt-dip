@@ -25,5 +25,14 @@ namespace dip {
     // TODO: process units
     return {};
   }
-    
+
+  std::unique_ptr<BaseValue> StringNode::cast_scalar_value(const std::string value_input) {
+    return std::make_unique<ScalarValue<std::string>>(value_input, BaseValue::DataType::STRING);
+  }
+
+  std::unique_ptr<BaseValue> StringNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {      
+    return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, BaseValue::DataType::STRING);
+  }
+  
+
 }

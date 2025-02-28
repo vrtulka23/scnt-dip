@@ -25,5 +25,38 @@ namespace dip {
     // TODO: process units
     return {};
   }  
+
+  std::unique_ptr<BaseValue> FloatNode::cast_scalar_value(const std::string value_input) {
+    if (dtype_prop[0]=="32")
+      return std::make_unique<ScalarValue<float>>(std::stof(value_input), BaseValue::DataType::FLOAT32);
+    else if (dtype_prop[0]=="64" or dtype_prop[0]=="")
+      return std::make_unique<ScalarValue<double>>(std::stod(value_input), BaseValue::DataType::FLOAT64);
+    else if (dtype_prop[0]=="128" and max_float_size==128) {
+      return std::make_unique<ScalarValue<long double>>(std::stold(value_input), BaseValue::DataType::FLOAT128);
+    } else {
+      throw std::runtime_error("Value cannot be casted as "+dtype_prop[0]+" bit floating-point type from the given string: "+value_input);
+    }
+  }
+  
+  std::unique_ptr<BaseValue> FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
+    if (dtype_prop[0]=="32") {
+      std::vector<float> arr;
+      for (auto s: value_inputs) arr.push_back(std::stof(s));
+      return std::make_unique<ArrayValue<float>>(arr, shape, BaseValue::DataType::FLOAT32);
+    } else if (dtype_prop[0]=="64" or dtype_prop[0]=="") {
+      std::vector<double> arr;
+      for (auto s: value_inputs) arr.push_back(std::stod(s));
+      return std::make_unique<ArrayValue<double>>(arr, shape, BaseValue::DataType::FLOAT64);
+    } else if (dtype_prop[0]=="128" and max_float_size==128) {
+      std::vector<long double> arr;
+      for (auto s: value_inputs) arr.push_back(std::stold(s));
+      return std::make_unique<ArrayValue<long double>>(arr, shape, BaseValue::DataType::FLOAT128);
+    } else {
+      std::ostringstream oss;
+      for (auto s: value_inputs)
+	oss << s;
+      throw std::runtime_error("Value cannot be casted as "+dtype_prop[0]+" bit floating-point type from the given string: "+oss.str());
+    }
+  }
   
 }

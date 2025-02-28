@@ -11,6 +11,8 @@
 
 namespace dip {
 
+  // Node List
+  
   class NodeList {
   private:
     BaseNode::NodeListType nodes;
@@ -23,6 +25,8 @@ namespace dip {
     std::shared_ptr<BaseNode> operator[](const size_t index);
   };
 
+  // Source list
+  
   class SourceList; // EnvSource needs a forward declaration
   
   struct EnvSource {
@@ -43,6 +47,8 @@ namespace dip {
     EnvSource& operator[](const std::string name);
   };
 
+  // Hierarchy list
+  
   struct Parent {
     int indent;
     std::string name;
@@ -54,6 +60,44 @@ namespace dip {
     void record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeKeyword>& excluded);
   };
 
+  // Branching list
+  
+  struct Case {
+    std::string path;          // case path up to last @ sign
+    bool value;                // final value of the case
+    std::string code;          // code line with the case
+    std::string expr;          // case expression
+    std::string branch_id;     // branch ID
+    std::string branch_part;   // branch part
+    std::string case_id;       // case ID
+    std::string case_type;     // one of the types: case/else/end
+  };
+
+  struct Branch {
+    std::vector<std::string> cases;   // list of case IDs
+    std::vector<std::string> types;   // list of case types
+    std::map<std::string, int> nodes; // number of node definitions
+  };
+  
+  class BranchingList {
+  private:
+    std::vector<std::string> state;         // list of openned branches
+    std::map<std::string, Branch> branches; // all branches
+    std::map<std::string, Case> cases;      // all cases
+    int num_cases;                          
+    int num_branches;
+    std::string get_branch_id();
+    std::string get_case_id();
+    std::string open_branch(const std::string case_id);
+    std::string switch_case(const std::string case_id, const std::string case_type);
+    std::string close_branch();
+  public:
+    int register_case();
+    bool false_case();
+    void solve_case(std::shared_ptr<BaseNode> node);
+    void prepare_node(std::shared_ptr<BaseNode> node);
+  };
+  
 }
 
 #endif // DIP_LISTS_H

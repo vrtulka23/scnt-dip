@@ -24,7 +24,14 @@ namespace dip {
   constexpr char SIGN_VARIABLE       = '$';
   constexpr char SIGN_VALIDATION     = '!';
   constexpr char SIGN_NEWLINE        = '\n';
-    
+
+  // Keywords
+  constexpr std::string_view KWD_TRUE  = "true";
+  constexpr std::string_view KWD_FALSE = "false";
+
+  // Various settings
+  constexpr int DISPLAY_FLOAT_PRECISION = 4;
+  
   struct Source {
     std::string name;
     int line_number;

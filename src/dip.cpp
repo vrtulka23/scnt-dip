@@ -78,21 +78,52 @@ namespace dip {
     Environment target = env;
     while (queue.size()>0) {
       std::shared_ptr<BaseNode> node = queue.pop_front();
-      // TODO: value injecting
-      // Perform specific node parsing only outside of case or inside of valid case
-      BaseNode::NodeListType parsed = node->parse(target);
-      if (parsed.size()>0) {
-	while (parsed.size()>0) {
-	  queue.push_front(parsed.back());
-	  parsed.pop_back();
+      if (!target.branching.false_case() or node->has_keyword(Node::NODE_CASE)) {
+	// TODO: value injecting
+	// Perform specific node parsing only outside of case or inside of valid case
+	BaseNode::NodeListType parsed = node->parse(target);
+	if (parsed.size()>0) {
+	  while (parsed.size()>0) {
+	    queue.push_front(parsed.back());
+	    parsed.pop_back();
+	  }
+	  continue;
 	}
-	continue;
       }
-      //Create hierarchical name
+      // Create hierarchical names
       target.hierarchy.record(node, nodes_nohierarchy);
-      
+      // Add nodes to the node list
+      if (std::find(nodes_notypes.begin(), nodes_notypes.end(), node->keyword) != nodes_notypes.end()) {
+	continue;
+      } else if (node->keyword==Node::NODE_CASE) {
+	target.branching.solve_case(node);
+      }	else if (target.branching.false_case()) {
+	continue;
+      } else {
+	target.branching.prepare_node(node);
+	// Clean node name from cases
+	node->name = node->clean_name();
+	// Set the node value
+	bool new_node = true;
+	std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+	if (vnode) {
+	  vnode->set_value();
+	  // If node was previously defined, modify its value
+	  for (size_t i=0; i<target.nodes.size(); i++) {
+	    if (target.nodes[i]->name==node->name) {
+	      // TODO: exception if node is set as constant
+	      std::shared_ptr<ValueNode> vnode2 = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+	      vnode2->modify_value(vnode, target);
+	      new_node = false;
+	    }
+	  }
+	}
+	if (new_node) {
+	  // TODO: exception when modifying undefined node
+	  target.nodes.push_back(node);
+	}
+      }      
       // TODO: rest of the parsing
-      target.nodes.push_back(node);
     }
     // TODO: node validation
     return target;

@@ -48,7 +48,7 @@ namespace dip {
   void Parser::part_type() {
     std::smatch matchResult;
     std::regex pattern;
-    pattern = "^[ ]+(u|)(bool|str|table|int|float)(16|32|64|)";
+    pattern = "^[ ]+(u|)(bool|str|table|int|float)(16|32|64|128|)";
     if (std::regex_search(code, matchResult, pattern)) {
       dtype = matchResult[2].str();
       if (dtype=="int") {
@@ -56,7 +56,7 @@ namespace dip {
 	dtype_prop = {matchResult[1].str(), matchResult[3].str()};
       } else if (dtype=="float") {
 	keyword = Node::NODE_FLOAT;
-	dtype_prop = {matchResult[2].str()};
+	dtype_prop = {matchResult[3].str()};
       } else if (matchResult[1].str()!="" or matchResult[3].str()!="") {
 	throw std::runtime_error("Incorrect type: "+line.code);
       } else if (dtype=="table") {
