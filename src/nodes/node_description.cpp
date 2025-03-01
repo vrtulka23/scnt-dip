@@ -16,17 +16,17 @@ namespace dip {
   }
   
   BaseNode::NodeListType DescriptionNode::parse(Environment& env) {
-    std::array<Node::NodeDtype, 4> allowed = {
-      Node::NODE_BOOLEAN, Node::NODE_INTEGER, Node::NODE_FLOAT, Node::NODE_STRING
-    };
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a node that can have a description: "+line.to_string());
     std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
-    if (node->indent>=indent)
-      throw std::runtime_error("The indent '"+std::to_string(indent)+"' of an option is not higher than the indent '"+std::to_string(node->indent)+"' of a preceding node: "+line.to_string());
-    if (std::find(allowed.begin(), allowed.end(), node->dtype) == allowed.end())
-      throw std::runtime_error("Description can be set only to str, int, float and bool nodes. Previous node is: "+node->line.to_string());
-    node->description += value_raw;
+    std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+    if (vnode) {
+      if (vnode->indent>=indent)
+	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of an option is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.to_string());
+      vnode->description += value_raw;
+    } else {
+      throw std::runtime_error("Only value nodes (bool, int, float and str) can have descriptions. Previous node is: "+node->line.to_string());
+    }
     return {};
   }  
  

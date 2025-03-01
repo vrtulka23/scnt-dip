@@ -67,10 +67,15 @@ namespace dip {
     }    
   }
   
-  /*
   void Parser::kwd_tags() {
+    std::ostringstream oss;
+    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_TAGS << "[ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      _strip(matchResult[0].str(), KWD_TAGS);
+    }    
   }
-  */
   
   void Parser::kwd_description() {
     std::ostringstream oss;

@@ -4,7 +4,7 @@
 
 namespace dip {
 
-  BaseNode::BaseNode(Parser& parser): constant(false) {
+  BaseNode::BaseNode(Parser& parser) {
     line = parser.line;
     indent = parser.indent;
     name = parser.name;
@@ -16,7 +16,7 @@ namespace dip {
     declared = parser.declared;
   }
 
-  BaseNode::BaseNode(Parser& parser, const NodeDtype dt): constant(false) {
+  BaseNode::BaseNode(Parser& parser, const NodeDtype dt) {
     line = parser.line;
     indent = parser.indent;
     name = parser.name;

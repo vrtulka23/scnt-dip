@@ -70,7 +70,7 @@ namespace dip {
     // if (node==nullptr) node = OptionNode::is_node(parser);
     if (node==nullptr) node = ConstantNode::is_node(parser);
     if (node==nullptr) node = FormatNode::is_node(parser);
-    // if (node==nullptr) node = TagsNode::is_node(parser);
+    if (node==nullptr) node = TagsNode::is_node(parser);
     if (node==nullptr) node = DescriptionNode::is_node(parser);
     // if (node==nullptr) node = ConditionNode::is_node(parser);
     if (node==nullptr) parser.part_name();
@@ -127,9 +127,9 @@ namespace dip {
 	bool new_node = true;
 	for (size_t i=0; i<target.nodes.size(); i++) {
 	  if (target.nodes[i]->name==node->name) {
-	    if (target.nodes[i]->constant)
-	      throw std::runtime_error("Node '"+target.nodes[i]->name+"' is constant and cannot be modified: "+node->line.to_string());
 	    std::shared_ptr<ValueNode> pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+	    if (pnode->constant)
+	      throw std::runtime_error("Node '"+pnode->name+"' is constant and cannot be modified: "+node->line.to_string());
 	    pnode->modify_value(node, target);
 	    new_node = false;
 	  }

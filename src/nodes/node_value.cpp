@@ -4,7 +4,7 @@
 
 namespace dip {
 
-  inline void tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape) {
+  void ValueNode::tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape) {
     std::stringstream ss(str);
     char ch;
     

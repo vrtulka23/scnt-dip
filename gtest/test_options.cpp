@@ -15,8 +15,9 @@ TEST(NodeOptions, Constant) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // constant declaration is not returned as a separate node
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->constant, true); // foo node is set as a constant
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->constant, true); // foo node is set as a constant
 
   // Throw an error if one is trying to override a constant node
   d = dip::DIP();
@@ -41,8 +42,9 @@ TEST(NodeOptions, Description) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // description is not returned as a separate node
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->description, "If foo is true, bar is false");
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->description, "If foo is true, bar is false");
 
   // Throw an error if trying to assign description to unsuported node
   // TODO: The test below works only because the group node is the first node in the list.
@@ -72,8 +74,9 @@ TEST(NodeOptions, Format) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // format is not returned as a separate node
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->format, "[a-z]+");
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->format, "[a-z]+");
   
   // Throw an error if node value does not match expected format
   d = dip::DIP();
@@ -85,6 +88,27 @@ TEST(NodeOptions, Format) {
   d = dip::DIP();
   d.add_string("  foo str = 'bar'");
   d.add_string("!format '[a-z]+'");
+  EXPECT_THROW(d.parse(), std::runtime_error);
+  
+}
+
+TEST(NodeOptions, Tags) {
+  
+  dip::DIP d;    
+  d.add_string("foo str = 'bar'");
+  d.add_string("  !tags ['buzz','word']");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
+  
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->tags[0], "buzz");
+  EXPECT_EQ(vnode->tags[1], "word");
+    
+  // Throw an error if indent is not higher
+  d = dip::DIP();
+  d.add_string("  foo str = 'bar'");
+  d.add_string("!tags '[a-z]+'");
   EXPECT_THROW(d.parse(), std::runtime_error);
   
 }

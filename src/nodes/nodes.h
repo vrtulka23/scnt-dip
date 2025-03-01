@@ -60,7 +60,7 @@ namespace dip {
     // void kwd_options();
     void kwd_constant();
     void kwd_format();
-    // void kwd_tags();
+    void kwd_tags();
     void kwd_description();
     // void kwd_condition();
     void part_indent();
@@ -80,11 +80,8 @@ namespace dip {
   
   class BaseNode: virtual public Node {
   public:
-    bool constant;
-    std::string description;
-    std::string format;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
-    BaseNode(): constant(false) {};
+    BaseNode();
     BaseNode(Parser& parser);
     BaseNode(Parser& parser, const NodeDtype kwd);
     virtual ~BaseNode() = default;
@@ -142,11 +139,12 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
-  /*
   class TagsNode: public BaseNode {
   public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    TagsNode(Parser& parser): BaseNode(parser, Node::NODE_TAGS) {};
+    BaseNode::NodeListType parse(Environment& env) override;
   };
-  */
   
   class DescriptionNode: public BaseNode {
   public:
@@ -177,8 +175,16 @@ namespace dip {
     virtual std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) = 0;
     virtual std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) = 0;
   public:
+    static void tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape);
+    ValueNode(): constant(false) {};
+    ValueNode(Parser& parser): constant(false), BaseNode(parser) {};
+    ValueNode(Parser& parser, const NodeDtype kwd): constant(false), BaseNode(parser, kwd) {};
     virtual ~ValueNode() = default;
     std::unique_ptr<BaseValue> value;
+    std::vector<std::string> tags;
+    bool constant;
+    std::string description;
+    std::string format;
     std::unique_ptr<BaseValue> cast_value();
     std::unique_ptr<BaseValue> cast_value(std::string value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
