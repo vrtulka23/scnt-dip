@@ -59,7 +59,7 @@ namespace dip {
     // void kwd_source();
     // void kwd_options();
     void kwd_constant();
-    // void kwd_format();
+    void kwd_format();
     // void kwd_tags();
     void kwd_description();
     // void kwd_condition();
@@ -82,6 +82,7 @@ namespace dip {
   public:
     bool constant;
     std::string description;
+    std::string format;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
     BaseNode(): constant(false) {};
     BaseNode(Parser& parser);
@@ -97,12 +98,55 @@ namespace dip {
     EmptyNode(Parser& parser): BaseNode(parser, Node::NODE_EMPTY) {};
   };
 
+  /*
+  class ImportNode: public BaseNode {
+  public:
+  };
+  */
+  
+  /*
+  class UnitNode: public BaseNode {
+  public:
+  };
+  */
+  
+  /*
+  class SourceNode: public BaseNode {
+  public:
+  };
+  */
+  
+  /*
+  class CaseNode: public BaseNode {
+  public:
+  };
+  */
+  
+  /*
+  class OptionNode: public BaseNode {
+  public:
+  };
+  */
+  
   class ConstantNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     ConstantNode(Parser& parser): BaseNode(parser, Node::NODE_CONSTANT) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
+  
+  class FormatNode: public BaseNode {
+  public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    FormatNode(Parser& parser): BaseNode(parser, Node::NODE_FORMAT) {};
+    BaseNode::NodeListType parse(Environment& env) override;
+  };
+
+  /*
+  class TagsNode: public BaseNode {
+  public:
+  };
+  */
   
   class DescriptionNode: public BaseNode {
   public:
@@ -111,12 +155,18 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
+  /*
+  class ConditionNode: public BaseNode {
+  public:
+  };
+  */
+  
   class GroupNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     GroupNode(Parser& parser): BaseNode(parser, Node::NODE_GROUP) {};
   };
-  
+    
   class ModificationNode: public BaseNode {
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);

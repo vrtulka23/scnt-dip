@@ -31,6 +31,7 @@ namespace dip {
   constexpr std::string_view KEYWORD_FALSE       = "false";
   constexpr std::string_view KEYWORD_CONSTANT    = "constant";
   constexpr std::string_view KEYWORD_DESCRIPTION = "description";
+  constexpr std::string_view KEYWORD_FORMAT      = "format";
   
   // Various settings
   constexpr int DISPLAY_FLOAT_PRECISION = 4;

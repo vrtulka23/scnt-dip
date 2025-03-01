@@ -57,10 +57,15 @@ namespace dip {
     }    
   } 
   
-  /*
   void Parser::kwd_format() {
+    std::ostringstream oss;
+    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_FORMAT << "[ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      _strip(matchResult[0].str(), KWD_FORMAT);
+    }    
   }
-  */
   
   /*
   void Parser::kwd_tags() {

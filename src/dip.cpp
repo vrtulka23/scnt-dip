@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <regex>
 
 #include "dip.h"
 #include "settings.h"
@@ -68,7 +69,7 @@ namespace dip {
     // if (node==nullptr) node = CaseNode::is_node(parser);
     // if (node==nullptr) node = OptionNode::is_node(parser);
     if (node==nullptr) node = ConstantNode::is_node(parser);
-    // if (node==nullptr) node = FormatNode::is_node(parser);
+    if (node==nullptr) node = FormatNode::is_node(parser);
     // if (node==nullptr) node = TagsNode::is_node(parser);
     if (node==nullptr) node = DescriptionNode::is_node(parser);
     // if (node==nullptr) node = ConditionNode::is_node(parser);
@@ -149,13 +150,18 @@ namespace dip {
       if (vnode) {
 	// Check if all declared nodes have assigned value
 	if (vnode->declared and vnode->value==nullptr) 
-	  throw std::runtime_error("Declared node has <undefined value: "+vnode->line.to_string());
+	  throw std::runtime_error("Declared node has undefined value: "+vnode->line.to_string());
 	// Check if node value is in options
 	// TODO
 	// Check conditions
 	// TODO
 	// Check formats if set for strings
-	// TODO
+	if (vnode->dtype==Node::NODE_STRING and vnode->format.size()>0) {
+	  std::regex pattern(vnode->format);
+	  if (!std::regex_match(vnode->value->to_string(), pattern)) {
+	    throw std::runtime_error("Node value '"+vnode->value->to_string()+"' does not match with expected format '"+vnode->format+"'");
+	  }
+	}
       } else {
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.to_string());
       }

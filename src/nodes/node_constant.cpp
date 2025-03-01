@@ -18,6 +18,8 @@ namespace dip {
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a node that can be constant: "+line.to_string());
     std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
+    if (node->indent>=indent)
+      throw std::runtime_error("The indent '"+std::to_string(indent)+"' of an option is not higher than the indent '"+std::to_string(node->indent)+"' of a preceding node: "+line.to_string());
     if (std::find(allowed.begin(), allowed.end(), node->dtype) == allowed.end())
       throw std::runtime_error("Only str, int, float and bool nodes can be set as constant. Previous node is: "+node->line.to_string());
     node->constant = true;
