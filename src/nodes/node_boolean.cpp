@@ -49,5 +49,14 @@ namespace dip {
     }    
     return std::make_unique<ArrayValue<bool>>(bool_values, shape, BaseValue::VALUE_BOOL);    
   }
+
+  void BooleanNode::set_option(const std::string value_option, const std::string units_option, Environment& env) {
+    throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.to_string());
+  }
+  
+  void BooleanNode::validate_options() {
+    if (format.size()>0)
+      throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.to_string());
+  }
   
 }

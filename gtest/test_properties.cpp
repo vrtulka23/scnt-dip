@@ -7,7 +7,7 @@
 #include "../src/environment.h"
 #include "../src/nodes/nodes.h"
 
-TEST(NodeOptions, Constant) {
+TEST(Properties, Constant) {
   
   dip::DIP d;    
   d.add_string("foo bool = true");
@@ -34,7 +34,7 @@ TEST(NodeOptions, Constant) {
   
 }
 
-TEST(NodeOptions, Description) {
+TEST(Properties, Description) {
   
   dip::DIP d;    
   d.add_string("foo bool = true");
@@ -66,7 +66,7 @@ TEST(NodeOptions, Description) {
   
 }
 
-TEST(NodeOptions, Format) {
+TEST(Properties, Format) {
   
   dip::DIP d;    
   d.add_string("foo str = 'bar'");
@@ -92,7 +92,7 @@ TEST(NodeOptions, Format) {
   
 }
 
-TEST(NodeOptions, Tags) {
+TEST(Properties, Tags) {
   
   dip::DIP d;    
   d.add_string("foo str = 'bar'");
@@ -109,6 +109,86 @@ TEST(NodeOptions, Tags) {
   d = dip::DIP();
   d.add_string("  foo str = 'bar'");
   d.add_string("!tags '[a-z]+'");
+  EXPECT_THROW(d.parse(), std::runtime_error);
+  
+}
+
+TEST(Properties, OptionsBolean) {
+
+  // boolean nodes cannot have options
+  dip::DIP d;    
+  d.add_string("foo bool = true");
+  d.add_string("  !options [false,true]");
+  EXPECT_THROW(d.parse(), std::runtime_error);
+
+}
+
+TEST(Properties, OptionsInteger) {
+  
+  dip::DIP d;    
+  d.add_string("foo int = 32");
+  d.add_string("  !options [16,32,64]");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
+
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options[0].value->to_string(), "16");
+  EXPECT_EQ(vnode->options[1].value->to_string(), "32");
+  EXPECT_EQ(vnode->options[2].value->to_string(), "64");
+
+  // TODO: implement unit conversion of units
+
+  // validate if node value is in options
+  d = dip::DIP();
+  d.add_string("foo int = 1");
+  d.add_string("  !options [16,32,64]");
+  EXPECT_THROW(d.parse(), std::runtime_error);
+  
+}
+
+TEST(Properties, OptionsFloat) {
+  
+  dip::DIP d;    
+  d.add_string("foo float = 2.34");
+  d.add_string("  !options [1,2.34,5.6e7]");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
+
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options[0].value->to_string(), "1.0000");
+  EXPECT_EQ(vnode->options[1].value->to_string(), "2.3400");
+  EXPECT_EQ(vnode->options[2].value->to_string(), "5.6000e+07");
+  
+  // TODO: implement unit conversion of units
+  
+  // validate if node value is in options
+  d = dip::DIP();
+  d.add_string("foo float = 2");
+  d.add_string("  !options [1,2.34,5.6e7]");
+  EXPECT_THROW(d.parse(), std::runtime_error);
+  
+}
+
+TEST(Properties, OptionsString) {
+  
+  dip::DIP d;    
+  d.add_string("foo str = 'bar'");
+  d.add_string("  !options ['bar','snap','pow']");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
+
+  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options[0].value->to_string(), "bar");
+  EXPECT_EQ(vnode->options[1].value->to_string(), "snap");
+  EXPECT_EQ(vnode->options[2].value->to_string(), "pow");
+  
+  // validate if node value is in options
+  d = dip::DIP();
+  d.add_string("foo str = 'buzz'");
+  d.add_string("  !options ['bar','snap','pow']");
   EXPECT_THROW(d.parse(), std::runtime_error);
   
 }

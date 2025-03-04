@@ -69,7 +69,7 @@ namespace dip {
     if (dimension.size()>0) {
       std::vector<std::string> value_inputs;
       std::vector<int> shape;
-      tokenize_array_values(value_input, value_inputs, shape);
+      ValueNode::tokenize_array_values(value_input, value_inputs, shape);
       return cast_array_value(value_inputs, shape);
     } else {
       return cast_scalar_value(value_input);
@@ -93,5 +93,38 @@ namespace dip {
     // TODO: add conversion to original units
     set_value(std::move(value));
   }
+
+  void ValueNode::validate_constant() {
+    if (constant)
+      throw std::runtime_error("Node '"+name+"' is constant and cannot be modified: "+line.to_string());
+  }
   
+  void ValueNode::validate_definition() {
+    if (declared and value==nullptr) 
+      throw std::runtime_error("Declared node has undefined value: "+line.to_string());
+  }
+  
+  void ValueNode::validate_options() {
+    if (options.size()>0) {
+      bool match = false;
+      for (int i=0; i<options.size(); i++) {
+	if (options[i].value and value->equals_to(options[i].value.get()))
+	  match = true;
+      }
+      if (!match) {
+	std::ostringstream oss;
+	for (int i=0; i<options.size(); i++) {
+	  if (i>0) oss << ", ";
+	  oss << options[i].value->to_string();
+	}
+	throw std::runtime_error("Value '"+value->to_string()+"' of node '"+name+"' doesn't match with any option: "+oss.str());
+      }
+    }
+  }
+
+  void ValueNode::validate_format() {
+    if (format.size()>0)
+      throw std::runtime_error("Format property can be used only with string nodes: "+line.to_string());
+  }
+
 }

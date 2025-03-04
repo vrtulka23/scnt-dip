@@ -18,12 +18,13 @@ namespace dip {
     enum NodeDtype {
       NODE_NONE, NODE_EMPTY, NODE_GROUP, NODE_UNIT, NODE_SOURCE, NODE_CASE, NODE_MODIFICATION,
       NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE,
-      NODE_OPTION, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
+      NODE_OPTIONS, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
     };
     Line line;                             // in Python this were 'code' & 'source' variables
     int indent;
     std::string name;
     std::string value_raw;
+    std::string units_raw;
     NodeDtype dtype;                       // in Python this was 'keyword' variable
     std::string dtype_raw;                 // in Python this was 'dtype' variable
     std::vector<std::string> dtype_prop;
@@ -42,7 +43,7 @@ namespace dip {
     enum ParsingFlag {
       KWD_CASE, KWD_UNIT, KWD_SOURCE,
       KWD_OPTIONS, KWD_CONSTANT, KWD_FORMAT, KWD_TAGS, KWD_DESCRIPTION, KWD_CONDITION,
-      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_COMMENT,
+      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_UNITS, PART_COMMENT,
       PART_REFERENCE, PART_FUNCTION, PART_EXPRESSION
     };
     std::string code;                      // in Python this was 'ccode', the original 'code' is now in the 'line' struct
@@ -57,7 +58,7 @@ namespace dip {
     // void kwd_case();
     // void kwd_unit();
     // void kwd_source();
-    // void kwd_options();
+    void kwd_options();
     void kwd_constant();
     void kwd_format();
     void kwd_tags();
@@ -119,11 +120,12 @@ namespace dip {
   };
   */
   
-  /*
-  class OptionNode: public BaseNode {
+  class OptionsNode: public BaseNode {
   public:
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    OptionsNode(Parser& parser): BaseNode(parser, Node::NODE_OPTIONS) {};
+    BaseNode::NodeListType parse(Environment& env) override;
   };
-  */
   
   class ConstantNode: public BaseNode {
   public:
@@ -174,6 +176,12 @@ namespace dip {
   class ValueNode: virtual public BaseNode {
     virtual std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) = 0;
     virtual std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) = 0;
+  protected:
+    struct OptionStruct {
+      std::unique_ptr<BaseValue> value;
+      std::string value_raw;
+      std::string units_raw;
+    };
   public:
     static void tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape);
     ValueNode(): constant(false) {};
@@ -184,11 +192,17 @@ namespace dip {
     std::vector<std::string> tags;
     bool constant;
     std::string description;
+    std::vector<OptionStruct> options;
     std::string format;
     std::unique_ptr<BaseValue> cast_value();
     std::unique_ptr<BaseValue> cast_value(std::string value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
     void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
+    virtual void set_option(const std::string value_option, const std::string units_option, Environment& env) = 0;
+    void validate_constant();
+    void validate_definition();
+    virtual void validate_options();
+    virtual void validate_format();
   };
   
   class BooleanNode: public ValueNode {
@@ -198,6 +212,8 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void validate_options() override;
   };  
   
   class IntegerNode: public ValueNode {
@@ -208,6 +224,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
   };  
   
   class FloatNode: public ValueNode {
@@ -218,6 +235,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     FloatNode(Parser& parser): BaseNode(parser, Node::NODE_FLOAT) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
   };  
   
   class StringNode: public ValueNode {
@@ -227,6 +245,8 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void validate_format() override;
   };  
   
 }

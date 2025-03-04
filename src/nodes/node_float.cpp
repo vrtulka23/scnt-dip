@@ -61,4 +61,20 @@ namespace dip {
     }
   }
   
+  void FloatNode::set_option(const std::string value_option, const std::string units_option, Environment& env) {
+    // TODO: variable precision x should be implemented
+    std::unique_ptr<BaseValue> ovalue;
+    if (dtype_prop[0]=="32") {
+      ovalue = std::make_unique<ScalarValue<float>>(std::stof(value_option), BaseValue::VALUE_FLOAT32);
+    } else if (dtype_prop[0]=="64" or dtype_prop[0]=="") {
+      ovalue = std::make_unique<ScalarValue<double>>(std::stod(value_option), BaseValue::VALUE_FLOAT64);
+    } else if (dtype_prop[0]=="128" and max_float_size==128) {
+      ovalue = std::make_unique<ScalarValue<long double>>(std::stold(value_option), BaseValue::VALUE_FLOAT128);
+    } else {
+      throw std::runtime_error("Option value cannot be casted as "+dtype_prop[0]+" bit float type from the given string: "+value_option);
+    }
+    // TODO: cast option value into the units of the node
+    options.push_back({std::move(ovalue), value_option, units_option});
+  }
+  
 }

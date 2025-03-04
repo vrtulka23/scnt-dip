@@ -1,7 +1,6 @@
 #include <sstream>
 #include <string>
 #include <iostream>
-#include <regex>
 
 #include "dip.h"
 #include "settings.h"
@@ -67,7 +66,7 @@ namespace dip {
     // if (node==nullptr) node = UnitNode::is_node(parser);
     // if (node==nullptr) node = SourceNode::is_node(parser);
     // if (node==nullptr) node = CaseNode::is_node(parser);
-    // if (node==nullptr) node = OptionNode::is_node(parser);
+    if (node==nullptr) node = OptionsNode::is_node(parser);
     if (node==nullptr) node = ConstantNode::is_node(parser);
     if (node==nullptr) node = FormatNode::is_node(parser);
     if (node==nullptr) node = TagsNode::is_node(parser);
@@ -128,8 +127,7 @@ namespace dip {
 	for (size_t i=0; i<target.nodes.size(); i++) {
 	  if (target.nodes[i]->name==node->name) {
 	    std::shared_ptr<ValueNode> pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
-	    if (pnode->constant)
-	      throw std::runtime_error("Node '"+pnode->name+"' is constant and cannot be modified: "+node->line.to_string());
+	    pnode->validate_constant();
 	    pnode->modify_value(node, target);
 	    new_node = false;
 	  }
@@ -148,20 +146,11 @@ namespace dip {
     for (ssize_t i=0; i<target.nodes.size(); i++) {
       std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
       if (vnode) {
-	// Check if all declared nodes have assigned value
-	if (vnode->declared and vnode->value==nullptr) 
-	  throw std::runtime_error("Declared node has undefined value: "+vnode->line.to_string());
-	// Check if node value is in options
-	// TODO
+	vnode->validate_definition();
+	vnode->validate_options();
 	// Check conditions
 	// TODO
-	// Check formats if set for strings
-	if (vnode->dtype==Node::NODE_STRING and vnode->format.size()>0) {
-	  std::regex pattern(vnode->format);
-	  if (!std::regex_match(vnode->value->to_string(), pattern)) {
-	    throw std::runtime_error("Node value '"+vnode->value->to_string()+"' does not match with expected format '"+vnode->format+"'");
-	  }
-	}
+	vnode->validate_format();
       } else {
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.to_string());
       }

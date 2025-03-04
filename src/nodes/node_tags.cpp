@@ -5,25 +5,28 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> DescriptionNode::is_node(Parser& parser) {
-    parser.kwd_description();
-    if (parser.is_parsed(Parser::KWD_DESCRIPTION)) {
+  std::shared_ptr<BaseNode> TagsNode::is_node(Parser& parser) {
+    parser.kwd_tags();
+    if (parser.is_parsed(Parser::KWD_TAGS)) {
       parser.part_value();
       parser.part_comment();
-      return std::make_shared<DescriptionNode>(parser);
+      return std::make_shared<TagsNode>(parser);
     }
     return nullptr;
   }
   
-  BaseNode::NodeListType DescriptionNode::parse(Environment& env) {
+  BaseNode::NodeListType TagsNode::parse(Environment& env) {
     if (env.nodes.size()==0)
-      throw std::runtime_error("Could not find a node that can have a description: "+line.to_string());
+      throw std::runtime_error("Could not find a node that can have tags: "+line.to_string());
     std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
     std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.to_string());
-      vnode->description += value_raw;
+      std::vector<std::string> value_inputs;
+      std::vector<int> shape;
+      ValueNode::tokenize_array_values(value_raw, value_inputs, shape);
+      vnode->tags = value_inputs;
     } else {
       throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.to_string());
     }

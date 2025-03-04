@@ -1,3 +1,5 @@
+#include <regex>
+
 #include "nodes.h"
 
 namespace dip {
@@ -34,5 +36,18 @@ namespace dip {
     return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, BaseValue::VALUE_STRING);
   }
   
+  void StringNode::set_option(const std::string value_option, const std::string units_option, Environment& env) {
+    std::unique_ptr<BaseValue> ovalue = std::make_unique<ScalarValue<std::string>>(value_option, BaseValue::VALUE_STRING);
+    options.push_back({std::move(ovalue), value_option, units_option});
+  }
 
+  void StringNode::validate_format() {
+    if (format.size()>0) {
+      std::regex pattern(format);
+      if (!std::regex_match(value->to_string(), pattern)) {
+	throw std::runtime_error("Node value '"+value->to_string()+"' does not match with expected format '"+format+"'");
+      }
+    }
+  }
+  
 }

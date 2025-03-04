@@ -42,10 +42,16 @@ namespace dip {
   }
   */
   
-  /*
   void Parser::kwd_options() {
+    std::ostringstream oss;
+    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_OPTIONS << "[ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      dimension.push_back({0,-1});
+      _strip(matchResult[0].str(), KWD_OPTIONS);
+    }    
   }
-  */
   
   void Parser::kwd_constant() {
     std::ostringstream oss;
@@ -234,13 +240,20 @@ namespace dip {
   }
     
   void Parser::part_units() {
+    // In numerical expressions starting signs +-*/ have to be explicitely excluded
+    std::regex pattern1("^[ ]+([^#= ]+)"), pattern2("^[ ]+[/*+-]+");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern1) and !std::regex_match(code, pattern2)) {
+      units_raw = matchResult[1].str();
+      _strip(matchResult[0].str(), PART_UNITS);
+    }        
   }
     
   void Parser::part_comment() {
     std::regex pattern("^[ ]*#[ ]*(.*)$");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      comment = matchResult[0].str();
+      comment = matchResult[1].str();
       _strip(matchResult[0].str(), PART_COMMENT);
     }    
   }

@@ -15,7 +15,8 @@ namespace dip {
     BaseValue(ValueDtype dt): dtype(dt) {};
     virtual ~BaseValue() = default;
     virtual void print() = 0;
-    virtual std::string to_string(int precision=0) = 0;
+    virtual std::string to_string(const int precision=0) = 0;
+    virtual bool equals_to(const BaseValue* other) const = 0;
   };
 
   // Scalar values
@@ -26,15 +27,22 @@ namespace dip {
     T value;
   public:
     BaseScalarValue(const T& val, const ValueDtype dt): value(val), BaseValue(dt) {};
-    void print() {std::cout << value << std::endl;};
+    void print() override {std::cout << value << std::endl;};
     T get_value() {return value;};
   protected:
     virtual void value_to_string(std::ostringstream& oss, int precision=0) = 0;
   public:
-    std::string to_string(int precision=0) {
+    std::string to_string(const int precision=0) override {
       std::ostringstream oss;
       value_to_string(oss, precision);
       return oss.str();
+    };
+    bool equals_to(const BaseValue* other) const override {
+      const BaseScalarValue<T>* otherT = dynamic_cast<const BaseScalarValue<T>*>(other);
+      if (otherT)
+	return (value==otherT->value) ? true : false;
+      else
+	throw std::runtime_error("Could not convert BaseValue into the BaseScalarValue.");
     };
   };
   
@@ -93,7 +101,7 @@ namespace dip {
   public:
     BaseArrayValue(const T& val, const std::vector<int>& sh, const ValueDtype dt): value({val}), shape(sh), BaseValue(dt) {};
     BaseArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const ValueDtype dt): value(arr), shape(sh), BaseValue(dt) {};
-    void print() {std::cout << to_string() << std::endl;};
+    void print() override {std::cout << to_string() << std::endl;};
     std::vector<T> get_value() {return value;};
     std::vector<int> get_shape() {return shape;};
   protected:
@@ -114,12 +122,27 @@ namespace dip {
       return oss.str();
     }
   public:
-    std::string to_string(int precision=0) {
+    std::string to_string(const int precision=0) override {
       size_t offset = 0;
       if (precision==0) {
 	return to_string_dim(offset);
       } else {
 	return to_string_dim(offset, precision);
+      }
+    };
+    bool equals_to(const BaseValue* other) const override {
+      const BaseArrayValue<T>* otherT = dynamic_cast<const BaseArrayValue<T>*>(other);
+      if (otherT) {
+	bool is_equal = true;
+	for (int i=0; i<value.size();i++)
+	  if (value[i]!=otherT->value[i])
+	    is_equal = false;
+	for (int i=0; i<shape.size();i++)
+	  if (shape[i]!=otherT->shape[i])
+	    is_equal = false;	
+	return is_equal;
+      } else {
+	throw std::runtime_error("Could not convert BaseValue into a BaseArrayValue");
       }
     };
   };
