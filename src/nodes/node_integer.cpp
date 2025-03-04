@@ -95,35 +95,35 @@ namespace dip {
     }    
   }
 
-  void IntegerNode::set_option(const std::string value_option, const std::string units_option, Environment& env) {
+  void IntegerNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
     // TODO: variable precision x should be implemented
     std::unique_ptr<BaseValue> ovalue;
     if (dtype_prop[1]=="16") {
       if (dtype_prop[0]=="u") {
-	ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(value_option), BaseValue::VALUE_UINT16);
+	ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), BaseValue::VALUE_UINT16);
       } else {
-	ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(value_option), BaseValue::VALUE_INT16);
+	ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), BaseValue::VALUE_INT16);
       }
     } else if (dtype_prop[1]=="32" or dtype_prop[1]=="") {
       if (dtype_prop[0]=="u") {
-	ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(value_option), BaseValue::VALUE_UINT32);
+	ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), BaseValue::VALUE_UINT32);
       } else {
-	ovalue = std::make_unique<ScalarValue<int>>(std::stoi(value_option), BaseValue::VALUE_INT32);
+	ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), BaseValue::VALUE_INT32);
       }
     } else if (dtype_prop[1]=="64") {
       if (dtype_prop[0]=="u") {
-	ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(value_option), BaseValue::VALUE_UINT64);
+	ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), BaseValue::VALUE_UINT64);
       } else {
-	ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(value_option), BaseValue::VALUE_INT64);
+	ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), BaseValue::VALUE_INT64);
       }
     } else {
       if (dtype_prop[0]=="u")
-	throw std::runtime_error("Option value cannot be casted as unsigned "+dtype_prop[0]+" bit integer type from the given string: "+value_option);
+	throw std::runtime_error("Option value cannot be casted as unsigned "+dtype_prop[0]+" bit integer type from the given string: "+option_value);
       else
-	throw std::runtime_error("Option value cannot be casted as "+dtype_prop[0]+" bit integer type from the given string: "+value_option);
+	throw std::runtime_error("Option value cannot be casted as "+dtype_prop[0]+" bit integer type from the given string: "+option_value);
     }
     // TODO: cast option value into the units of the node
-    options.push_back({std::move(ovalue), value_option, units_option});
+    options.push_back({std::move(ovalue), option_value, option_units});
   }
 
 }

@@ -12,7 +12,7 @@ TEST(Modifications, DataTypeNode) {
   dip::Environment env = d.parse();
 
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "2");
+  EXPECT_EQ(node->value_raw, "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -31,7 +31,7 @@ TEST(Modifications, ModificationNode) {
   dip::Environment env = d.parse();
 
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "2");
+  EXPECT_EQ(node->value_raw, "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -43,7 +43,14 @@ TEST(Modifications, ModificationNode) {
   // in case modified node was not defined throw an exception
   d = dip::DIP();
   d.add_string("foo = 3"); 
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Modifying undefined node: [DIP4_STRING1:0] foo = 3");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -55,7 +62,7 @@ TEST(Modifications, Declarations) {
   dip::Environment env = d.parse();
 
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "");
+  EXPECT_EQ(node->value_raw, "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -67,7 +74,14 @@ TEST(Modifications, Declarations) {
 
   // if node is declared but has no value throw an exception
   d = dip::DIP();
-  d.add_string("foo int"); 
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  d.add_string("foo int");
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Declared node has undefined value: [DIP6_STRING1:0] foo int");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
  
 }

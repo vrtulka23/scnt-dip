@@ -148,14 +148,12 @@ namespace dip {
       if (vnode) {
 	vnode->validate_definition();
 	vnode->validate_options();
-	// Check conditions
-	// TODO
+	// TODO Check conditions
 	vnode->validate_format();
       } else {
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.to_string());
       }
     }
-    // TODO: node validation
     return target;
   }
 

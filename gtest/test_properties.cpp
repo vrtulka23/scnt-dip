@@ -24,13 +24,27 @@ TEST(Properties, Constant) {
   d.add_string("foo bool = true");
   d.add_string("  !constant");
   d.add_string("foo bool = false");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Node 'foo' is constant and cannot be modified: [DIP20_STRING1:0] foo bool = true");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
 
   // Throw an error if indent is not higher
   d = dip::DIP();
   d.add_string("  foo bool = true");
   d.add_string("!constant");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP21_STRING2:0] !constant");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -56,13 +70,27 @@ TEST(Properties, Description) {
   d.add_string("foo");
   d.add_string("  !description 'This is a group node'");
   d.add_string("bar int = 3");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Could not find a node that can have a description: [DIP23_STRING2:0]   !description 'This is a group node'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
   // Throw an error if indent is not higher
   d = dip::DIP();
   d.add_string("  foo bool = true");
   d.add_string("!description 'If foo is true, bar is false'");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP24_STRING2:0] !description 'If foo is true, bar is false'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -82,13 +110,27 @@ TEST(Properties, Format) {
   d = dip::DIP();
   d.add_string("foo str = 'sdf34'");
   d.add_string("  !format '[a-z]+'");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Node value 'sdf34' does not match with expected format '[a-z]+'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
   // Throw an error if indent is not higher
   d = dip::DIP();
   d.add_string("  foo str = 'bar'");
   d.add_string("!format '[a-z]+'");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP27_STRING2:0] !format '[a-z]+'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -109,7 +151,14 @@ TEST(Properties, Tags) {
   d = dip::DIP();
   d.add_string("  foo str = 'bar'");
   d.add_string("!tags '[a-z]+'");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP29_STRING2:0] !tags '[a-z]+'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -119,7 +168,14 @@ TEST(Properties, OptionsBolean) {
   dip::DIP d;    
   d.add_string("foo bool = true");
   d.add_string("  !options [false,true]");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Option property is not implemented for boolean nodes: [DIP30_STRING1:0] foo bool = true");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
 
 }
 
@@ -143,7 +199,14 @@ TEST(Properties, OptionsInteger) {
   d = dip::DIP();
   d.add_string("foo int = 1");
   d.add_string("  !options [16,32,64]");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Value '1' of node 'foo' doesn't match with any option: 16, 32, 64");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -167,7 +230,14 @@ TEST(Properties, OptionsFloat) {
   d = dip::DIP();
   d.add_string("foo float = 2");
   d.add_string("  !options [1,2.34,5.6e7]");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Value '2.0000' of node 'foo' doesn't match with any option: 1.0000, 2.3400, 5.6000e+07");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }
 
@@ -178,17 +248,24 @@ TEST(Properties, OptionsString) {
   d.add_string("  !options ['bar','snap','pow']");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
-
+ 
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->options[0].value->to_string(), "bar");
   EXPECT_EQ(vnode->options[1].value->to_string(), "snap");
   EXPECT_EQ(vnode->options[2].value->to_string(), "pow");
-  
+ 
   // validate if node value is in options
   d = dip::DIP();
   d.add_string("foo str = 'buzz'");
   d.add_string("  !options ['bar','snap','pow']");
-  EXPECT_THROW(d.parse(), std::runtime_error);
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Value 'buzz' of node 'foo' doesn't match with any option: bar, snap, pow");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
   
 }

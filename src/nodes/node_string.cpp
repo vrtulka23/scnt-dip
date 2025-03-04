@@ -36,9 +36,9 @@ namespace dip {
     return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, BaseValue::VALUE_STRING);
   }
   
-  void StringNode::set_option(const std::string value_option, const std::string units_option, Environment& env) {
-    std::unique_ptr<BaseValue> ovalue = std::make_unique<ScalarValue<std::string>>(value_option, BaseValue::VALUE_STRING);
-    options.push_back({std::move(ovalue), value_option, units_option});
+  void StringNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
+    std::unique_ptr<BaseValue> ovalue = std::make_unique<ScalarValue<std::string>>(option_value, BaseValue::VALUE_STRING);
+    options.push_back({std::move(ovalue), option_value, option_units});
   }
 
   void StringNode::validate_format() {

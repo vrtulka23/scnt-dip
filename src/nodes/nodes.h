@@ -198,7 +198,7 @@ namespace dip {
     std::unique_ptr<BaseValue> cast_value(std::string value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
     void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
-    virtual void set_option(const std::string value_option, const std::string units_option, Environment& env) = 0;
+    virtual void set_option(const std::string option_value, const std::string option_units, Environment& env) = 0;
     void validate_constant();
     void validate_definition();
     virtual void validate_options();
@@ -212,7 +212,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_options() override;
   };  
   
@@ -224,7 +224,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
   };  
   
   class FloatNode: public ValueNode {
@@ -235,7 +235,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     FloatNode(Parser& parser): BaseNode(parser, Node::NODE_FLOAT) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
   };  
   
   class StringNode: public ValueNode {
@@ -245,7 +245,7 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string value_option, const std::string units_option, Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_format() override;
   };  
   

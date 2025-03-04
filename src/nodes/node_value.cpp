@@ -91,6 +91,7 @@ namespace dip {
 	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw+"'");
     std::unique_ptr<BaseValue> value = cast_value(node->value_raw);
     // TODO: add conversion to original units
+    value_raw = node->value_raw;
     set_value(std::move(value));
   }
 
