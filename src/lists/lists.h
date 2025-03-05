@@ -64,11 +64,11 @@ namespace dip {
   
   struct Case {
     std::string path;          // case path up to last @ sign
-    bool value;                // final value of the case
     std::string code;          // code line with the case
-    std::string expr;          // case expression
+    std::string expr;          // case logical expression
+    bool value;                // final value of the case
     std::string branch_id;     // branch ID
-    std::string branch_part;   // branch part
+    int branch_part;           // pat on the branch
     std::string case_id;       // case ID
     std::string case_type;     // one of the types: case/else/end
   };
@@ -88,9 +88,9 @@ namespace dip {
     int num_branches;
     std::string get_branch_id();
     std::string get_case_id();
-    std::string open_branch(const std::string case_id);
-    std::string switch_case(const std::string case_id, const std::string case_type);
-    std::string close_branch();
+    int open_branch(const std::string case_id);
+    int switch_case(const std::string case_id, const std::string case_type);
+    void close_branch();
   public:
     int register_case();
     bool false_case();

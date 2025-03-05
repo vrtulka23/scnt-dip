@@ -13,15 +13,15 @@ namespace dip {
 
   BaseNode::NodeListType ConstantNode::parse(Environment& env) {
     if (env.nodes.size()==0)
-      throw std::runtime_error("Could not find a node that can be constant: "+line.to_string());
+      throw std::runtime_error("Could not find a node that can be constant: "+line.code);
     std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
     std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
-	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(node->indent)+"' of a preceding node: "+line.to_string());
+	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(node->indent)+"' of a preceding node: "+line.code);
       vnode->constant = true;
     } else {
-      throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.to_string());
+      throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.code);
     }
     return {};
   }  

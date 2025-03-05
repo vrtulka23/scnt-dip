@@ -17,18 +17,18 @@ namespace dip {
   
   BaseNode::NodeListType TagsNode::parse(Environment& env) {
     if (env.nodes.size()==0)
-      throw std::runtime_error("Could not find a node that can have tags: "+line.to_string());
+      throw std::runtime_error("Could not find a node that can have tags: "+line.code);
     std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
     std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
-	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.to_string());
+	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);
       std::vector<std::string> value_inputs;
       std::vector<int> shape;
       ValueNode::tokenize_array_values(value_raw, value_inputs, shape);
       vnode->tags = value_inputs;
     } else {
-      throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.to_string());
+      throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.code);
     }
     return {};
   }  

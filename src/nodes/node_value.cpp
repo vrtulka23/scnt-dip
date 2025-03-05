@@ -97,12 +97,12 @@ namespace dip {
 
   void ValueNode::validate_constant() {
     if (constant)
-      throw std::runtime_error("Node '"+name+"' is constant and cannot be modified: "+line.to_string());
+      throw std::runtime_error("Node '"+name+"' is constant and cannot be modified: "+line.code);
   }
   
   void ValueNode::validate_definition() {
     if (declared and value==nullptr) 
-      throw std::runtime_error("Declared node has undefined value: "+line.to_string());
+      throw std::runtime_error("Declared node has undefined value: "+line.code);
   }
   
   void ValueNode::validate_options() {
@@ -125,7 +125,7 @@ namespace dip {
 
   void ValueNode::validate_format() {
     if (format.size()>0)
-      throw std::runtime_error("Format property can be used only with string nodes: "+line.to_string());
+      throw std::runtime_error("Format property can be used only with string nodes: "+line.code);
   }
 
 }

@@ -65,7 +65,7 @@ namespace dip {
     // if (node==nullptr) node = ImportNode::is_node(parser);
     // if (node==nullptr) node = UnitNode::is_node(parser);
     // if (node==nullptr) node = SourceNode::is_node(parser);
-    // if (node==nullptr) node = CaseNode::is_node(parser);
+    if (node==nullptr) node = CaseNode::is_node(parser);
     if (node==nullptr) node = OptionsNode::is_node(parser);
     if (node==nullptr) node = ConstantNode::is_node(parser);
     if (node==nullptr) node = FormatNode::is_node(parser);
@@ -81,7 +81,7 @@ namespace dip {
     if (node==nullptr) node = IntegerNode::is_node(parser);
     if (node==nullptr) node = FloatNode::is_node(parser);
     if (node==nullptr) node = StringNode::is_node(parser);
-    // TODO: TableNode
+    // if (node==nullptr) node = TableNode::is_node(parser);
     // TODO: decode symbols
     return node;
   }
@@ -136,7 +136,7 @@ namespace dip {
 	  if (node->dtype==Node::NODE_MODIFICATION) {
 	    std::string prefix = "DIP"+std::to_string(name)+"_"+std::string(STRING_SOURCE);
 	    if (node->line.source.name.compare(0, prefix.size(), prefix) == 0)
-	      throw std::runtime_error("Modifying undefined node: "+node->line.to_string());
+	      throw std::runtime_error("Modifying undefined node: "+node->line.code);
 	  }
 	  target.nodes.push_back(node);
 	}
@@ -151,7 +151,7 @@ namespace dip {
 	// TODO Check conditions
 	vnode->validate_format();
       } else {
-	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.to_string());
+	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.code);
       }
     }
     return target;

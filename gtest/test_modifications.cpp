@@ -47,7 +47,7 @@ TEST(Modifications, ModificationNode) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Modifying undefined node: [DIP4_STRING1:0] foo = 3");
+    EXPECT_STREQ(e.what(), "Modifying undefined node: foo = 3");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -79,7 +79,7 @@ TEST(Modifications, Declarations) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Declared node has undefined value: [DIP6_STRING1:0] foo int");
+    EXPECT_STREQ(e.what(), "Declared node has undefined value: foo int");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

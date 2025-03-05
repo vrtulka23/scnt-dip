@@ -27,10 +27,27 @@ namespace dip {
    * Directive keywords
    */
 
-  /*
   void Parser::kwd_case() {
+    std::ostringstream oss;
+    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_CONDITION << "]" << KEYWORD_CASE << ")[ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      name = matchResult[1].str();
+      _strip(matchResult[0].str(), KWD_CASE);
+    } else {
+      oss.str("");
+      oss.clear();
+      oss << "^[a-zA-Z0-9_.-]*(";
+      oss << "[" << SIGN_CONDITION << "]" << KEYWORD_ELSE << "|";
+      oss << "[" << SIGN_CONDITION << "]" << KEYWORD_END  << ")";
+      pattern = oss.str();
+      if (std::regex_search(code, matchResult, pattern)) {
+	name = matchResult[0].str();
+	_strip(matchResult[0].str(), KWD_CASE);
+      }
+    }
   }
-  */
   
   /*
   void Parser::kwd_unit() {

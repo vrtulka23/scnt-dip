@@ -28,7 +28,7 @@ TEST(Properties, Constant) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Node 'foo' is constant and cannot be modified: [DIP20_STRING1:0] foo bool = true");
+    EXPECT_STREQ(e.what(), "Node 'foo' is constant and cannot be modified: foo bool = true");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -41,7 +41,7 @@ TEST(Properties, Constant) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP21_STRING2:0] !constant");
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: !constant");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -74,7 +74,7 @@ TEST(Properties, Description) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Could not find a node that can have a description: [DIP23_STRING2:0]   !description 'This is a group node'");
+    EXPECT_STREQ(e.what(), "Could not find a node that can have a description:   !description 'This is a group node'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -87,7 +87,7 @@ TEST(Properties, Description) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP24_STRING2:0] !description 'If foo is true, bar is false'");
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: !description 'If foo is true, bar is false'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -127,7 +127,7 @@ TEST(Properties, Format) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP27_STRING2:0] !format '[a-z]+'");
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: !format '[a-z]+'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -155,7 +155,7 @@ TEST(Properties, Tags) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: [DIP29_STRING2:0] !tags '[a-z]+'");
+    EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: !tags '[a-z]+'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -172,7 +172,7 @@ TEST(Properties, OptionsBolean) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Option property is not implemented for boolean nodes: [DIP30_STRING1:0] foo bool = true");
+    EXPECT_STREQ(e.what(), "Option property is not implemented for boolean nodes: foo bool = true");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

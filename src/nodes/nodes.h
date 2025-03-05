@@ -20,16 +20,20 @@ namespace dip {
       NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE,
       NODE_OPTIONS, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
     };
-    Line line;                             // in Python this were 'code' & 'source' variables
-    int indent;
-    std::string name;
-    std::string value_raw;
-    std::string units_raw;
-    NodeDtype dtype;                       // in Python this was 'keyword' variable
-    std::string dtype_raw;                 // in Python this was 'dtype' variable
-    std::vector<std::string> dtype_prop;
-    bool declared;                         // in Python this was 'defined' variable
-    DimensionType dimension;
+    Line line;                             // source code line information; in Python this were 'code' & 'source' variables
+    NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable
+    std::string dtype_raw;                 // data type string; in Python this was 'dtype' variable
+    std::vector<std::string> dtype_prop;   // data type properties (e.g. unsigned/precision)
+    int indent;                            // indent of a node
+    std::string name;                      // node name
+    std::string value_raw;                 // raw value string
+    std::string value_ref;                 // reference string
+    std::string value_fn;                  // function name
+    std::string value_expr;                // expression string
+    //std::tuple<std::string,> value_slice;
+    std::string units_raw;                 // raw units string
+    bool declared;                         // is node a declaration?; in Python this was 'defined' variable
+    DimensionType dimension;               // list of array dimensions
     Node(): indent(0), declared(false), dtype(NODE_NONE) {};
     Node(const Line& l): line(l), indent(0), declared(false), dtype(NODE_NONE) {};
     Node(const NodeDtype kwd): indent(0), declared(false), dtype(kwd) {};
@@ -55,7 +59,7 @@ namespace dip {
     Parser(const Line& l): Node(l), code(l.code) {};
     bool do_continue();
     bool is_parsed(ParsingFlag flag);
-    // void kwd_case();
+    void kwd_case();
     // void kwd_unit();
     // void kwd_source();
     void kwd_options();
@@ -81,6 +85,8 @@ namespace dip {
   
   class BaseNode: virtual public Node {
   public:
+    std::string branch_id;
+    std::string case_id;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
     BaseNode();
     BaseNode(Parser& parser);
@@ -114,11 +120,15 @@ namespace dip {
   };
   */
   
-  /*
   class CaseNode: public BaseNode {
   public:
+    bool value;             // case value
+    int case_id;            // ID of a case
+    std::string case_type;  // type of a case
+    static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    CaseNode(Parser& parser): BaseNode(parser, Node::NODE_CASE), case_id(0), value(false) {};
+    BaseNode::NodeListType parse(Environment& env) override;
   };
-  */
   
   class OptionsNode: public BaseNode {
   public:
@@ -248,6 +258,12 @@ namespace dip {
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_format() override;
   };  
+
+  /*
+  class TableNode: public ValueNode {
+  public:
+  };
+  */
   
 }
   

@@ -51,12 +51,12 @@ namespace dip {
   }
 
   void BooleanNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
-    throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.to_string());
+    throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.code);
   }
   
   void BooleanNode::validate_options() {
     if (format.size()>0)
-      throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.to_string());
+      throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.code);
   }
   
 }
