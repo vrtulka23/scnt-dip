@@ -26,7 +26,8 @@ namespace dip {
     std::vector<std::string> dtype_prop;   // data type properties (e.g. unsigned/precision)
     int indent;                            // indent of a node
     std::string name;                      // node name
-    std::string value_raw;                 // raw value string
+    std::vector<std::string> value_raw;    // raw value string(s)
+    std::vector<int> value_shape;          // shape of an array value
     std::string value_ref;                 // reference string
     std::string value_fn;                  // function name
     std::string value_expr;                // expression string
@@ -47,7 +48,7 @@ namespace dip {
     enum ParsingFlag {
       KWD_CASE, KWD_UNIT, KWD_SOURCE,
       KWD_OPTIONS, KWD_CONSTANT, KWD_FORMAT, KWD_TAGS, KWD_DESCRIPTION, KWD_CONDITION,
-      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_VALUE, PART_UNITS, PART_COMMENT,
+      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL, PART_ARRAY, PART_VALUE, PART_UNITS, PART_COMMENT,
       PART_REFERENCE, PART_FUNCTION, PART_EXPRESSION
     };
     std::string code;                      // in Python this was 'ccode', the original 'code' is now in the 'line' struct
@@ -57,6 +58,8 @@ namespace dip {
     void _strip(const std::string text, ParsingFlag flag);
   public:
     Parser(const Line& l): Node(l), code(l.code) {};
+    static void encode_escape_symbols(std::string& str);
+    static void decode_escape_symbols(std::string& str);
     bool do_continue();
     bool is_parsed(ParsingFlag flag);
     void kwd_case();
@@ -73,6 +76,7 @@ namespace dip {
     void part_type();
     void part_dimension();
     void part_equal();
+    void part_array();
     void part_value();
     void part_reference(const bool inject=false);
     void part_slice();
@@ -93,7 +97,6 @@ namespace dip {
     BaseNode(Parser& parser, const NodeDtype kwd);
     virtual ~BaseNode() = default;
     virtual NodeListType parse(Environment& env);
-    std::string clean_name();
   };
 
   class EmptyNode: public BaseNode {
@@ -193,7 +196,6 @@ namespace dip {
       std::string units_raw;
     };
   public:
-    static void tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape);
     ValueNode(): constant(false) {};
     ValueNode(Parser& parser): constant(false), BaseNode(parser) {};
     ValueNode(Parser& parser, const NodeDtype kwd): constant(false), BaseNode(parser, kwd) {};
@@ -205,7 +207,7 @@ namespace dip {
     std::vector<OptionStruct> options;
     std::string format;
     std::unique_ptr<BaseValue> cast_value();
-    std::unique_ptr<BaseValue> cast_value(std::string value_input);
+    std::unique_ptr<BaseValue> cast_value(std::vector<std::string> value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
     void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
     virtual void set_option(const std::string option_value, const std::string option_units, Environment& env) = 0;
@@ -213,6 +215,8 @@ namespace dip {
     void validate_definition();
     virtual void validate_options();
     virtual void validate_format();
+  private:
+    void validate_dimensions();
   };
   
   class BooleanNode: public ValueNode {

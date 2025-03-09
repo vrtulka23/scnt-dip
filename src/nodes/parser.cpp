@@ -7,6 +7,9 @@
 
 namespace dip {
 
+  constexpr int NUM_ESCAPE_SYMBOLS = 3;
+  constexpr std::array<std::string, NUM_ESCAPE_SYMBOLS> escape_symbols = {"\\\"", "\\'", "\\n"};
+  
   void Parser::_strip(const std::string text, ParsingFlag flag) {
     parsed.push_back(flag);
     code = code.substr(text.length(), code.length());
@@ -23,6 +26,32 @@ namespace dip {
     return false;
   }
 
+  /*
+   * Escape symbol handling
+   */
+
+  void Parser::encode_escape_symbols(std::string& str) {
+    for (int i=0; i<NUM_ESCAPE_SYMBOLS; i++) {
+      std::string replace_symbol = "Z@"+std::to_string(i)+";";
+      size_t pos = 0;
+      while ((pos = str.find(escape_symbols[i], pos)) != std::string::npos) {
+        str.replace(pos, escape_symbols[i].length(), replace_symbol);
+        pos += replace_symbol.length();
+      }
+    }
+  }
+   
+  void Parser::decode_escape_symbols(std::string& str) {
+    for (int i=0; i<NUM_ESCAPE_SYMBOLS; i++) {
+      std::string replace_symbol = "Z@"+std::to_string(i)+";";
+      size_t pos = 0;
+      while ((pos = str.find(replace_symbol, pos)) != std::string::npos) {
+        str.replace(pos, replace_symbol.length(), escape_symbols[i]);
+        pos += escape_symbols[i].length();
+      }
+    }
+  }
+  
   /*
    * Directive keywords
    */
@@ -197,7 +226,7 @@ namespace dip {
 	}
 	dimension.push_back(slice);
       }
-      if (dimension.size()==0)
+      if (dimension.empty())
 	throw std::runtime_error("Dimension settings cannot be empty: "+line.code);
       _strip(matchResult[0].str(), PART_DIMENSION);      
     }
@@ -210,7 +239,81 @@ namespace dip {
       _strip(matchResult[0].str(), PART_EQUAL);
     }
   }
+  
+  void Parser::part_array() {
+    std::stringstream ss(code), rm;
+    char ch;
+
+    // test for an openning bracket
+    ss.get(ch);
+    rm << ch;
+    if (ch!='[')
+      return;
     
+    std::string value;
+    bool inString = false;
+    int  dim = 1;
+    value_shape.push_back(0);
+    
+    while (ss.get(ch) and dim>0) {
+      rm << ch;
+      if (ch == '[') {
+	dim++;
+	if (value_shape.size()<dim)
+	  value_shape.push_back(0);
+	value.clear();
+      } else if (ch == ',') {
+	if (!value.empty()) {
+	  value_raw.push_back(value);
+	  value.clear();
+	}
+	value_shape[dim-1]++;
+      } else if (ch == ']') {
+	if (!value.empty()) {
+	  value_raw.push_back(value);
+	  value.clear();
+	}
+	value_shape[dim-1]++;
+	dim--;
+      } else if (ch == '"') {
+	value.clear();
+	while (ss.get(ch) && ch != '"') {
+	  value += ch;
+	  rm << ch;
+	}
+	rm << ch;
+      } else if (ch == '\'') {
+	value.clear();
+	while (ss.get(ch) && ch != '\'') {
+	  value += ch;
+	  rm << ch;
+	}
+	rm << ch;
+      } else if (ch == ' ') {
+	continue;
+      } else {
+	value += ch;
+      }
+    }
+    
+    // Check if all nested arrays are closed
+    if (dim!=0)
+      throw std::runtime_error("Definition of an array has some unclosed brackets or quotes: "+line.code);
+
+    // Normalize shape and check coherence of nested arrays
+    int coef = 1;
+    for (int d=1; d<value_shape.size(); d++) {
+      coef *= value_shape[d-1];
+      if (value_shape[d]%coef != 0) 
+	throw std::runtime_error("Items in dimension "+std::to_string(d+1)+" do not have the same shape: "+line.code);
+      value_shape[d] /= coef;
+    }
+    //std::cout << line.code << std::endl;
+    //std::cout << ss.str() << std::endl;
+    //std::cout << rm.str() << std::endl;
+    _strip(rm.str(), PART_ARRAY);
+  }
+  
   void Parser::part_value() {
     part_reference(true);
     if (is_parsed(PART_REFERENCE)) {
@@ -227,13 +330,18 @@ namespace dip {
       parsed.push_back(PART_VALUE);
       return;
     }
-    std::regex pattern("^(\"\"\"(.*)\"\"\"|\"(.*)\"|\'(.*)\'|([^# ]+))");
+    part_array();
+    if (is_parsed(PART_ARRAY)) {
+      parsed.push_back(PART_ARRAY);
+      return;
+    }
+    std::regex pattern("^(\"\"\"([^\"]*)\"\"\"|\"([^\"]*)\"|\'([^\']*)\'|((?!#)[^ ]+))");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       for (int i=2; i<6; i++) {
 	std::string vraw = matchResult[i].str();
 	if (vraw!="") {
-	  value_raw = vraw;
+	  value_raw = {vraw};
 	  break;
 	}
       }

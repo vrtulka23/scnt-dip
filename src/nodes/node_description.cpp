@@ -23,7 +23,7 @@ namespace dip {
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);
-      vnode->description += value_raw;
+      vnode->description += value_raw[0];
     } else {
       throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.code);
     }

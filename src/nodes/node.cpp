@@ -13,7 +13,7 @@ namespace dip {
     std::stringstream ss;
     ss << "indent(" << indent << ") ";
     ss << "name(" << name << ") ";
-    ss << "value_raw(" << value_raw << ") ";
+    ss << "value_raw(" << value_raw[0] << ") ";
     ss << "dtype(" << dtype << ") ";
     ss << "dimension(";
     for (auto slice: dimension)

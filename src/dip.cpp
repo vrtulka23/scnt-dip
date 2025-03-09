@@ -48,17 +48,37 @@ namespace dip {
     while (lines.size()>0) {
       Line line = lines.front();
       lines.pop();
-      // TODO: Group block structures """text"""
+      // group block strings
+      size_t pos = 0;
+      if ((pos = line.code.find(SIGN_BLOCK)) != std::string::npos) {      // opening """
+	pos += SIGN_BLOCK.length();
+	std::ostringstream oss;
+	oss << line.code;
+	if (line.code.find(SIGN_BLOCK, pos) == std::string::npos) {       // closing """ on the same line
+	  while (lines.size()>0) {
+	    Line block_line = lines.front();
+	    lines.pop();
+	    oss << SIGN_NEWLINE << block_line.code;
+	    if (block_line.code.find(SIGN_BLOCK) != std::string::npos) {  // closing """ on a subsequent line
+	      break;
+	    }
+	  }
+	}
+	line.code = oss.str();
+      }
+      // determine node type
       std::shared_ptr<BaseNode> node = _determine_node(line);
       queue.push_back(node);
     }
     return queue;
   }
 
-  std::shared_ptr<BaseNode> DIP::_determine_node(const Line& line) {
-    // TODO: encode symbols \' \" and \n
+  std::shared_ptr<BaseNode> DIP::_determine_node(Line& line) {
+    // add replacement mark for escape symbols
+    Parser::encode_escape_symbols(line.code);
+    
+    // determine node type
     Parser parser(line);
-    //parser.do_continue()
     std::shared_ptr<BaseNode> node(nullptr);
     node = EmptyNode::is_node(parser);
     if (node==nullptr) parser.part_indent();
@@ -82,7 +102,22 @@ namespace dip {
     if (node==nullptr) node = FloatNode::is_node(parser);
     if (node==nullptr) node = StringNode::is_node(parser);
     // if (node==nullptr) node = TableNode::is_node(parser);
-    // TODO: decode symbols
+
+    // make sure that everything was parsed
+    if (node==nullptr)
+      throw std::runtime_error("Node could not be determined from : "+line.code);
+    if (parser.do_continue())
+      throw std::runtime_error("Could not parse all text on the line: "+line.code);
+    
+    // convert escape symbols to original characterss
+    if (!node->value_fn.empty())
+      Parser::decode_escape_symbols(node->value_fn);
+    if (!node->value_expr.empty())
+      Parser::decode_escape_symbols(node->value_expr);
+    for (size_t i=0; i<node->value_raw.size(); i++)
+      Parser::decode_escape_symbols(node->value_raw[i]);
+    Parser::decode_escape_symbols(node->line.code);
+    
     return node;
   }
   
@@ -115,7 +150,7 @@ namespace dip {
       } else {
 	target.branching.prepare_node(node);
 	// Clean node name from cases
-	node->name = node->clean_name();
+	node->name = target.branching.clean_name(node->name);
 	// Set the node value
 	// TODO: maybe this can be done after modifications?!
 	std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);

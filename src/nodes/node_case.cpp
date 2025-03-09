@@ -24,14 +24,14 @@ namespace dip {
     if (std::regex_search(name, matchResult, pattern)) {
       case_id = env.branching.register_case();
       case_type = matchResult[2].str();
-      name = matchResult[1].str() + std::to_string(case_id);
+      name = matchResult[1].str() + "C" + std::to_string(case_id);
       if (case_type == std::string(KEYWORD_CASE)) {
 	// TODO: use logical solver to solve cases
 	if (value_expr.empty()) {
-	  value = (value_raw==std::string(KEYWORD_TRUE)) ? true : false;
+	  value = (value_raw[0]==std::string(KEYWORD_TRUE)) ? true : false;
 	} else
 	  value = (value_expr==std::string(KEYWORD_TRUE)) ? true : false;
-      } else if (matchResult[2].str() == std::string(KEYWORD_ELSE)) {
+      } else if (case_type == std::string(KEYWORD_ELSE)) {
 	value = true;
       }
     }

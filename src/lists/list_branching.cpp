@@ -6,16 +6,17 @@ namespace dip {
 
   // Get ID of a current branch
   std::string BranchingList::get_branch_id() {
-    if (state.empty())
-      throw std::runtime_error("Branch list is empty");
-    else
+    if (state.size()>0) {
       return state.back();
+    } else
+      throw std::runtime_error("Cannot get a branch ID because branch list is empty");
   }
 
   // Get ID of a current case
-  std::string BranchingList::get_case_id() {
-    std::string branch_id = get_branch_id();
-    Branch branch = branches.at(branch_id);
+  std::string BranchingList::get_case_id(std::string branch_id) {
+    if (branch_id.empty())
+      branch_id = get_branch_id();
+    Branch& branch = branches.at(branch_id);
     if (branch.cases.empty())
       throw std::runtime_error("Branch with an ID '"+branch_id+"' does not have any cases");
     else
@@ -25,7 +26,7 @@ namespace dip {
   // Start a new branch
   int BranchingList::open_branch(const std::string case_id) {
     num_branches++;
-    std::string branch_id = std::to_string(SIGN_CONDITION)+std::to_string(num_branches);
+    std::string branch_id = std::string(1, SIGN_CONDITION)+"B"+std::to_string(num_branches);
     state.push_back(branch_id);
     branches[branch_id] = Branch({case_id}, {std::string(KEYWORD_CASE)});
     return 0;
@@ -34,7 +35,7 @@ namespace dip {
   // Go to a new case within a branch
   int BranchingList::switch_case(const std::string case_id, const std::string case_type) {
     std::string branch_id = get_branch_id();
-    Branch branch = branches.at(branch_id);
+    Branch& branch = branches.at(branch_id);
     branch.cases.push_back(case_id);
     branch.types.push_back(case_type);
     return branch.cases.size()-1;
@@ -42,7 +43,10 @@ namespace dip {
 
   // Close current branch
   void BranchingList::close_branch() {
-    state.pop_back();
+    if (state.empty())
+      throw std::runtime_error("No more branches to be closed");
+    else
+      state.pop_back();
   }
 
   // Add a new case
@@ -55,26 +59,25 @@ namespace dip {
     if (state.empty())
       return false;
     std::string branch_id = get_branch_id();
-    Branch branch = branches.at(branch_id);
+    Branch& branch = branches.at(branch_id);
     int num_true = 0;
+    // count number of cases with a true value in the current branch
     for (std::string case_id: branch.cases) {
-      Case cs = cases.at(case_id);
+      Case& cs = cases.at(case_id);
       if (cs.value==true)
 	num_true++;
     }
-    if (num_true!=1)
-      return true;
+    // get the value of the current case
     std::string case_id = get_case_id();
-    Case cs = cases.at(case_id);
-    if (!cs.value)
-      return true;
-    return false;
+    Case& cs = cases.at(case_id);
+    // the current case is false if this is the first true case in a branch
+    return (num_true!=1 or !cs.value);
   }
 
   // Manage condition nodes
   void BranchingList::solve_case(std::shared_ptr<BaseNode> node) {
     std::ostringstream oss;
-    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_CONDITION << "])([0-9]+)";
+    oss << "(.*[" << SIGN_CONDITION << "])C([0-9]+)";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(node->name, matchResult, pattern)) {
@@ -85,7 +88,7 @@ namespace dip {
       std::string path_old;
       if (!state.empty()) {
 	std::string case_id = get_case_id();
-	Case cs = cases.at(case_id);
+	Case& cs = cases.at(case_id);
 	path_old = cs.path;
       }
       // validate correct condition type and process end of the case
@@ -93,48 +96,64 @@ namespace dip {
 	// continue
       } else if (cnode->case_type==KEYWORD_ELSE and !cases.empty()) {
 	// continue
-      } else if (cnode->case_type==KEYWORD_END and !cases.empty() and path_old==path_new) {
+      } else if (cnode->case_type==KEYWORD_END and !cases.empty() and path_old.size()>=path_new.size()) {
 	close_branch();
 	return;
       } else {
-	throw std::runtime_error("Invalid condition:  "+node->line.code);
+	std::cout << cases.size() << " " << path_old << " " << path_new << std::endl;
+	throw std::runtime_error("Invalid condition type:  "+node->line.code);
       }
       // determine branch part and ID
       int branch_part;
-      std::string case_id = std::string(1,SIGN_CONDITION) + matchResult[2].str();
+      std::string case_id = std::string(1,SIGN_CONDITION) + "C" + matchResult[2].str();
       if (path_new==path_old) {
 	branch_part = switch_case(case_id, cnode->case_type);
       } else if (path_new.size()<path_old.size()) {
 	// close openned branches until the same branch is reached
-	while (path_new!=path_old) {
+	while (path_new!=path_old and path_old.size()>0) {
 	  close_branch();
-	  if (!state.empty()) {
+	  if (state.size()>0) {
 	    std::string case_id_old = get_case_id();
-	    Case cs = cases.at(case_id_old);
+	    Case& cs = cases.at(case_id_old);
 	    path_old = cs.path;
 	  } else {
 	    path_old = "";
 	  }
 	}
-	branch_part = switch_case(case_id, cnode->case_type);
+	if (state.empty())
+	  branch_part = open_branch(case_id);
+	else
+	  branch_part = switch_case(case_id, cnode->case_type);
       } else {
 	branch_part = open_branch(case_id);
       }
+      // get current branch id
       std::string branch_id = get_branch_id();
+      // take into account values of the parent nodes
+      // std::cout << "case " << branch_id << " " << branch_part << " " << case_id << " " << cnode->case_type << " " << cnode->value;
+      bool case_value = cnode->value;
+      if (state.size()>1) {
+	std::string parent_branch_id = state[state.size()-2];
+	std::string parent_case_id = get_case_id(parent_branch_id);
+	Case& cs = cases.at(parent_case_id);
+	case_value &= cs.value;
+	// std::cout << " " << case_value << " " << parent_branch_id << parent_case_id;
+      }
+      // std::cout << std::endl;
       // register new case
-      cases[case_id] = Case(path_new, cnode->line.code, cnode->value_expr, cnode->value,
+      cases[case_id] = Case(path_new, cnode->line.code, cnode->value_expr, case_value,
 			    branch_id, branch_part, case_id, cnode->case_type);
     } else {
-      throw std::runtime_error("Invalid condition: "+node->line.code);
+      throw std::runtime_error("Invalid condition format: "+node->line.code);
     }
   }
 
-  /// Manage parameter nodes in a condition
+  // Manage parameter nodes in a condition
   void BranchingList::prepare_node(std::shared_ptr<BaseNode> node) {
     if (state.empty())
       return;
     std::string case_id = get_case_id();
-    Case cs = cases.at(case_id);
+    Case& cs = cases.at(case_id);
     // ending case at lower indent
     if (!(node->name.rfind(cs.path, 0) == 0)) {
       close_branch();
@@ -144,8 +163,8 @@ namespace dip {
       std::string branch_id = get_branch_id();
       node->branch_id = branch_id;
       node->case_id = get_case_id();
-      std::string node_name = node->clean_name();
-      Branch branch = branches.at(branch_id);
+      std::string node_name = clean_name(node->name);
+      Branch& branch = branches.at(branch_id);
       auto it = branch.nodes.find(node_name);
       if (it == branch.nodes.end()) {
 	branch.nodes[node_name] = 1;
@@ -155,4 +174,11 @@ namespace dip {
     }
   }
 
+  std::string BranchingList::clean_name(const std::string& name) {
+    std::ostringstream oss;
+    oss << "(" << SIGN_CONDITION << "C[0-9]+" << SIGN_SEPARATOR << ")";
+    std::regex pattern(oss.str());
+    return std::regex_replace(name, pattern, "");
+  }
+  
 }

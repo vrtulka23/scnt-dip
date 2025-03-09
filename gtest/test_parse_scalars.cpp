@@ -15,7 +15,7 @@ TEST(ParseScalars, BooleanValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "true");
+  EXPECT_EQ(node->value_raw[0], "true");
   EXPECT_EQ(node->dtype, dip::Node::NODE_BOOLEAN);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
@@ -25,7 +25,7 @@ TEST(ParseScalars, BooleanValue) {
   EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_BOOL);
 	
   node = env.nodes[1];
-  EXPECT_EQ(node->value_raw, "false");
+  EXPECT_EQ(node->value_raw[0], "false");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[1]);
   EXPECT_EQ(vnode->value->to_string(), "false");
 
@@ -39,7 +39,7 @@ TEST(ParseScalars, IntegerValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "23");
+  EXPECT_EQ(node->value_raw[0], "23");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
@@ -66,7 +66,7 @@ TEST(ParseScalars, FloatValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "23");
+  EXPECT_EQ(node->value_raw[0], "23");
   EXPECT_EQ(node->dtype, dip::Node::NODE_FLOAT);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo1");
@@ -76,12 +76,12 @@ TEST(ParseScalars, FloatValue) {
   EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_FLOAT64);
   
   node = env.nodes[1];
-  EXPECT_EQ(node->value_raw, "23.456");
+  EXPECT_EQ(node->value_raw[0], "23.456");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[1]);
   EXPECT_EQ(vnode->value->to_string(), "23.456");
   
   node = env.nodes[2];
-  EXPECT_EQ(node->value_raw, "23.456e7");
+  EXPECT_EQ(node->value_raw[0], "23.456e7");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[2]);
   EXPECT_EQ(vnode->value->to_string(), "2.3456e+08");
 
@@ -107,7 +107,7 @@ TEST(ParseScalars, StringValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "bar");
+  EXPECT_EQ(node->value_raw[0], "bar");
   EXPECT_EQ(node->dtype, dip::Node::NODE_STRING);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");

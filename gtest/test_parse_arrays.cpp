@@ -11,7 +11,8 @@ TEST(ParseArrays, BooleanValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "[[true,false,true],[true,true,false]]");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"true","false","true","true","true","false"}));
+  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
   EXPECT_EQ(node->dtype, dip::Node::NODE_BOOLEAN);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -30,7 +31,8 @@ TEST(ParseArrays, IntegerValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "[[1,2,3],[-4,-5,-678910111]]");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","-4","-5","-678910111"}));
+  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -49,7 +51,8 @@ TEST(ParseArrays, FloatValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "[[1,2.2,3.3e3],[-4,-5.5,-6.6e6]]");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2.2","3.3e3","-4","-5.5","-6.6e6"}));
+  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
   EXPECT_EQ(node->dtype, dip::Node::NODE_FLOAT);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -68,7 +71,8 @@ TEST(ParseArrays, StringValue) {
   dip::Environment env = d.parse();
   
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "[[position,'velo,ci\"ty',\"acce]lera'tion\"],['jerk','snap','crackle']]");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"position","velo,ci\"ty","acce]lera'tion","jerk","snap","crackle"}));
+  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
   EXPECT_EQ(node->dtype, dip::Node::NODE_STRING);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");

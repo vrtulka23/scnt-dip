@@ -35,7 +35,7 @@ namespace dip {
     size_t num_strings = 0;
     
     NodeList _get_queue();
-    std::shared_ptr<BaseNode> _determine_node(const Line& line);
+    std::shared_ptr<BaseNode> _determine_node(Line& line);
   public:
     DIP(const Environment* e = NULL);
     void add_file(const std::string file_path, const std::string source_name, const bool absolute=true);

@@ -31,13 +31,10 @@ namespace dip {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);
       if (dimension.size()>0) {
-	std::vector<std::string> value_inputs;
-	std::vector<int> shape;
-	ValueNode::tokenize_array_values(value_raw, value_inputs, shape);
-	for (auto value_option: value_inputs)
+	for (auto value_option: value_raw)
 	  vnode->set_option(value_option, units_raw, env); 
       } else {
-	vnode->set_option(value_raw, units_raw, env);
+	vnode->set_option(value_raw[0], units_raw, env);
       }
     } else {
       throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties. Previous node is: "+node->line.code);

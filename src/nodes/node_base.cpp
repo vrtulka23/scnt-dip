@@ -1,6 +1,6 @@
-#include "nodes.h"
-
 #include <sstream>
+
+#include "nodes.h"
 
 namespace dip {
 
@@ -9,6 +9,7 @@ namespace dip {
     indent = parser.indent;
     name = parser.name;
     value_raw = parser.value_raw;
+    value_shape = parser.value_shape;
     dtype = parser.dtype;
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
@@ -21,6 +22,7 @@ namespace dip {
     indent = parser.indent;
     name = parser.name;
     value_raw = parser.value_raw;
+    value_shape = parser.value_shape;
     dtype = dt;
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
@@ -30,11 +32,6 @@ namespace dip {
 
   BaseNode::NodeListType BaseNode::parse(Environment& env) {
     return {};
-  }
-
-  std::string BaseNode::clean_name() {
-    // TODO: implement name cleaning
-    return name;
   }
   
 }

@@ -17,6 +17,7 @@ namespace dip {
     virtual void print() = 0;
     virtual std::string to_string(const int precision=0) = 0;
     virtual bool equals_to(const BaseValue* other) const = 0;
+    virtual std::vector<int> dimension() const = 0;
   };
 
   // Scalar values
@@ -43,6 +44,9 @@ namespace dip {
 	return (value==otherT->value) ? true : false;
       else
 	throw std::runtime_error("Could not convert BaseValue into the BaseScalarValue.");
+    };
+    virtual std::vector<int> dimension() const override {
+      return {1};
     };
   };
   
@@ -144,6 +148,9 @@ namespace dip {
       } else {
 	throw std::runtime_error("Could not convert BaseValue into a BaseArrayValue");
       }
+    };
+    virtual std::vector<int> dimension() const override {
+      return shape;
     };
   };
   

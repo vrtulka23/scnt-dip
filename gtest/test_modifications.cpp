@@ -12,7 +12,7 @@ TEST(Modifications, DataTypeNode) {
   dip::Environment env = d.parse();
 
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "3");
+  EXPECT_EQ(node->value_raw[0], "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -31,7 +31,7 @@ TEST(Modifications, ModificationNode) {
   dip::Environment env = d.parse();
 
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "3");
+  EXPECT_EQ(node->value_raw[0], "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -60,9 +60,9 @@ TEST(Modifications, Declarations) {
   d.add_string("foo int"); 
   d.add_string("foo = 3"); 
   dip::Environment env = d.parse();
-
+  
   std::shared_ptr<dip::BaseNode> node = env.nodes[0];
-  EXPECT_EQ(node->value_raw, "3");
+  EXPECT_EQ(node->value_raw[0], "3");
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");

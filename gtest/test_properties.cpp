@@ -138,13 +138,13 @@ TEST(Properties, Tags) {
   
   dip::DIP d;    
   d.add_string("foo str = 'bar'");
-  d.add_string("  !tags ['buzz','word']");
+  d.add_string("  !tags ['baz','word']");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
   
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_TRUE(vnode);
-  EXPECT_EQ(vnode->tags[0], "buzz");
+  EXPECT_EQ(vnode->tags[0], "baz");
   EXPECT_EQ(vnode->tags[1], "word");
     
   // Throw an error if indent is not higher
@@ -257,13 +257,13 @@ TEST(Properties, OptionsString) {
  
   // validate if node value is in options
   d = dip::DIP();
-  d.add_string("foo str = 'buzz'");
+  d.add_string("foo str = 'baz'");
   d.add_string("  !options ['bar','snap','pow']");
   try {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Value 'buzz' of node 'foo' doesn't match with any option: bar, snap, pow");
+    EXPECT_STREQ(e.what(), "Value 'baz' of node 'foo' doesn't match with any option: bar, snap, pow");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

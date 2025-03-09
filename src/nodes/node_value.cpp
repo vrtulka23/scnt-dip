@@ -4,86 +4,28 @@
 
 namespace dip {
 
-  void ValueNode::tokenize_array_values(const std::string& str, std::vector<std::string>& value_inputs, std::vector<int>& shape) {
-    std::stringstream ss(str);
-    char ch;
-    
-    std::string value;
-    bool inString = false;
-    int  dim = 0, item = 0;
-    while (ss >> ch) {
-      if (ch == '[') {
-	dim++;
-	if (shape.size()<dim)
-	  shape.push_back(0);
-	value.clear();
-      } else if (ch == ',') {
-	if (!value.empty()) {
-	  value_inputs.push_back(value);
-	  value.clear();
-	}
-	shape[dim-1]++;
-      } else if (ch == ']') {
-	if (!value.empty()) {
-	  value_inputs.push_back(value);
-	  value.clear();
-	}
-	shape[dim-1]++;
-	dim--;
-      } else if (ch == '"') {
-	value.clear();
-	while (ss >> ch && ch != '"') {
-	  value += ch;
-	}
-      } else if (ch == '\'') {
-	value.clear();
-	while (ss >> ch && ch != '\'') {
-	  value += ch;
-	}
-      } else if (ch == ' ') {
-	continue;
-      } else {
-	value += ch;
-      }
-    }
-
-    // Check if all nested arrays are closed
-    if (dim!=0)
-      throw std::runtime_error("Definition of an array has some unclosed brackets or quotes: "+str);
-
-    // Normalize shape and check coherence of nested arrays
-    int coef = 1;
-    for (int d=1; d<shape.size(); d++) {
-      coef *= shape[d-1];
-      if (shape[d]%coef != 0) 
-	throw std::runtime_error("Items in dimension "+std::to_string(d+1)+" do not have the same shape: "+str);
-      shape[d] /= coef;
-    }
-  }
-
   std::unique_ptr<BaseValue> ValueNode::cast_value() {
     return cast_value(value_raw);
   }
 
-  std::unique_ptr<BaseValue> ValueNode::cast_value(std::string value_input) {
+  std::unique_ptr<BaseValue> ValueNode::cast_value(std::vector<std::string> value_input) {
     if (dimension.size()>0) {
-      std::vector<std::string> value_inputs;
-      std::vector<int> shape;
-      ValueNode::tokenize_array_values(value_input, value_inputs, shape);
-      return cast_array_value(value_inputs, shape);
+      return cast_array_value(value_input, value_shape);
     } else {
-      return cast_scalar_value(value_input);
+      return cast_scalar_value(value_input[0]);
     }
 
   }
 
   void ValueNode::set_value(std::unique_ptr<BaseValue> value_input) {
-    if (value_input==nullptr and value_raw.length()>0)
+    value = nullptr;
+    if (value_input==nullptr and !value_raw.empty() and !value_raw[0].empty()) {
       value = cast_value();
-    else if (value_input!=nullptr)
+    } else if (value_input!=nullptr) {
       value = std::move(value_input);
-    else
-      value = nullptr;
+    }
+    if (value!=nullptr and !dimension.empty())
+      validate_dimensions();
   }
 
   void ValueNode::modify_value(std::shared_ptr<BaseNode> node, Environment& env) {
@@ -95,6 +37,10 @@ namespace dip {
     set_value(std::move(value));
   }
 
+  /*
+   * Validation of node properties and values
+   */
+  
   void ValueNode::validate_constant() {
     if (constant)
       throw std::runtime_error("Node '"+name+"' is constant and cannot be modified: "+line.code);
@@ -126,6 +72,44 @@ namespace dip {
   void ValueNode::validate_format() {
     if (format.size()>0)
       throw std::runtime_error("Format property can be used only with string nodes: "+line.code);
+  }
+
+  void ValueNode::validate_dimensions() {
+    std::vector<int> vdim = value->dimension();
+    if (dimension.size()!=vdim.size())
+      throw std::runtime_error("Number of value dimensions does not match that of node: "+std::to_string(vdim.size())+"!="+std::to_string(dimension.size()));
+    for (int i=0; i<dimension.size(); i++) {
+      int dmin = std::get<0>(dimension[i]);
+      int dmax = std::get<1>(dimension[i]);
+      if (dmax<0)
+	dmax = vdim[i];
+      if (vdim[i]<dmin or dmax<vdim[i]) {
+	std::ostringstream nss, vss;
+	for (int j=0; j<dimension.size(); j++) {
+	  if (j>0) {
+	    nss << ",";
+	    vss << ",";
+	  }
+	  dmin = std::get<0>(dimension[j]);
+	  dmax = std::get<1>(dimension[j]);
+	  if (dmin==0 and dmax<0)
+	    nss << SEPARATOR_SLICE;
+	  else if (dmin==dmax)
+	    nss << dmin;
+	  else if (dmax<0)
+	    nss << dmin << SEPARATOR_SLICE;
+	  else if (dmin==0)
+	    nss << SEPARATOR_SLICE << dmax;
+	  else
+	    nss << dmin << SEPARATOR_SLICE << dmax;
+	  vss << vdim[j];
+	}
+	throw std::runtime_error("Value dimensions do not correspond to the node dimension ranges: ["+vss.str()+"] != ["+nss.str()+"]");
+      }
+    }
+    //std::cout << "checking dimensions " << std::endl;
+    //std::cout << dimension.size() << std::endl;
+    //std::cout << value->dimension().size() << std::endl;
   }
 
 }
