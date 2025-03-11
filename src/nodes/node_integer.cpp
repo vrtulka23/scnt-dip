@@ -126,4 +126,8 @@ namespace dip {
     options.push_back({std::move(ovalue), option_value, option_units});
   }
 
+  void IntegerNode::validate_datatype() {
+    // TODO: validate datatype
+  }  
+  
 }

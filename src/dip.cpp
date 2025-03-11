@@ -38,6 +38,10 @@ namespace dip {
     std::string path = env.sources[source.name].path;
     env.sources.append(source_name,path,code,{source.name, lineno});
   }
+
+  void DIP::add_function(const std::string name, FunctionList::FunctionType func) {
+    env.functions.append(name, func);
+  }
   
   std::string DIP::to_string() {
     return "DIP";
@@ -45,7 +49,7 @@ namespace dip {
 
   NodeList DIP::_get_queue() {
     NodeList queue;
-    while (lines.size()>0) {
+    while (!lines.empty()) {
       Line line = lines.front();
       lines.pop();
       // group block strings
@@ -101,7 +105,7 @@ namespace dip {
     if (node==nullptr) node = IntegerNode::is_node(parser);
     if (node==nullptr) node = FloatNode::is_node(parser);
     if (node==nullptr) node = StringNode::is_node(parser);
-    // if (node==nullptr) node = TableNode::is_node(parser);
+    if (node==nullptr) node = TableNode::is_node(parser);
 
     // make sure that everything was parsed
     if (node==nullptr)
@@ -110,8 +114,8 @@ namespace dip {
       throw std::runtime_error("Could not parse all text on the line: "+line.code);
     
     // convert escape symbols to original characterss
-    if (!node->value_fn.empty())
-      Parser::decode_escape_symbols(node->value_fn);
+    if (!node->value_func.empty())
+      Parser::decode_escape_symbols(node->value_func);
     if (!node->value_expr.empty())
       Parser::decode_escape_symbols(node->value_expr);
     for (size_t i=0; i<node->value_raw.size(); i++)
@@ -154,7 +158,7 @@ namespace dip {
 	// Set the node value
 	// TODO: maybe this can be done after modifications?!
 	std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
-	if (vnode) {
+	if (vnode and vnode->value==nullptr) {
 	  vnode->set_value();
 	}
 	// If node was previously defined, modify its value

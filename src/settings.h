@@ -12,9 +12,11 @@ namespace dip {
   constexpr std::string_view STRING_SOURCE  = "STRING";
 
   // Parsing separators
-  constexpr char SEPARATOR_NEWLINE      = '\n';
-  constexpr char SEPARATOR_DIMENSION    = ',';
-  constexpr char SEPARATOR_SLICE        = ':';
+  constexpr char SEPARATOR_NEWLINE                  = '\n';
+  constexpr char SEPARATOR_DIMENSION                = ',';
+  constexpr char SEPARATOR_SLICE                    = ':';
+  constexpr char SEPARATOR_TABLE_COLUMNS            = ' ';
+  constexpr std::string_view SEPARATOR_TABLE_HEADER = "---";
 				        
   constexpr char SIGN_QUERY             = '?';
   constexpr char SIGN_WILDCARD          = '*';

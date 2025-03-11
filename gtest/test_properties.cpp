@@ -269,3 +269,6 @@ TEST(Properties, OptionsString) {
   }
   
 }
+
+
+// TODO: create a new property called 'delimiter' for the table node

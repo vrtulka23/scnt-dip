@@ -55,8 +55,9 @@ namespace dip {
   };
   
   class HierarchyList {
-  public:
+  private:
     std::vector<Parent> parents;
+  public:
     void record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeDtype>& excluded);
   };
 
@@ -98,6 +99,16 @@ namespace dip {
     void solve_case(std::shared_ptr<BaseNode> node);
     void prepare_node(std::shared_ptr<BaseNode> node);
     std::string clean_name(const std::string& node);
+  };
+
+  class FunctionList {
+  public:
+    typedef BaseNode::NodeListType (*FunctionType)(const Environment& env) ;
+  private:
+    std::map<std::string, FunctionType> functions;
+  public:
+    void append(const std::string& name, FunctionType func);
+    FunctionType operator[](const std::string& name) const;
   };
   
 }

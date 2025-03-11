@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "nodes.h"
+#include "../solvers/solvers.h"
 
 namespace dip {
 
@@ -22,9 +23,14 @@ namespace dip {
   // TODO: set_value
 
   BaseNode::NodeListType BooleanNode::parse(Environment& env) {
-    // TODO: process function
+    if (!units_raw.empty())
+      throw std::runtime_error("Boolean data type does not support units: "+line.code);
+    if (!value_func.empty()) {
+      FunctionSolver solver(env);
+      BaseNode::NodeListType list;
+      list = solver.solve(value_func);
+    }
     // TODO: process expression
-    // TODO: process units
     return {};
   }
 
@@ -58,5 +64,9 @@ namespace dip {
     if (format.size()>0)
       throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.code);
   }
+
+  void BooleanNode::validate_datatype() {
+    // TODO: validate datatype
+  }  
   
 }

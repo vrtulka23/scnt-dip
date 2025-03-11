@@ -78,15 +78,11 @@ namespace dip {
     }
   }
   
-  /*
   void Parser::kwd_unit() {
   }
-  */
   
-  /*
   void Parser::kwd_source() {
   }
-  */
   
   void Parser::kwd_options() {
     std::ostringstream oss;
@@ -142,10 +138,8 @@ namespace dip {
     }    
   }
   
-  /*
   void Parser::kwd_condition() {
   }
-  */
   
   /*
    * Node Parts
@@ -233,10 +227,8 @@ namespace dip {
   }
 
   void Parser::part_equal() {
-    std::regex pattern("^[ ]*=[ ]*");
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[0].str(), PART_EQUAL);
+    if (part_delimiter('=')) {
+      parsed.push_back(PART_EQUAL);
     }
   }
   
@@ -313,7 +305,40 @@ namespace dip {
     //std::cout << rm.str() << std::endl;
     _strip(rm.str(), PART_ARRAY);
   }
+
+  bool Parser::part_string() {
+    std::regex pattern("^(\"\"\"([^\"]*)\"\"\"|\"([^\"]*)\"|\'([^\']*)\'|((?!#)[^ ]+))");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      for (int i=2; i<6; i++) {
+	std::string vraw = matchResult[i].str();
+	if (vraw!="") {
+	  value_raw = {vraw};
+	  break;
+	}
+      }
+      _strip(matchResult[0].str(), PART_STRING);
+      return true;
+    }
+    return false;
+  }
   
+  void Parser::part_reference(const bool inject) {
+  }
+  
+  void Parser::part_function() {
+    std::regex pattern("^[(]([a-zA-Z0-9_-]+)[)]");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      value_raw.clear();
+      value_func = matchResult[1].str();
+      _strip(matchResult[0].str(), PART_FUNCTION);
+    }
+  }
+    
+  void Parser::part_expression() {
+  }
+    
   void Parser::part_value() {
     part_reference(true);
     if (is_parsed(PART_REFERENCE)) {
@@ -332,36 +357,17 @@ namespace dip {
     }
     part_array();
     if (is_parsed(PART_ARRAY)) {
-      parsed.push_back(PART_ARRAY);
+      parsed.push_back(PART_VALUE);
       return;
     }
-    std::regex pattern("^(\"\"\"([^\"]*)\"\"\"|\"([^\"]*)\"|\'([^\']*)\'|((?!#)[^ ]+))");
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      for (int i=2; i<6; i++) {
-	std::string vraw = matchResult[i].str();
-	if (vraw!="") {
-	  value_raw = {vraw};
-	  break;
-	}
-      }
-      _strip(matchResult[0].str(), PART_VALUE);
+    part_string();
+    if (is_parsed(PART_STRING)) {
+      parsed.push_back(PART_VALUE);
+      return;
     }
-  }
-  
-  void Parser::part_reference(const bool inject) {
   }
   
   void Parser::part_slice() {
-  }
-    
-  void Parser::part_format() {
-  }
-    
-  void Parser::part_function() {
-  }
-    
-  void Parser::part_expression() {
   }
     
   void Parser::part_units() {
@@ -381,6 +387,18 @@ namespace dip {
       comment = matchResult[1].str();
       _strip(matchResult[0].str(), PART_COMMENT);
     }    
+  }
+
+  bool Parser::part_delimiter(char symbol) {
+    std::ostringstream oss;
+    oss << "^[ ]*[" << symbol << "][ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      _strip(matchResult[0].str(), PART_DELIMITER);
+      return true;
+    }
+    return false;
   }
   
 }

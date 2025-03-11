@@ -24,7 +24,8 @@ namespace dip {
   BaseNode::NodeListType StringNode::parse(Environment& env) {
     // TODO: process function
     // TODO: process expression
-    // TODO: process units
+    if (!units_raw.empty())
+      throw std::runtime_error("String data type does not support units: "+line.code);
     return {};
   }
 
@@ -49,5 +50,9 @@ namespace dip {
       }
     }
   }
+
+  void StringNode::validate_datatype() {
+    // TODO: validate datatype
+  }  
   
 }

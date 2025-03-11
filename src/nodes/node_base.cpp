@@ -10,6 +10,8 @@ namespace dip {
     name = parser.name;
     value_raw = parser.value_raw;
     value_shape = parser.value_shape;
+    value_func = parser.value_func;
+    value_expr = parser.value_expr;
     dtype = parser.dtype;
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
@@ -23,6 +25,8 @@ namespace dip {
     name = parser.name;
     value_raw = parser.value_raw;
     value_shape = parser.value_shape;
+    value_func = parser.value_func;
+    value_expr = parser.value_expr;
     dtype = dt;
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;

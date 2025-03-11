@@ -12,6 +12,7 @@ namespace dip {
     NodeList nodes;
     HierarchyList hierarchy;
     BranchingList branching;
+    FunctionList functions;
     Environment();
   };
 

@@ -76,5 +76,9 @@ namespace dip {
     // TODO: cast option value into the units of the node
     options.push_back({std::move(ovalue), option_value, option_units});
   }
+
+  void FloatNode::validate_datatype() {
+    // TODO: validate datatype
+  }  
   
 }
