@@ -23,7 +23,8 @@ namespace dip {
       value = cast_value();
     } else if (value_input!=nullptr) {
       value = std::move(value_input);
-      validate_datatype();   // check if input value has a correct data type
+      if (value->dtype!=value_dtype)
+	throw std::runtime_error("Value data type has ID="+std::to_string(value_dtype)+", but node data type has ID="+std::to_string(value->dtype));
     }
     if (value!=nullptr and !dimension.empty())
       validate_dimensions(); // check if value shape corresponds with dimension ranges

@@ -224,7 +224,6 @@ namespace dip {
     void validate_definition();
     virtual void validate_options();
     virtual void validate_format();
-    virtual void validate_datatype() = 0;
   private:
     void validate_dimensions();
   };
@@ -238,7 +237,6 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_options() override;
-    void validate_datatype() override;
   };  
   
   class IntegerNode: public ValueNode {
@@ -250,7 +248,6 @@ namespace dip {
     IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
-    void validate_datatype() override;
   };  
   
   class FloatNode: public ValueNode {
@@ -259,10 +256,9 @@ namespace dip {
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    FloatNode(Parser& parser): BaseNode(parser, Node::NODE_FLOAT) {};
+    FloatNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
-    void validate_datatype() override;
   };  
   
   class StringNode: public ValueNode {
@@ -274,7 +270,6 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_format() override;
-    void validate_datatype() override;
   };  
   
 }

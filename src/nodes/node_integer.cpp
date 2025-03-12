@@ -113,25 +113,26 @@ namespace dip {
   void IntegerNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
     // TODO: variable precision x should be implemented
     std::unique_ptr<BaseValue> ovalue;
-    if (dtype_prop[1]=="16") {
-      if (dtype_prop[0]=="u") {
+    switch (value_dtype) {
+    case BaseValue::VALUE_UINT16:
 	ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), BaseValue::VALUE_UINT16);
-      } else {
+	break;
+    case BaseValue::VALUE_INT16:
 	ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), BaseValue::VALUE_INT16);
-      }
-    } else if (dtype_prop[1]=="32" or dtype_prop[1]=="") {
-      if (dtype_prop[0]=="u") {
+	break;
+    case BaseValue::VALUE_UINT32:
 	ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), BaseValue::VALUE_UINT32);
-      } else {
+	break;
+    case BaseValue::VALUE_INT32:
 	ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), BaseValue::VALUE_INT32);
-      }
-    } else if (dtype_prop[1]=="64") {
-      if (dtype_prop[0]=="u") {
+	break;
+    case BaseValue::VALUE_UINT64:
 	ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), BaseValue::VALUE_UINT64);
-      } else {
+	break;
+    case BaseValue::VALUE_INT64:
 	ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), BaseValue::VALUE_INT64);
-      }
-    } else {
+	break;
+    default:
       if (dtype_prop[0]=="u")
 	throw std::runtime_error("Option value cannot be casted as unsigned "+dtype_prop[0]+" bit integer type from the given string: "+option_value);
       else
@@ -140,9 +141,5 @@ namespace dip {
     // TODO: cast option value into the units of the node
     options.push_back({std::move(ovalue), option_value, option_units});
   }
-
-  void IntegerNode::validate_datatype() {
-    // TODO: validate datatype
-  }  
   
 }

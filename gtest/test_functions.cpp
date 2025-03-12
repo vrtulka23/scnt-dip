@@ -47,7 +47,7 @@ TEST(Functions, BooleanValues) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Value set to a boolean node must have data type ID=0. Current data type ID is: 1");
+    EXPECT_STREQ(e.what(), "Value data type has ID=0, but node data type has ID=1");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -77,7 +77,7 @@ TEST(Functions, StringValues) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Value set to a string node must have data type ID=1. Current data type ID is: 0");
+    EXPECT_STREQ(e.what(), "Value data type has ID=1, but node data type has ID=0");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

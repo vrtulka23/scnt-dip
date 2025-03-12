@@ -25,8 +25,7 @@ namespace dip {
       throw std::runtime_error("Boolean data type does not support units: "+line.code);
     if (!value_func.empty()) {
       FunctionSolver solver(env);
-      FunctionList::FunctionReturnType return_value;
-      return_value = solver.solve(value_func);
+      FunctionList::FunctionReturnType return_value = solver.solve(value_func);
       if (std::holds_alternative<std::unique_ptr<BaseValue>>(return_value)) {
 	std::unique_ptr<BaseValue>& ptr = std::get<std::unique_ptr<BaseValue>>(return_value);
 	set_value(std::move(ptr));
@@ -68,10 +67,5 @@ namespace dip {
     if (format.size()>0)
       throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.code);
   }
-
-  void BooleanNode::validate_datatype() {
-    if (value->dtype!=value_dtype)
-      throw std::runtime_error("Value set to a boolean node must have data type ID="+std::to_string(value_dtype)+". Current data type ID is: "+std::to_string(value->dtype));
-  }  
   
 }

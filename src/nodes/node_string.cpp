@@ -27,8 +27,7 @@ namespace dip {
       throw std::runtime_error("String data type does not support units: "+line.code);
     if (!value_func.empty()) {
       FunctionSolver solver(env);
-      FunctionList::FunctionReturnType return_value;
-      return_value = solver.solve(value_func);
+      FunctionList::FunctionReturnType return_value = solver.solve(value_func);
       if (std::holds_alternative<std::unique_ptr<BaseValue>>(return_value)) {
 	std::unique_ptr<BaseValue>& ptr = std::get<std::unique_ptr<BaseValue>>(return_value);
 	set_value(std::move(ptr));
@@ -61,10 +60,5 @@ namespace dip {
       }
     }
   }
-
-  void StringNode::validate_datatype() {
-    if (value->dtype!=value_dtype)
-      throw std::runtime_error("Value set to a string node must have data type ID="+std::to_string(value_dtype)+". Current data type ID is: "+std::to_string(value->dtype));
-  }  
   
 }
