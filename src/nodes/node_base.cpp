@@ -3,7 +3,7 @@
 #include "nodes.h"
 
 namespace dip {
-
+  
   BaseNode::BaseNode(Parser& parser) {
     line = parser.line;
     indent = parser.indent;

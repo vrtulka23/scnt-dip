@@ -17,15 +17,13 @@ namespace dip {
     return nullptr;
   }
 
-  // TODO: set_value
-  
   BaseNode::NodeListType FloatNode::parse(Environment& env) {
     // TODO: process function
     // TODO: process expression
     // TODO: process units
     return {};
   }  
-
+  
   std::unique_ptr<BaseValue> FloatNode::cast_scalar_value(const std::string value_input) {
     // TODO: variable precision x should be implemented
     if (dtype_prop[0]=="32")

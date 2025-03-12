@@ -20,25 +20,29 @@ namespace dip {
     return nullptr;
   }
 
-  // TODO: set_value
-
   BaseNode::NodeListType BooleanNode::parse(Environment& env) {
     if (!units_raw.empty())
       throw std::runtime_error("Boolean data type does not support units: "+line.code);
     if (!value_func.empty()) {
       FunctionSolver solver(env);
-      BaseNode::NodeListType list;
-      list = solver.solve(value_func);
+      FunctionList::FunctionReturnType return_value;
+      return_value = solver.solve(value_func);
+      if (std::holds_alternative<std::unique_ptr<BaseValue>>(return_value)) {
+	std::unique_ptr<BaseValue>& ptr = std::get<std::unique_ptr<BaseValue>>(return_value);
+	set_value(std::move(ptr));
+      } else {
+	throw std::runtime_error("Function solver can return only a single value pointer a boolean node");
+      }
     }
     // TODO: process expression
     return {};
   }
-
+  
   std::unique_ptr<BaseValue> BooleanNode::cast_scalar_value(const std::string value_input) {
     if (value_input==KEYWORD_TRUE)
-      return std::make_unique<ScalarValue<bool>>(true, BaseValue::VALUE_BOOL);
+      return std::make_unique<ScalarValue<bool>>(true, value_dtype);
     else if (value_input==KEYWORD_FALSE)
-      return std::make_unique<ScalarValue<bool>>(false, BaseValue::VALUE_BOOL);
+      return std::make_unique<ScalarValue<bool>>(false, value_dtype);
     else
       throw std::runtime_error("Value cannot be casted as boolean from the given string: "+value_input);
   }
@@ -53,7 +57,7 @@ namespace dip {
       else
 	throw std::runtime_error("Value cannot be casted as boolean from the given string: "+value);
     }    
-    return std::make_unique<ArrayValue<bool>>(bool_values, shape, BaseValue::VALUE_BOOL);    
+    return std::make_unique<ArrayValue<bool>>(bool_values, shape, value_dtype);    
   }
 
   void BooleanNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
@@ -66,7 +70,8 @@ namespace dip {
   }
 
   void BooleanNode::validate_datatype() {
-    // TODO: validate datatype
+    if (value->dtype!=value_dtype)
+      throw std::runtime_error("Value set to a boolean node must have data type ID="+std::to_string(value_dtype)+". Current data type ID is: "+std::to_string(value->dtype));
   }  
   
 }

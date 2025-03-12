@@ -1,6 +1,7 @@
 #include <regex>
 
 #include "nodes.h"
+#include "../solvers/solvers.h"
 
 namespace dip {
 
@@ -22,23 +23,33 @@ namespace dip {
   // TODO: set_value
   
   BaseNode::NodeListType StringNode::parse(Environment& env) {
-    // TODO: process function
-    // TODO: process expression
     if (!units_raw.empty())
       throw std::runtime_error("String data type does not support units: "+line.code);
+    if (!value_func.empty()) {
+      FunctionSolver solver(env);
+      FunctionList::FunctionReturnType return_value;
+      return_value = solver.solve(value_func);
+      if (std::holds_alternative<std::unique_ptr<BaseValue>>(return_value)) {
+	std::unique_ptr<BaseValue>& ptr = std::get<std::unique_ptr<BaseValue>>(return_value);
+	set_value(std::move(ptr));
+      } else {
+	throw std::runtime_error("Function solver can return only a single value pointer to a string node");
+      }
+    }
+    // TODO: process expression
     return {};
   }
 
   std::unique_ptr<BaseValue> StringNode::cast_scalar_value(const std::string value_input) {
-    return std::make_unique<ScalarValue<std::string>>(value_input, BaseValue::VALUE_STRING);
+    return std::make_unique<ScalarValue<std::string>>(value_input, value_dtype);
   }
 
   std::unique_ptr<BaseValue> StringNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {      
-    return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, BaseValue::VALUE_STRING);
+    return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, value_dtype);
   }
   
   void StringNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
-    std::unique_ptr<BaseValue> ovalue = std::make_unique<ScalarValue<std::string>>(option_value, BaseValue::VALUE_STRING);
+    std::unique_ptr<BaseValue> ovalue = std::make_unique<ScalarValue<std::string>>(option_value, value_dtype);
     options.push_back({std::move(ovalue), option_value, option_units});
   }
 
@@ -52,7 +63,8 @@ namespace dip {
   }
 
   void StringNode::validate_datatype() {
-    // TODO: validate datatype
+    if (value->dtype!=value_dtype)
+      throw std::runtime_error("Value set to a string node must have data type ID="+std::to_string(value_dtype)+". Current data type ID is: "+std::to_string(value->dtype));
   }  
   
 }

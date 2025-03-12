@@ -94,7 +94,7 @@ namespace dip {
     std::string branch_id;
     std::string case_id;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
-    BaseNode();
+    BaseNode() {};
     BaseNode(Parser& parser);
     BaseNode(Parser& parser, const NodeDtype kwd);
     virtual ~BaseNode() = default;
@@ -204,17 +204,17 @@ namespace dip {
       std::string value_raw;
       std::string units_raw;
     };
+    BaseValue::ValueDtype value_dtype;
   public:
-    ValueNode(): constant(false) {};
-    ValueNode(Parser& parser): constant(false), BaseNode(parser) {};
-    ValueNode(Parser& parser, const NodeDtype kwd): constant(false), BaseNode(parser, kwd) {};
-    virtual ~ValueNode() = default;
     std::unique_ptr<BaseValue> value;
     std::vector<std::string> tags;
     bool constant;
     std::string description;
     std::vector<OptionStruct> options;
     std::string format;
+    ValueNode(): constant(false) {};
+    ValueNode(const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {};
+    virtual ~ValueNode() = default;
     std::unique_ptr<BaseValue> cast_value();
     std::unique_ptr<BaseValue> cast_value(std::vector<std::string> value_input);
     void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
@@ -234,7 +234,7 @@ namespace dip {
     std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN) {};
+    BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN), ValueNode(BaseValue::VALUE_BOOL) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_options() override;
@@ -247,7 +247,7 @@ namespace dip {
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {};
+    IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_datatype() override;
@@ -270,7 +270,7 @@ namespace dip {
     std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING) {};
+    StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING), ValueNode(BaseValue::VALUE_STRING) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_format() override;

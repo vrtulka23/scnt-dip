@@ -69,6 +69,7 @@ namespace dip {
   template <>
   class ScalarValue<std::string> : public BaseScalarValue<std::string> {
   public:
+    ScalarValue(const std::string& val) : BaseScalarValue(val,BaseValue::VALUE_STRING) {};
     ScalarValue(const std::string& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    
@@ -82,6 +83,7 @@ namespace dip {
   template <>
   class ScalarValue<bool> : public BaseScalarValue<bool> {
   public:
+    ScalarValue(const bool& val) : BaseScalarValue(val,BaseValue::VALUE_BOOL) {};
     ScalarValue(const bool& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    

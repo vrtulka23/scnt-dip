@@ -9,7 +9,7 @@ namespace dip {
     const Environment& environment;
   public:
     FunctionSolver(const Environment& env): environment(env) {};
-    BaseNode::NodeListType solve(const std::string& func_name, const std::string& in_units="");
+    FunctionList::FunctionReturnType solve(const std::string& func_name, const std::string& in_units="");
   };
   
 }

@@ -103,7 +103,8 @@ namespace dip {
 
   class FunctionList {
   public:
-    typedef BaseNode::NodeListType (*FunctionType)(const Environment& env) ;
+    typedef std::variant<BaseNode::NodeListType, std::unique_ptr<BaseValue>> FunctionReturnType;
+    typedef FunctionReturnType (*FunctionType)(const Environment& env);
   private:
     std::map<std::string, FunctionType> functions;
   public:

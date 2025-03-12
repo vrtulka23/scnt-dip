@@ -17,7 +17,17 @@ namespace dip {
     return nullptr;
   }
 
-  // TODO: set_value
+  IntegerNode::IntegerNode(Parser& parser): BaseNode(parser, Node::NODE_INTEGER) {
+    if (dtype_prop[1]=="16") {
+      value_dtype = (dtype_prop[0]=="u") ? BaseValue::VALUE_UINT16 : BaseValue::VALUE_INT16;
+    } else if (dtype_prop[1]=="32" or dtype_prop[1]=="") {
+      value_dtype = (dtype_prop[0]=="u") ? BaseValue::VALUE_UINT32 : BaseValue::VALUE_INT32;
+    } else if (dtype_prop[1]=="64") {
+      value_dtype = (dtype_prop[0]=="u") ? BaseValue::VALUE_UINT64 : BaseValue::VALUE_INT64;
+    } else {
+      throw std::runtime_error("Value data type cannot be determined from the node settings");
+    }
+  };
   
   BaseNode::NodeListType IntegerNode::parse(Environment& env) {
     // TODO: process function
@@ -25,25 +35,29 @@ namespace dip {
     // TODO: process units
     return {};
   }  
-  
+    
   std::unique_ptr<BaseValue> IntegerNode::cast_scalar_value(const std::string value_input) {    
     // TODO: variable precision x should be implemented
-    if (dtype_prop[1]=="16") {
-      if (dtype_prop[0]=="u")
-	return std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoi(value_input), BaseValue::VALUE_UINT16);
-      else
-	return std::make_unique<ScalarValue<short>>((short)std::stoi(value_input), BaseValue::VALUE_INT16);
-    } else if (dtype_prop[1]=="32" or dtype_prop[1]=="") {
-      if (dtype_prop[0]=="u")
-	return std::make_unique<ScalarValue<unsigned int>>(std::stoi(value_input), BaseValue::VALUE_UINT32);
-      else
-	return std::make_unique<ScalarValue<int>>(std::stoi(value_input), BaseValue::VALUE_INT32);
-    } else if (dtype_prop[1]=="64") {
-      if (dtype_prop[0]=="u")
-	return std::make_unique<ScalarValue<unsigned long long>>(std::stoull(value_input), BaseValue::VALUE_UINT64);
-      else
-	return std::make_unique<ScalarValue<long long>>(std::stoll(value_input), BaseValue::VALUE_INT64);
-    } else {
+    switch (value_dtype) {
+    case BaseValue::VALUE_UINT16:
+      return std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoi(value_input), BaseValue::VALUE_UINT16);
+      break;
+    case BaseValue::VALUE_INT16:
+      return std::make_unique<ScalarValue<short>>((short)std::stoi(value_input), BaseValue::VALUE_INT16);
+      break;
+    case BaseValue::VALUE_UINT32:
+      return std::make_unique<ScalarValue<unsigned int>>(std::stoi(value_input), BaseValue::VALUE_UINT32);
+      break;
+    case BaseValue::VALUE_INT32:
+      return std::make_unique<ScalarValue<int>>(std::stoi(value_input), BaseValue::VALUE_INT32);
+      break;
+    case BaseValue::VALUE_UINT64:
+      return std::make_unique<ScalarValue<unsigned long long>>(std::stoull(value_input), BaseValue::VALUE_UINT64);
+      break;
+    case BaseValue::VALUE_INT64:
+      return std::make_unique<ScalarValue<long long>>(std::stoll(value_input), BaseValue::VALUE_INT64);
+      break;
+    default:
       if (dtype_prop[0]=="u")
 	throw std::runtime_error("Value cannot be casted as unsigned "+dtype_prop[0]+" bit integer type from the given string: "+value_input);
       else
@@ -53,37 +67,38 @@ namespace dip {
 
   std::unique_ptr<BaseValue> IntegerNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
     // TODO: variable precision x should be implemented
-    if (dtype_prop[1]=="16") {
-      if (dtype_prop[0]=="u") {
+    switch (value_dtype) {
+    case BaseValue::VALUE_UINT16: {
 	std::vector<unsigned short> arr;
 	for (auto s: value_inputs) arr.push_back((unsigned short)std::stoul(s));
 	return std::make_unique<ArrayValue<unsigned short>>(arr, shape, BaseValue::VALUE_UINT16);
-      } else {
+    }
+    case BaseValue::VALUE_INT16: {
 	std::vector<short> arr;
 	for (auto s: value_inputs) arr.push_back((short)std::stoi(s));
 	return std::make_unique<ArrayValue<short>>(arr, shape, BaseValue::VALUE_INT16);
-      }
-    } else if (dtype_prop[1]=="32" or dtype_prop[1]=="") {
-      if (dtype_prop[0]=="u") {
+    }
+    case BaseValue::VALUE_UINT32: {
 	std::vector<unsigned int> arr;
 	for (auto s: value_inputs) arr.push_back(std::stoul(s));
 	return std::make_unique<ArrayValue<unsigned int>>(arr, shape, BaseValue::VALUE_UINT32);
-      } else {
+    }
+    case BaseValue::VALUE_INT32: {
 	std::vector<int> arr;
 	for (auto s: value_inputs) arr.push_back(std::stoi(s));
 	return std::make_unique<ArrayValue<int>>(arr, shape, BaseValue::VALUE_INT32);
-      }
-    } else if (dtype_prop[1]=="64") {
-      if (dtype_prop[0]=="u") {
+    }
+    case BaseValue::VALUE_UINT64: {
 	std::vector<unsigned long long> arr;
 	for (auto s: value_inputs) arr.push_back(std::stoull(s));
 	return std::make_unique<ArrayValue<unsigned long long>>(arr, shape, BaseValue::VALUE_UINT64);
-      } else {
+    }
+    case BaseValue::VALUE_INT64: {
 	std::vector<long long> arr;
 	for (auto s: value_inputs) arr.push_back(std::stoll(s));
 	return std::make_unique<ArrayValue<long long>>(arr, shape, BaseValue::VALUE_INT64);
-      }
-    } else {
+    }
+    default:
       std::ostringstream oss;
       for (auto s: value_inputs)
 	oss << s;
