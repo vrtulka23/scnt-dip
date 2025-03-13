@@ -116,7 +116,7 @@ TEST(ParseTables, MissingColumn) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Could not parse column 'foo.baz' from the table row: 1");
+    EXPECT_STREQ(e.what(), "Could not parse column 'baz' from the table row: 1");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }  

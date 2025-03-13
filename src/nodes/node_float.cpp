@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "../solvers/solvers.h"
 
 namespace dip {
 
@@ -8,8 +9,6 @@ namespace dip {
       parser.part_equal();
       if (parser.is_parsed(Parser::PART_EQUAL))
 	parser.part_value();
-      else
-	parser.declared = true;
       parser.part_units();
       parser.part_comment();
       return std::make_shared<FloatNode>(parser);
@@ -31,13 +30,16 @@ namespace dip {
   };
   
   BaseNode::NodeListType FloatNode::parse(Environment& env) {
-    // TODO: process function
+    if (!value_func.empty()) {
+      FunctionSolver solver(env);
+      set_value(solver.solve_value(value_func));
+    }
     // TODO: process expression
     // TODO: process units
     return {};
   }  
   
-  std::unique_ptr<BaseValue> FloatNode::cast_scalar_value(const std::string value_input) {
+  BaseValue::PointerType FloatNode::cast_scalar_value(const std::string value_input) {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::VALUE_FLOAT32:
@@ -51,7 +53,7 @@ namespace dip {
     }
   }
   
-  std::unique_ptr<BaseValue> FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
+  BaseValue::PointerType FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::VALUE_FLOAT32: {
@@ -79,7 +81,7 @@ namespace dip {
   
   void FloatNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
     // TODO: variable precision x should be implemented
-    std::unique_ptr<BaseValue> ovalue;
+    BaseValue::PointerType ovalue;
     switch (value_dtype) {
     case BaseValue::VALUE_FLOAT32:
       ovalue = std::make_unique<ScalarValue<float>>(std::stof(option_value), BaseValue::VALUE_FLOAT32);

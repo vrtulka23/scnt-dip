@@ -42,7 +42,8 @@ namespace dip {
     void add_string(const std::string code);
     void add_source(const std::string name, const std::string path);
     void add_unit(const std::string name, const double value, const std::string unit="");    
-    void add_function(const std::string name, FunctionList::FunctionType func);
+    void add_value_function(const std::string name, FunctionList::ValueFunctionType func);
+    void add_table_function(const std::string name, FunctionList::TableFunctionType func);
     Environment parse();
     Environment parse_docs();
     std::string to_string();

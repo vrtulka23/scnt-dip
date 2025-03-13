@@ -33,11 +33,11 @@ namespace dip {
     std::string value_expr;                // expression string
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
-    bool declared;                         // is node a declaration?; in Python this was 'defined' variable
     DimensionType dimension;               // list of array dimensions
-    Node(): indent(0), declared(false), dtype(NODE_NONE) {};
-    Node(const Line& l): line(l), indent(0), declared(false), dtype(NODE_NONE) {};
-    Node(const NodeDtype kwd): indent(0), declared(false), dtype(kwd) {};
+    Node(): indent(0), dtype(NODE_NONE) {};
+    Node(const Line& l): line(l), indent(0), dtype(NODE_NONE) {};
+    Node(const NodeDtype kwd): indent(0), dtype(kwd) {};
+    Node(const std::string& nm, const NodeDtype kwd): name(nm), indent(0), dtype(kwd) {};
     virtual ~Node() = default;
     bool has_dtype(NodeDtype kwd);
     std::string to_string();
@@ -95,6 +95,7 @@ namespace dip {
     std::string case_id;
     typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
     BaseNode() {};
+    BaseNode(const NodeDtype kwd): Node(kwd) {};
     BaseNode(Parser& parser);
     BaseNode(Parser& parser, const NodeDtype kwd);
     virtual ~BaseNode() = default;
@@ -193,20 +194,21 @@ namespace dip {
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
     TableNode(Parser& parser): BaseNode(parser, Node::NODE_TABLE) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    static BaseNode::NodeListType parse_lines(std::queue<Line>& lines);
   };
   
   class ValueNode: virtual public BaseNode {
-    virtual std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) = 0;
-    virtual std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) = 0;
+    virtual BaseValue::PointerType cast_scalar_value(const std::string value_input) = 0;
+    virtual BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) = 0;
   protected:
     struct OptionStruct {
-      std::unique_ptr<BaseValue> value;
+      BaseValue::PointerType value;
       std::string value_raw;
       std::string units_raw;
     };
     BaseValue::ValueDtype value_dtype;
   public:
-    std::unique_ptr<BaseValue> value;
+    BaseValue::PointerType value;
     std::vector<std::string> tags;
     bool constant;
     std::string description;
@@ -214,10 +216,11 @@ namespace dip {
     std::string format;
     ValueNode(): constant(false) {};
     ValueNode(const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {};
+    ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt);
     virtual ~ValueNode() = default;
-    std::unique_ptr<BaseValue> cast_value();
-    std::unique_ptr<BaseValue> cast_value(std::vector<std::string> value_input);
-    void set_value(std::unique_ptr<BaseValue> value_input=nullptr);
+    BaseValue::PointerType cast_value();
+    BaseValue::PointerType cast_value(std::vector<std::string> value_input);
+    void set_value(BaseValue::PointerType value_input=nullptr);
     void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
     virtual void set_option(const std::string option_value, const std::string option_units, Environment& env) = 0;
     void validate_constant();
@@ -229,10 +232,13 @@ namespace dip {
   };
   
   class BooleanNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const bool value);
+    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<bool>&  arr, std::vector<int> sh={});
+    BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(Node::NODE_BOOLEAN), ValueNode(nm, std::move(val), BaseValue::VALUE_BOOL) {};
     BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN), ValueNode(BaseValue::VALUE_BOOL) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
@@ -240,32 +246,117 @@ namespace dip {
   };  
   
   class IntegerNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    template <typename T>
+    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const T value) {
+      std::unique_ptr<BaseValue> ptr_value = ScalarValue<T>::create(value);
+      BaseValue::ValueDtype vdt;
+      if constexpr (std::is_same_v<T, short>)
+	vdt = BaseValue::VALUE_INT16;
+      else if constexpr (std::is_same_v<T, unsigned short>)
+	vdt = BaseValue::VALUE_UINT16;
+      else if constexpr (std::is_same_v<T, int>)
+	vdt = BaseValue::VALUE_INT32;
+      else if constexpr (std::is_same_v<T, unsigned int>)
+	vdt = BaseValue::VALUE_UINT32;
+      else if constexpr (std::is_same_v<T, long long>)
+	vdt = BaseValue::VALUE_INT64;
+      else if constexpr (std::is_same_v<T, unsigned long long>)
+	vdt = BaseValue::VALUE_UINT64;
+      else {
+	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for IntegerNode");
+        return nullptr;
+      }
+      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
+    };
+    template <typename T>
+    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<T>&  arr, std::vector<int> sh={}) {
+      if (sh.empty())
+	sh.push_back(arr.size());
+      std::unique_ptr<BaseValue> ptr_value = ArrayValue<T>::create(arr, sh);
+      BaseValue::ValueDtype vdt;
+      if constexpr (std::is_same_v<T, short>)
+	vdt = BaseValue::VALUE_INT16;
+      else if constexpr (std::is_same_v<T, unsigned short>)
+	vdt = BaseValue::VALUE_UINT16;
+      else if constexpr (std::is_same_v<T, int>)
+	vdt = BaseValue::VALUE_INT32;
+      else if constexpr (std::is_same_v<T, unsigned int>)
+	vdt = BaseValue::VALUE_UINT32;
+      else if constexpr (std::is_same_v<T, long long>)
+	vdt = BaseValue::VALUE_INT64;
+      else if constexpr (std::is_same_v<T, unsigned long long>)
+	vdt = BaseValue::VALUE_UINT64;
+      else {
+	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for IntegerNode");
+        return nullptr;
+      }
+      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
+    };
+    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(Node::NODE_BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
     IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
   };  
   
   class FloatNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    template <typename T>
+    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const T value) {
+      std::unique_ptr<BaseValue> ptr_value = ScalarValue<T>::create(value);
+      BaseValue::ValueDtype vdt;
+      if constexpr (std::is_same_v<T, float>)
+	vdt = BaseValue::VALUE_FLOAT32;
+      else if constexpr (std::is_same_v<T, double>)
+	vdt = BaseValue::VALUE_FLOAT64;
+      else if constexpr (std::is_same_v<T, long double>)
+	vdt = BaseValue::VALUE_FLOAT128;
+      else {
+	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for FloatNode");
+        return nullptr;
+      }
+      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
+    };
+    template <typename T>
+    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<T>&  arr, std::vector<int> sh={}) {
+      if (sh.empty())
+	sh.push_back(arr.size());
+      std::unique_ptr<BaseValue> ptr_value = ArrayValue<T>::create(arr, sh);
+      BaseValue::ValueDtype vdt;
+      if constexpr (std::is_same_v<T, float>)
+	vdt = BaseValue::VALUE_FLOAT32;
+      else if constexpr (std::is_same_v<T, double>)
+	vdt = BaseValue::VALUE_FLOAT64;
+      else if constexpr (std::is_same_v<T, long double>)
+	vdt = BaseValue::VALUE_FLOAT128;
+      else {
+	static_assert(std::is_integral_v<T>, "Unsupported ArrayValue data type for FloatNode");
+        return nullptr;
+      }
+      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
+    };
+    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(Node::NODE_FLOAT), ValueNode(nm, std::move(val), vdt) {};
     FloatNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
   };  
   
   class StringNode: public ValueNode {
-    std::unique_ptr<BaseValue> cast_scalar_value(const std::string value_input) override;
-    std::unique_ptr<BaseValue> cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static std::shared_ptr<BaseNode> is_node(Parser& parser);
+    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const std::string value);
+    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<std::string>&  arr, std::vector<int> sh={});
+    StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(Node::NODE_STRING), ValueNode(nm, std::move(val), BaseValue::VALUE_STRING) {};
     StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING), ValueNode(BaseValue::VALUE_STRING) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;

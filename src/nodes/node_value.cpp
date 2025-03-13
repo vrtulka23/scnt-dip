@@ -4,11 +4,16 @@
 
 namespace dip {
 
-  std::unique_ptr<BaseValue> ValueNode::cast_value() {
+  ValueNode::ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {
+    name=nm;
+    set_value(std::move(val));
+  };
+
+  BaseValue::PointerType ValueNode::cast_value() {
     return cast_value(value_raw);
   }
 
-  std::unique_ptr<BaseValue> ValueNode::cast_value(std::vector<std::string> value_input) {
+  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string> value_input) {
     if (dimension.size()>0) {
       return cast_array_value(value_input, value_shape);
     } else {
@@ -17,7 +22,7 @@ namespace dip {
 
   }
 
-  void ValueNode::set_value(std::unique_ptr<BaseValue> value_input) {
+  void ValueNode::set_value(BaseValue::PointerType value_input) {
     value = nullptr;
     if (value_input==nullptr and !value_raw.empty() and !value_raw[0].empty()) {
       value = cast_value();
@@ -33,7 +38,7 @@ namespace dip {
   void ValueNode::modify_value(std::shared_ptr<BaseNode> node, Environment& env) {
     if (node->dtype!=Node::NODE_MODIFICATION and node->dtype!=dtype)
 	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw+"'");
-    std::unique_ptr<BaseValue> value = cast_value(node->value_raw);
+    BaseValue::PointerType value = cast_value(node->value_raw);
     // TODO: add conversion to original units
     value_raw = node->value_raw;
     set_value(std::move(value));
@@ -49,7 +54,7 @@ namespace dip {
   }
   
   void ValueNode::validate_definition() {
-    if (declared and value==nullptr) 
+    if (value==nullptr) 
       throw std::runtime_error("Declared node has undefined value: "+line.code);
   }
   

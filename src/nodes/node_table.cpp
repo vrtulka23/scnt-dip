@@ -3,6 +3,7 @@
 #include "nodes.h"
 #include "../environment.h"
 #include "../helpers.h"
+#include "../solvers/solvers.h"
 
 namespace dip {
   
@@ -12,8 +13,6 @@ namespace dip {
       parser.part_equal();
       if (parser.is_parsed(Parser::PART_EQUAL))
 	parser.part_value();
-      else 
-	parser.declared = true;
       parser.part_units();
       parser.part_comment();
       return std::make_shared<TableNode>(parser);
@@ -21,16 +20,7 @@ namespace dip {
     return nullptr;
   }
 
-  BaseNode::NodeListType TableNode::parse(Environment& env) {
-    // create a line queue from the raw value
-    std::queue<Line> lines;
-    std::string token;
-    std::istringstream stream(value_raw[0]);
-    while (std::getline(stream, token)) {
-      trim(token); // trim lines
-      if (!token.empty())
-	lines.push({token,line.source});
-    }
+  BaseNode::NodeListType TableNode::parse_lines(std::queue<Line>& lines) {
     // parse nodes from a table header
     NodeListType nodes;
     while(!lines.empty()) {
@@ -60,8 +50,6 @@ namespace dip {
 	throw std::runtime_error("Node could not be determined from : "+line.code);
       if (parser.do_continue())
 	throw std::runtime_error("Could not parse all text on the line: "+line.code);
-      node->indent = indent;
-      node->name = name + std::string(1,SIGN_SEPARATOR) + node->name;
       node->value_raw.reserve(lines.size()); // roughly reserve some memory to avoid reallocations
       nodes.push_back(node);
     }
@@ -84,9 +72,34 @@ namespace dip {
       if (parser.do_continue())
 	throw std::runtime_error("Could not parse all text on the line: "+line.code);
     }
-    // update node value counters
+    return nodes;
+  }
+  
+  BaseNode::NodeListType TableNode::parse(Environment& env) {
+    NodeListType nodes;
+    if (!value_func.empty()) {
+      // parse nodes using a custom function
+      FunctionSolver solver(env);
+      nodes = solver.solve_table(value_func);
+    } else if (!value_raw[0].empty()) {
+      // parse nodes from a text
+      std::queue<Line> lines;
+      std::string token;
+      std::istringstream stream(value_raw[0]);
+      while (std::getline(stream, token)) {
+	trim(token); // trim lines
+	if (!token.empty())
+	  lines.push({token, line.source});
+      }
+      nodes = parse_lines(lines);
+    } else {
+      throw std::runtime_error("Table node could not be parsed: "+line.code);      
+    }
+    // update node settings
     for (auto node: nodes) {
       int size = node->value_raw.size();
+      node->indent = indent;
+      node->name = name + std::string(1,SIGN_SEPARATOR) + node->name;
       node->value_shape = {size};
       if (node->dimension.empty())
 	node->dimension = {{size,size}};

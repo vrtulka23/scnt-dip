@@ -16,7 +16,6 @@ namespace dip {
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
     dimension = parser.dimension;
-    declared = parser.declared;
   }
 
   BaseNode::BaseNode(Parser& parser, const NodeDtype dt) {
@@ -31,7 +30,6 @@ namespace dip {
     dtype_raw = parser.dtype_raw;
     dtype_prop = parser.dtype_prop;
     dimension = parser.dimension;
-    declared = parser.declared;
   }
 
   BaseNode::NodeListType BaseNode::parse(Environment& env) {

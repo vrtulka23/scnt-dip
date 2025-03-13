@@ -39,8 +39,12 @@ namespace dip {
     env.sources.append(source_name,path,code,{source.name, lineno});
   }
 
-  void DIP::add_function(const std::string name, FunctionList::FunctionType func) {
-    env.functions.append(name, func);
+  void DIP::add_value_function(const std::string name, FunctionList::ValueFunctionType func) {
+    env.functions.append_value(name, func);
+  }
+  
+  void DIP::add_table_function(const std::string name, FunctionList::TableFunctionType func) {
+    env.functions.append_table(name, func);
   }
   
   std::string DIP::to_string() {
@@ -190,6 +194,7 @@ namespace dip {
 	// TODO Check conditions
 	vnode->validate_format();
       } else {
+	std::cout << target.nodes[i]->name << std::endl;
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.code);
       }
     }

@@ -11,8 +11,6 @@ namespace dip {
       parser.part_equal();
       if (parser.is_parsed(Parser::PART_EQUAL))
 	parser.part_value();
-      else
-	parser.declared = true;
       parser.part_units();
       parser.part_comment();
       return std::make_shared<BooleanNode>(parser);
@@ -20,24 +18,32 @@ namespace dip {
     return nullptr;
   }
 
+  std::shared_ptr<BaseNode> BooleanNode::create_scalar(const std::string& name, const bool value) {
+    std::unique_ptr<BaseValue> ptr_value = ScalarValue<bool>::create(value);
+    std::shared_ptr<dip::BooleanNode> ptr_node = std::make_shared<dip::BooleanNode>(name, std::move(ptr_value));
+    return ptr_node;
+  }
+
+  std::shared_ptr<BaseNode> BooleanNode::create_array(const std::string& name, const std::vector<bool>&  arr, std::vector<int> sh) {
+    if (sh.empty())
+      sh.push_back(arr.size());
+    std::unique_ptr<BaseValue> ptr_value = ArrayValue<bool>::create(arr,sh);
+    std::shared_ptr<dip::BooleanNode> ptr_node = std::make_shared<dip::BooleanNode>(name, std::move(ptr_value));
+    return ptr_node;
+  }
+  
   BaseNode::NodeListType BooleanNode::parse(Environment& env) {
     if (!units_raw.empty())
       throw std::runtime_error("Boolean data type does not support units: "+line.code);
     if (!value_func.empty()) {
       FunctionSolver solver(env);
-      FunctionList::FunctionReturnType return_value = solver.solve(value_func);
-      if (std::holds_alternative<std::unique_ptr<BaseValue>>(return_value)) {
-	std::unique_ptr<BaseValue>& ptr = std::get<std::unique_ptr<BaseValue>>(return_value);
-	set_value(std::move(ptr));
-      } else {
-	throw std::runtime_error("Function solver can return only a single value pointer a boolean node");
-      }
+      set_value(solver.solve_value(value_func));
     }
     // TODO: process expression
     return {};
   }
   
-  std::unique_ptr<BaseValue> BooleanNode::cast_scalar_value(const std::string value_input) {
+  BaseValue::PointerType BooleanNode::cast_scalar_value(const std::string value_input) {
     if (value_input==KEYWORD_TRUE)
       return std::make_unique<ScalarValue<bool>>(true, value_dtype);
     else if (value_input==KEYWORD_FALSE)
@@ -46,7 +52,7 @@ namespace dip {
       throw std::runtime_error("Value cannot be casted as boolean from the given string: "+value_input);
   }
   
-  std::unique_ptr<BaseValue> BooleanNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
+  BaseValue::PointerType BooleanNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
     std::vector<bool> bool_values;
     for (auto value: value_inputs) {
       if (value==KEYWORD_TRUE)

@@ -66,7 +66,6 @@ TEST(Modifications, Declarations) {
   EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->declared, true);
 
   std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "3");
