@@ -18,7 +18,7 @@ TEST(ParseStrings, BlockQuotes) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 2);
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->value_raw[0], "\nbar1\nbar2\n");
   node = env.nodes[1];
@@ -36,7 +36,7 @@ TEST(ParseStrings, EscapeSymbols) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 3);
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->value_raw[0], "foo \\\" foo \\' foo \\n foo");  
   node = env.nodes[1];
@@ -57,7 +57,7 @@ TEST(ParseStrings, CommentSymbol) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 3);
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->value_raw[0], "bar#baz");
   node = env.nodes[1];

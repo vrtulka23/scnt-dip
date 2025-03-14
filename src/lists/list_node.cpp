@@ -6,27 +6,27 @@ namespace dip {
     return nodes.size();
   }
     
-  void NodeList::push_front(std::shared_ptr<BaseNode> node) {
+  void NodeList::push_front(BaseNode::PointerType node) {
     nodes.push_front(node);
   }
   
-  void NodeList::push_back(std::shared_ptr<BaseNode> node) {
+  void NodeList::push_back(BaseNode::PointerType node) {
     nodes.push_back(node);
   }
   
-  std::shared_ptr<BaseNode> NodeList::pop_front() {
-    std::shared_ptr<BaseNode> node = nodes.front();
+  BaseNode::PointerType NodeList::pop_front() {
+    BaseNode::PointerType node = nodes.front();
     nodes.pop_front();
     return node;
   }
   
-  std::shared_ptr<BaseNode> NodeList::pop_back() {
-    std::shared_ptr<BaseNode> node = nodes.back();
+  BaseNode::PointerType NodeList::pop_back() {
+    BaseNode::PointerType node = nodes.back();
     nodes.pop_back();
     return node;
   }
   
-  std::shared_ptr<BaseNode> NodeList::operator[](const size_t index) {
+  BaseNode::PointerType NodeList::operator[](const size_t index) {
     if (index<nodes.size())
       return nodes[index];
     else

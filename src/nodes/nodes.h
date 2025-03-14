@@ -15,17 +15,10 @@ namespace dip {
   class Node {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
-    enum NodeDtype {
-      NODE_NONE, NODE_EMPTY, NODE_GROUP, NODE_UNIT, NODE_SOURCE, NODE_CASE, NODE_MODIFICATION,
-      NODE_BOOLEAN, NODE_STRING, NODE_INTEGER, NODE_FLOAT, NODE_TABLE,
-      NODE_OPTIONS, NODE_CONSTANT, NODE_FORMAT, NODE_CONDITION, NODE_TAGS, NODE_DESCRIPTION
-    };
     Line line;                             // source code line information; in Python this were 'code' & 'source' variables
-    NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable
-    std::string dtype_raw;                 // data type string; in Python this was 'dtype' variable
-    std::vector<std::string> dtype_prop;   // data type properties (e.g. unsigned/precision)
     int indent;                            // indent of a node
     std::string name;                      // node name
+    std::vector<std::string> dtype_raw;    // data type properties (unsigned/type/precision)
     std::vector<std::string> value_raw;    // raw value string(s)
     std::vector<int> value_shape;          // shape of an array value
     std::string value_ref;                 // reference string
@@ -34,78 +27,74 @@ namespace dip {
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions
-    Node(): indent(0), dtype(NODE_NONE) {};
-    Node(const Line& l): line(l), indent(0), dtype(NODE_NONE) {};
-    Node(const NodeDtype kwd): indent(0), dtype(kwd) {};
-    Node(const std::string& nm, const NodeDtype kwd): name(nm), indent(0), dtype(kwd) {};
+    Node(): indent(0) {};
+    Node(const Line& l): line(l), indent(0) {};
+    Node(const std::string& nm): name(nm), indent(0) {};
     virtual ~Node() = default;
-    bool has_dtype(NodeDtype kwd);
     std::string to_string();
   };
   
   class Parser: public Node {
   public:
-    enum ParsingFlag {
-      KWD_CASE, KWD_UNIT, KWD_SOURCE,
-      KWD_OPTIONS, KWD_CONSTANT, KWD_FORMAT, KWD_TAGS, KWD_DESCRIPTION, KWD_CONDITION,
-      PART_INDENT, PART_NAME, PART_TYPE, PART_DIMENSION, PART_EQUAL,
-      PART_REFERENCE, PART_FUNCTION, PART_EXPRESSION, PART_ARRAY, PART_STRING, PART_VALUE,
-      PART_UNITS, PART_COMMENT, PART_DELIMITER
-    };
     std::string code;                      // in Python this was 'ccode', the original 'code' is now in the 'line' struct
     std::string comment;
-    std::vector<ParsingFlag> parsed;
   private:
-    void _strip(const std::string text, ParsingFlag flag);
+    void strip(const std::string text); 
   public:
     Parser(const Line& l): Node(l), code(l.code) {};
     static void encode_escape_symbols(std::string& str);
     static void decode_escape_symbols(std::string& str);
     bool do_continue();
-    bool is_parsed(ParsingFlag flag);
-    void kwd_case();
-    void kwd_unit();
-    void kwd_source();
-    void kwd_options();
-    void kwd_constant();
-    void kwd_format();
-    void kwd_tags();
-    void kwd_description();
-    void kwd_condition();
-    void part_indent();
-    void part_name(const bool path=true);
-    void part_type();
-    void part_dimension();
-    void part_equal();
-    void part_array();
+    bool kwd_case();
+    bool kwd_unit();
+    bool kwd_source();
+    bool kwd_options();
+    bool kwd_constant();
+    bool kwd_format();
+    bool kwd_tags();
+    bool kwd_description();
+    bool kwd_condition();
+    bool part_indent();
+    bool part_name(bool required=true);
+    bool part_key(bool required=true);
+    bool part_type(bool required=true);
+    bool part_dimension();
+    bool part_equal(bool required=true);
+    bool part_reference(const bool inject=false);
+    bool part_expression();
+    bool part_function();
+    bool part_array();
     bool part_string();
-    void part_value();
-    void part_reference(const bool inject=false);
-    void part_slice();
-    void part_function();
-    void part_expression();
-    void part_units();
-    void part_comment();
-    bool part_delimiter(char symbol);
+    bool part_value();
+    bool part_slice();
+    bool part_units();
+    bool part_comment();
+    bool part_delimiter(char symbol, bool required=true);
   };
   
   class BaseNode: virtual public Node {
   public:
+    enum NodeDtype {
+      NONE, EMPTY, GROUP, UNIT, SOURCE, CASE, MODIFICATION,
+      BOOLEAN, STRING, INTEGER, FLOAT, TABLE,
+      OPTIONS, CONSTANT, FORMAT, CONDITION, TAGS, DESCRIPTION
+    };
+    NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable in Node class
     std::string branch_id;
     std::string case_id;
-    typedef std::deque<std::shared_ptr<BaseNode>> NodeListType;
-    BaseNode() {};
-    BaseNode(const NodeDtype kwd): Node(kwd) {};
-    BaseNode(Parser& parser);
-    BaseNode(Parser& parser, const NodeDtype kwd);
+    typedef std::shared_ptr<BaseNode> PointerType;
+    typedef std::deque<BaseNode::PointerType> NodeListType;
+    BaseNode(): dtype(NONE) {};
+    BaseNode(const NodeDtype dt): dtype(dt) {};
+    BaseNode(Parser& parser, const NodeDtype dt);
     virtual ~BaseNode() = default;
     virtual NodeListType parse(Environment& env);
   };
 
   class EmptyNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    EmptyNode(Parser& parser): BaseNode(parser, Node::NODE_EMPTY) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    EmptyNode(Parser& parser): BaseNode(parser, BaseNode::EMPTY) {};
   };
 
   /*
@@ -113,61 +102,62 @@ namespace dip {
   public:
   };
   */
-  
+
   /*
   class UnitNode: public BaseNode {
   public:
   };
   */
   
-  /*
   class SourceNode: public BaseNode {
   public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    SourceNode(Parser& parser): BaseNode(parser, BaseNode::SOURCE) {};
+    BaseNode::NodeListType parse(Environment& env) override;
   };
-  */
   
   class CaseNode: public BaseNode {
   public:
     bool value;             // case value
     int case_id;            // ID of a case
     std::string case_type;  // type of a case
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    CaseNode(Parser& parser): BaseNode(parser, Node::NODE_CASE), case_id(0), value(false) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    CaseNode(Parser& parser): BaseNode(parser, BaseNode::CASE), case_id(0), value(false) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class OptionsNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    OptionsNode(Parser& parser): BaseNode(parser, Node::NODE_OPTIONS) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    OptionsNode(Parser& parser): BaseNode(parser, BaseNode::OPTIONS) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class ConstantNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    ConstantNode(Parser& parser): BaseNode(parser, Node::NODE_CONSTANT) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    ConstantNode(Parser& parser): BaseNode(parser, BaseNode::CONSTANT) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class FormatNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    FormatNode(Parser& parser): BaseNode(parser, Node::NODE_FORMAT) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    FormatNode(Parser& parser): BaseNode(parser, BaseNode::FORMAT) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
   class TagsNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    TagsNode(Parser& parser): BaseNode(parser, Node::NODE_TAGS) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    TagsNode(Parser& parser): BaseNode(parser, BaseNode::TAGS) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class DescriptionNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    DescriptionNode(Parser& parser): BaseNode(parser, Node::NODE_CONSTANT) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    DescriptionNode(Parser& parser): BaseNode(parser, BaseNode::CONSTANT) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
@@ -179,24 +169,24 @@ namespace dip {
   
   class GroupNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    GroupNode(Parser& parser): BaseNode(parser, Node::NODE_GROUP) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    GroupNode(Parser& parser): BaseNode(parser, BaseNode::GROUP) {};
   };
     
   class ModificationNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    ModificationNode(Parser& parser): BaseNode(parser, Node::NODE_MODIFICATION) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    ModificationNode(Parser& parser): BaseNode(parser, BaseNode::MODIFICATION) {};
   };
   
   class TableNode: public BaseNode {
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    TableNode(Parser& parser): BaseNode(parser, Node::NODE_TABLE) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    TableNode(Parser& parser): BaseNode(parser, BaseNode::TABLE) {};
     BaseNode::NodeListType parse(Environment& env) override;
     static BaseNode::NodeListType parse_lines(std::queue<Line>& lines);
   };
-  
+
   class ValueNode: virtual public BaseNode {
     virtual BaseValue::PointerType cast_scalar_value(const std::string value_input) = 0;
     virtual BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) = 0;
@@ -208,6 +198,7 @@ namespace dip {
     };
     BaseValue::ValueDtype value_dtype;
   public:
+    typedef std::shared_ptr<ValueNode> PointerType;
     BaseValue::PointerType value;
     std::vector<std::string> tags;
     bool constant;
@@ -221,7 +212,7 @@ namespace dip {
     BaseValue::PointerType cast_value();
     BaseValue::PointerType cast_value(std::vector<std::string> value_input);
     void set_value(BaseValue::PointerType value_input=nullptr);
-    void modify_value(std::shared_ptr<BaseNode> node, Environment& env);
+    void modify_value(BaseNode::PointerType node, Environment& env);
     virtual void set_option(const std::string option_value, const std::string option_units, Environment& env) = 0;
     void validate_constant();
     void validate_definition();
@@ -235,11 +226,9 @@ namespace dip {
     BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const bool value);
-    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<bool>&  arr, std::vector<int> sh={});
-    BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(Node::NODE_BOOLEAN), ValueNode(nm, std::move(val), BaseValue::VALUE_BOOL) {};
-    BooleanNode(Parser& parser): BaseNode(parser, Node::NODE_BOOLEAN), ValueNode(BaseValue::VALUE_BOOL) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), BaseValue::BOOLEAN) {};
+    BooleanNode(Parser& parser): BaseNode(parser, BaseNode::BOOLEAN), ValueNode(BaseValue::BOOLEAN) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_options() override;
@@ -250,54 +239,8 @@ namespace dip {
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    template <typename T>
-    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const T value) {
-      std::unique_ptr<BaseValue> ptr_value = ScalarValue<T>::create(value);
-      BaseValue::ValueDtype vdt;
-      if constexpr (std::is_same_v<T, short>)
-	vdt = BaseValue::VALUE_INT16;
-      else if constexpr (std::is_same_v<T, unsigned short>)
-	vdt = BaseValue::VALUE_UINT16;
-      else if constexpr (std::is_same_v<T, int>)
-	vdt = BaseValue::VALUE_INT32;
-      else if constexpr (std::is_same_v<T, unsigned int>)
-	vdt = BaseValue::VALUE_UINT32;
-      else if constexpr (std::is_same_v<T, long long>)
-	vdt = BaseValue::VALUE_INT64;
-      else if constexpr (std::is_same_v<T, unsigned long long>)
-	vdt = BaseValue::VALUE_UINT64;
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for IntegerNode");
-        return nullptr;
-      }
-      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
-    };
-    template <typename T>
-    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<T>&  arr, std::vector<int> sh={}) {
-      if (sh.empty())
-	sh.push_back(arr.size());
-      std::unique_ptr<BaseValue> ptr_value = ArrayValue<T>::create(arr, sh);
-      BaseValue::ValueDtype vdt;
-      if constexpr (std::is_same_v<T, short>)
-	vdt = BaseValue::VALUE_INT16;
-      else if constexpr (std::is_same_v<T, unsigned short>)
-	vdt = BaseValue::VALUE_UINT16;
-      else if constexpr (std::is_same_v<T, int>)
-	vdt = BaseValue::VALUE_INT32;
-      else if constexpr (std::is_same_v<T, unsigned int>)
-	vdt = BaseValue::VALUE_UINT32;
-      else if constexpr (std::is_same_v<T, long long>)
-	vdt = BaseValue::VALUE_INT64;
-      else if constexpr (std::is_same_v<T, unsigned long long>)
-	vdt = BaseValue::VALUE_UINT64;
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for IntegerNode");
-        return nullptr;
-      }
-      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
-    };
-    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(Node::NODE_BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
     IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
@@ -308,42 +251,8 @@ namespace dip {
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    template <typename T>
-    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const T value) {
-      std::unique_ptr<BaseValue> ptr_value = ScalarValue<T>::create(value);
-      BaseValue::ValueDtype vdt;
-      if constexpr (std::is_same_v<T, float>)
-	vdt = BaseValue::VALUE_FLOAT32;
-      else if constexpr (std::is_same_v<T, double>)
-	vdt = BaseValue::VALUE_FLOAT64;
-      else if constexpr (std::is_same_v<T, long double>)
-	vdt = BaseValue::VALUE_FLOAT128;
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type for FloatNode");
-        return nullptr;
-      }
-      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
-    };
-    template <typename T>
-    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<T>&  arr, std::vector<int> sh={}) {
-      if (sh.empty())
-	sh.push_back(arr.size());
-      std::unique_ptr<BaseValue> ptr_value = ArrayValue<T>::create(arr, sh);
-      BaseValue::ValueDtype vdt;
-      if constexpr (std::is_same_v<T, float>)
-	vdt = BaseValue::VALUE_FLOAT32;
-      else if constexpr (std::is_same_v<T, double>)
-	vdt = BaseValue::VALUE_FLOAT64;
-      else if constexpr (std::is_same_v<T, long double>)
-	vdt = BaseValue::VALUE_FLOAT128;
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ArrayValue data type for FloatNode");
-        return nullptr;
-      }
-      return std::make_shared<dip::IntegerNode>(name, std::move(ptr_value), vdt);
-    };
-    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(Node::NODE_FLOAT), ValueNode(nm, std::move(val), vdt) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::FLOAT), ValueNode(nm, std::move(val), vdt) {};
     FloatNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
@@ -353,15 +262,75 @@ namespace dip {
     BaseValue::PointerType cast_scalar_value(const std::string value_input) override;
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) override;
   public:
-    static std::shared_ptr<BaseNode> is_node(Parser& parser);
-    static std::shared_ptr<BaseNode> create_scalar(const std::string& name, const std::string value);
-    static std::shared_ptr<BaseNode> create_array(const std::string& name, const std::vector<std::string>&  arr, std::vector<int> sh={});
-    StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(Node::NODE_STRING), ValueNode(nm, std::move(val), BaseValue::VALUE_STRING) {};
-    StringNode(Parser& parser): BaseNode(parser, Node::NODE_STRING), ValueNode(BaseValue::VALUE_STRING) {};
+    static BaseNode::PointerType is_node(Parser& parser);
+    StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(BaseNode::STRING), ValueNode(nm, std::move(val), BaseValue::STRING) {};
+    StringNode(Parser& parser): BaseNode(parser, BaseNode::STRING), ValueNode(BaseValue::STRING) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
     void validate_format() override;
-  };  
+  };
+  
+  // helper function that create a scalar value node pointer from a C++ data type
+  template <typename T>
+  BaseNode::PointerType create_scalar_node(const std::string& name, const T value) {
+    BaseValue::PointerType ptr_value = create_scalar_value<T>(value);
+    if constexpr (std::is_same_v<T, bool>)
+      return std::make_shared<BooleanNode>(name, std::move(ptr_value));
+    else if constexpr (std::is_same_v<T, short>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16);
+    else if constexpr (std::is_same_v<T, unsigned short>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16_U);
+    else if constexpr (std::is_same_v<T, int>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32);
+    else if constexpr (std::is_same_v<T, unsigned int>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32_U);
+    else if constexpr (std::is_same_v<T, long long>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64);
+    else if constexpr (std::is_same_v<T, unsigned long long>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64_U);
+    else if constexpr (std::is_same_v<T, float>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_32);
+    else if constexpr (std::is_same_v<T, double>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_64);
+    else if constexpr (std::is_same_v<T, long double>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_128);
+    else if constexpr (std::is_same_v<T, std::string>)      
+      return std::make_shared<StringNode>(name, std::move(ptr_value));
+    else 
+      static_assert(std::is_integral_v<T>, "Given data type is not associated with any scalar value node");
+  }
+
+  // helper function that create a array value node pointer from a C++ data type
+  template <typename T>
+  BaseNode::PointerType create_array_node(const std::string& name, const std::vector<T>&  arr, std::vector<int> sh={}) {
+    if (sh.empty())
+      sh.push_back(arr.size());
+    BaseValue::PointerType ptr_value = create_array_value<T>(arr, sh);
+    if constexpr (std::is_same_v<T, bool>)
+      return std::make_shared<BooleanNode>(name, std::move(ptr_value));
+    else if constexpr (std::is_same_v<T, short>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16);
+    else if constexpr (std::is_same_v<T, unsigned short>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16_U);
+    else if constexpr (std::is_same_v<T, int>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32);
+    else if constexpr (std::is_same_v<T, unsigned int>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32_U);
+    else if constexpr (std::is_same_v<T, long long>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64);
+    else if constexpr (std::is_same_v<T, unsigned long long>)
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64_U);
+    else if constexpr (std::is_same_v<T, float>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_32);
+    else if constexpr (std::is_same_v<T, double>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_64);
+    else if constexpr (std::is_same_v<T, long double>)
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_128);
+    else if constexpr (std::is_same_v<T, std::string>)
+      return std::make_shared<StringNode>(name, std::move(ptr_value));
+    else
+      static_assert(std::is_integral_v<T>, "Given data type is not associated with any array value node");
+  };
   
 }
   

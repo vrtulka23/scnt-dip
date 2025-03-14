@@ -5,9 +5,8 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> CaseNode::is_node(Parser& parser) {
-    parser.kwd_case();
-    if (parser.is_parsed(Parser::KWD_CASE)) {
+  BaseNode::PointerType CaseNode::is_node(Parser& parser) {
+    if (parser.kwd_case()) {
       parser.part_value();
       parser.part_comment();
       return std::make_shared<CaseNode>(parser);

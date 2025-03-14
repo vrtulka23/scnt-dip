@@ -35,9 +35,9 @@ namespace dip {
       validate_dimensions(); // check if value shape corresponds with dimension ranges
   }
 
-  void ValueNode::modify_value(std::shared_ptr<BaseNode> node, Environment& env) {
-    if (node->dtype!=Node::NODE_MODIFICATION and node->dtype!=dtype)
-	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw+"'");
+  void ValueNode::modify_value(BaseNode::PointerType node, Environment& env) {
+    if (node->dtype!=BaseNode::MODIFICATION and node->dtype!=dtype)
+	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw[1]+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw[1]+"'");
     BaseValue::PointerType value = cast_value(node->value_raw);
     // TODO: add conversion to original units
     value_raw = node->value_raw;

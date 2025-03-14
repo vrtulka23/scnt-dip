@@ -10,20 +10,12 @@ namespace dip {
   constexpr int NUM_ESCAPE_SYMBOLS = 3;
   constexpr std::array<std::string, NUM_ESCAPE_SYMBOLS> escape_symbols = {"\\\"", "\\'", "\\n"};
   
-  void Parser::_strip(const std::string text, ParsingFlag flag) {
-    parsed.push_back(flag);
+  void Parser::strip(const std::string text) {
     code = code.substr(text.length(), code.length());
   }
 
   bool Parser::do_continue() {
     return code.length();
-  }
-
-  bool Parser::is_parsed(ParsingFlag flag) {
-    for (ParsingFlag f: parsed)
-      if (f==flag)
-	return true;
-    return false;
   }
 
   /*
@@ -56,14 +48,15 @@ namespace dip {
    * Directive keywords
    */
 
-  void Parser::kwd_case() {
+  bool Parser::kwd_case() {
     std::ostringstream oss;
     oss << "^([a-zA-Z0-9_.-]*[" << SIGN_CONDITION << "]" << KEYWORD_CASE << ")[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[1].str();
-      _strip(matchResult[0].str(), KWD_CASE);
+      strip(matchResult[0].str());
+      return true;
     } else {
       oss.str("");
       oss.clear();
@@ -73,59 +66,80 @@ namespace dip {
       pattern = oss.str();
       if (std::regex_search(code, matchResult, pattern)) {
 	name = matchResult[0].str();
-	_strip(matchResult[0].str(), KWD_CASE);
+	strip(matchResult[0].str());
+	return true;
       }
     }
+    return false;
   }
   
-  void Parser::kwd_unit() {
+  bool Parser::kwd_unit() {
+    return false;
   }
   
-  void Parser::kwd_source() {
+  bool Parser::kwd_source() {
+    std::ostringstream oss;
+    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_VARIABLE << "]" << KEYWORD_SOURCE << ")[ ]*";
+    std::regex pattern(oss.str());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      name = matchResult[1].str();
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
   
-  void Parser::kwd_options() {
+  bool Parser::kwd_options() {
     std::ostringstream oss;
     oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_OPTIONS << "[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       dimension.push_back({0,-1});
-      _strip(matchResult[0].str(), KWD_OPTIONS);
-    }    
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
   
-  void Parser::kwd_constant() {
+  bool Parser::kwd_constant() {
     std::ostringstream oss;
     oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_CONSTANT;
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[0].str(), KWD_CONSTANT);
-    }    
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   } 
   
-  void Parser::kwd_format() {
+  bool Parser::kwd_format() {
     std::ostringstream oss;
     oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_FORMAT << "[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[0].str(), KWD_FORMAT);
-    }    
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
   
-  void Parser::kwd_tags() {
+  bool Parser::kwd_tags() {
     std::ostringstream oss;
     oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_TAGS << "[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[0].str(), KWD_TAGS);
-    }    
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
   
-  void Parser::kwd_description() {
+  bool Parser::kwd_description() {
     std::ostringstream oss;
     oss << "^((";
     oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_DESCRIPTION << "|";
@@ -134,69 +148,76 @@ namespace dip {
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[1].str(), KWD_DESCRIPTION);
-    }    
+      strip(matchResult[1].str());
+      return true;
+    }
+    return false;
   }
   
-  void Parser::kwd_condition() {
+  bool Parser::kwd_condition() {
+    return false;
   }
   
   /*
    * Node Parts
    */
   
-  void Parser::part_indent() {
+  bool Parser::part_indent() {
     std::regex pattern("^[ ]+");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       indent = matchResult[0].str().length();
-      _strip(matchResult[0].str(), PART_INDENT);
+      strip(matchResult[0].str());
+      return true;
     }
+    return false;
   }
   
-  void Parser::part_name(const bool path) {
-    std::regex pattern(path ? "^[a-zA-Z0-9_.-]+" : "^[a-zA-Z0-9_]+");
+  bool Parser::part_name(bool required) {
+    std::regex pattern("^[a-zA-Z0-9_.-]+");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[0].str();
-      _strip(matchResult[0].str(), PART_NAME);
+      strip(matchResult[0].str());
       if (do_continue() and code[0]!=' ')
 	throw std::runtime_error("Name has an invalid format: "+line.code);
-    } else {
+      return true;
+    } else if (required) {
       throw std::runtime_error("Name has an invalid format: "+line.code);
     }
+    return false;
   }
   
-  void Parser::part_type() {
+  bool Parser::part_key(bool required) {
+    std::regex pattern("^[a-zA-Z0-9_]+");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      value_raw.push_back(matchResult[0].str());
+      strip(matchResult[0].str());
+      if (do_continue() and code[0]!=' ')
+	throw std::runtime_error("Key has an invalid format: "+line.code);
+      return true;
+    } else if (required) {
+      throw std::runtime_error("Key has an invalid format: "+line.code);
+    }
+    return false;
+  }
+  
+  bool Parser::part_type(bool required) {
     std::smatch matchResult;
     std::regex pattern;
-    pattern = "^[ ]+(u|)(bool|str|table|int|float)(16|32|64|128|x|)";
+    pattern = "^[ ]+(u|)(bool|int|float|str|table)(16|32|64|128|x|)";
     if (std::regex_search(code, matchResult, pattern)) {
-      dtype_raw = matchResult[2].str();
-      if (dtype_raw=="int") {
-	dtype = Node::NODE_INTEGER;
-	dtype_prop = {matchResult[1].str(), matchResult[3].str()};
-      } else if (dtype_raw=="float") {
-	dtype = Node::NODE_FLOAT;
-	dtype_prop = {matchResult[3].str()};
-      } else if (matchResult[1].str()!="" or matchResult[3].str()!="") {
-	throw std::runtime_error("Incorrect type: "+line.code);
-      } else if (dtype_raw=="table") {
-	dtype = Node::NODE_TABLE;
-      } else if (dtype_raw=="bool") {
-	dtype = Node::NODE_BOOLEAN;
-      } else if (dtype_raw=="str") {
-	dtype = Node::NODE_STRING;
-      } else {
-	throw std::runtime_error("Type not recognized: "+line.code);
-      }
-      _strip(matchResult[0].str(), PART_TYPE);
-    } else {
+      dtype_raw = {matchResult[1].str(), matchResult[2].str(), matchResult[3].str()};
+      strip(matchResult[0].str());
+      return true;
+    } else if (required) {
       throw std::runtime_error("Type not recognized: "+line.code);
     }
+    return false;
   }
 
-  void Parser::part_dimension() {
+  bool Parser::part_dimension() {
     std::regex pattern("^\\[([0-9:,]*)\\]");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
@@ -222,17 +243,40 @@ namespace dip {
       }
       if (dimension.empty())
 	throw std::runtime_error("Dimension settings cannot be empty: "+line.code);
-      _strip(matchResult[0].str(), PART_DIMENSION);      
+      strip(matchResult[0].str());
+      return true;
     }
+    return false;
   }
 
-  void Parser::part_equal() {
-    if (part_delimiter('=')) {
-      parsed.push_back(PART_EQUAL);
+  bool Parser::part_equal(bool required) {
+    if (part_delimiter('=', required)) {
+      return true;
     }
+    return false;
   }
   
-  void Parser::part_array() {
+  bool Parser::part_reference(const bool inject) {
+    return false;
+  }
+  
+  bool Parser::part_function() {
+    std::regex pattern("^[(]([a-zA-Z0-9_-]+)[)]");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      value_raw.clear();
+      value_func = matchResult[1].str();
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
+  }
+    
+  bool Parser::part_expression() {
+    return false;
+  }
+    
+  bool Parser::part_array() {
     std::stringstream ss(code), rm;
     char ch;
 
@@ -240,7 +284,7 @@ namespace dip {
     ss.get(ch);
     rm << ch;
     if (ch!='[')
-      return;
+      return false;
     
     std::string value;
     bool inString = false;
@@ -303,7 +347,8 @@ namespace dip {
     //std::cout << line.code << std::endl;
     //std::cout << ss.str() << std::endl;
     //std::cout << rm.str() << std::endl;
-    _strip(rm.str(), PART_ARRAY);
+    strip(rm.str());
+    return true;
   }
 
   bool Parser::part_string() {
@@ -313,90 +358,67 @@ namespace dip {
       for (int i=2; i<6; i++) {
 	std::string vraw = matchResult[i].str();
 	if (vraw!="") {
-	  value_raw = {vraw};
+	  value_raw.push_back(vraw);
 	  break;
 	}
       }
-      _strip(matchResult[0].str(), PART_STRING);
+      strip(matchResult[0].str());
       return true;
     }
     return false;
   }
   
-  void Parser::part_reference(const bool inject) {
+  bool Parser::part_value() {
+    if (part_reference(true))
+      return true;
+    if (part_function())
+      return true;
+    if (part_expression())
+      return true;
+    if (part_array())
+      return true;
+    if (part_string())
+      return true;
+    return false;
   }
   
-  void Parser::part_function() {
-    std::regex pattern("^[(]([a-zA-Z0-9_-]+)[)]");
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      value_raw.clear();
-      value_func = matchResult[1].str();
-      _strip(matchResult[0].str(), PART_FUNCTION);
-    }
+  bool Parser::part_slice() {
+    return false;
   }
     
-  void Parser::part_expression() {
-  }
-    
-  void Parser::part_value() {
-    part_reference(true);
-    if (is_parsed(PART_REFERENCE)) {
-      parsed.push_back(PART_VALUE);
-      return;
-    }
-    part_function();
-    if (is_parsed(PART_FUNCTION)) {
-      parsed.push_back(PART_VALUE);
-      return;
-    }
-    part_expression();
-    if (is_parsed(PART_EXPRESSION)) {
-      parsed.push_back(PART_VALUE);
-      return;
-    }
-    part_array();
-    if (is_parsed(PART_ARRAY)) {
-      parsed.push_back(PART_VALUE);
-      return;
-    }
-    part_string();
-    if (is_parsed(PART_STRING)) {
-      parsed.push_back(PART_VALUE);
-      return;
-    }
-  }
-  
-  void Parser::part_slice() {
-  }
-    
-  void Parser::part_units() {
+  bool Parser::part_units() {
     // In numerical expressions starting signs +-*/ have to be explicitely excluded
     std::regex pattern1("^[ ]+([^#= ]+)"), pattern2("^[ ]+[/*+-]+");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern1) and !std::regex_match(code, pattern2)) {
       units_raw = matchResult[1].str();
-      _strip(matchResult[0].str(), PART_UNITS);
-    }        
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
     
-  void Parser::part_comment() {
+  bool Parser::part_comment() {
     std::regex pattern("^[ ]*#[ ]*(.*)$");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       comment = matchResult[1].str();
-      _strip(matchResult[0].str(), PART_COMMENT);
-    }    
+      strip(matchResult[0].str());
+      return true;
+    }
+    return false;
   }
 
-  bool Parser::part_delimiter(char symbol) {
+  bool Parser::part_delimiter(char symbol, bool required) {
     std::ostringstream oss;
     oss << "^[ ]*[" << symbol << "][ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      _strip(matchResult[0].str(), PART_DELIMITER);
+      strip(matchResult[0].str());
       return true;
+    } else if (required) {
+      throw std::runtime_error("Delimiter '"+std::string(1,symbol)+"' is required: "+line.code);
     }
     return false;
   }

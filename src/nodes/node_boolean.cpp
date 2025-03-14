@@ -5,11 +5,10 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> BooleanNode::is_node(Parser& parser) {
-    if (parser.has_dtype(Node::NODE_BOOLEAN)) {
+  BaseNode::PointerType BooleanNode::is_node(Parser& parser) {
+    if (parser.dtype_raw[1]=="bool") {
       parser.part_dimension();
-      parser.part_equal();
-      if (parser.is_parsed(Parser::PART_EQUAL))
+      if (parser.part_equal(false))
 	parser.part_value();
       parser.part_units();
       parser.part_comment();
@@ -18,20 +17,6 @@ namespace dip {
     return nullptr;
   }
 
-  std::shared_ptr<BaseNode> BooleanNode::create_scalar(const std::string& name, const bool value) {
-    std::unique_ptr<BaseValue> ptr_value = ScalarValue<bool>::create(value);
-    std::shared_ptr<dip::BooleanNode> ptr_node = std::make_shared<dip::BooleanNode>(name, std::move(ptr_value));
-    return ptr_node;
-  }
-
-  std::shared_ptr<BaseNode> BooleanNode::create_array(const std::string& name, const std::vector<bool>&  arr, std::vector<int> sh) {
-    if (sh.empty())
-      sh.push_back(arr.size());
-    std::unique_ptr<BaseValue> ptr_value = ArrayValue<bool>::create(arr,sh);
-    std::shared_ptr<dip::BooleanNode> ptr_node = std::make_shared<dip::BooleanNode>(name, std::move(ptr_value));
-    return ptr_node;
-  }
-  
   BaseNode::NodeListType BooleanNode::parse(Environment& env) {
     if (!units_raw.empty())
       throw std::runtime_error("Boolean data type does not support units: "+line.code);

@@ -18,11 +18,11 @@ namespace dip {
     BaseNode::NodeListType nodes;
   public:
     size_t size() const;
-    void push_front(std::shared_ptr<BaseNode> node);
-    void push_back(std::shared_ptr<BaseNode> node);
-    std::shared_ptr<BaseNode> pop_front();
-    std::shared_ptr<BaseNode> pop_back();
-    std::shared_ptr<BaseNode> operator[](const size_t index);
+    void push_front(BaseNode::PointerType node);
+    void push_back(BaseNode::PointerType node);
+    BaseNode::PointerType pop_front();
+    BaseNode::PointerType pop_back();
+    BaseNode::PointerType operator[](const size_t index);
   };
 
   // Source list
@@ -58,7 +58,7 @@ namespace dip {
   private:
     std::vector<Parent> parents;
   public:
-    void record(std::shared_ptr<BaseNode> node, const std::vector<Node::NodeDtype>& excluded);
+    void record(BaseNode::PointerType node, const std::vector<BaseNode::NodeDtype>& excluded);
   };
 
   // Branching list
@@ -96,8 +96,8 @@ namespace dip {
     BranchingList(): num_cases(0), num_branches(0) {};
     int register_case();
     bool false_case();
-    void solve_case(std::shared_ptr<BaseNode> node);
-    void prepare_node(std::shared_ptr<BaseNode> node);
+    void solve_case(BaseNode::PointerType node);
+    void prepare_node(BaseNode::PointerType node);
     std::string clean_name(const std::string& node);
   };
 

@@ -7,10 +7,10 @@ namespace dip {
   public:
     typedef std::unique_ptr<BaseValue> PointerType;
     enum ValueDtype { // TODO: INTX and FLOATX should support arbitrary precision types
-      VALUE_BOOL,    VALUE_STRING,
-      VALUE_INT16,   VALUE_INT32,   VALUE_INT64,    VALUE_INTX,   
-      VALUE_UINT16,  VALUE_UINT32,  VALUE_UINT64,  
-      VALUE_FLOAT32, VALUE_FLOAT64, VALUE_FLOAT128, VALUE_FLOATX
+      BOOLEAN,    STRING,
+      INTEGER_16,   INTEGER_32,   INTEGER_64,    INTEGER_X,   
+      INTEGER_16_U,  INTEGER_32_U,  INTEGER_64_U,  
+      FLOAT_32, FLOAT_64, FLOAT_128, FLOAT_X
     };
     ValueDtype dtype;
     BaseValue(ValueDtype dt): dtype(dt) {};
@@ -55,30 +55,6 @@ namespace dip {
   template <typename T>
   class ScalarValue: public BaseScalarValue<T> {
   public:
-    static BaseValue::PointerType create(T value) {
-      if constexpr (std::is_same_v<T, short>)
-	return std::make_unique<ScalarValue<short>>(ScalarValue<short>(value, BaseValue::VALUE_INT16));
-      else if constexpr (std::is_same_v<T, unsigned short>)
-	return std::make_unique<ScalarValue<unsigned short>>(ScalarValue<unsigned short>(value, BaseValue::VALUE_UINT16));
-      else if constexpr (std::is_same_v<T, int>)
-	return std::make_unique<ScalarValue<int>>(ScalarValue<int>(value, BaseValue::VALUE_INT32));
-      else if constexpr (std::is_same_v<T, unsigned int>)
-	return std::make_unique<ScalarValue<unsigned int>>(ScalarValue<unsigned int>(value, BaseValue::VALUE_UINT32));
-      else if constexpr (std::is_same_v<T, long long>)
-	return std::make_unique<ScalarValue<long long>>(ScalarValue<long long>(value, BaseValue::VALUE_INT64));
-      else if constexpr (std::is_same_v<T, unsigned long long>)
-	return std::make_unique<ScalarValue<unsigned long long>>(ScalarValue<unsigned long long>(value, BaseValue::VALUE_UINT64));
-      else if constexpr (std::is_same_v<T, float>)
-	return std::make_unique<ScalarValue<float>>(ScalarValue<float>(value, BaseValue::VALUE_FLOAT32));
-      else if constexpr (std::is_same_v<T, double>)
-	return std::make_unique<ScalarValue<double>>(ScalarValue<double>(value, BaseValue::VALUE_FLOAT64));
-      else if constexpr (std::is_same_v<T, long double>)
-	return std::make_unique<ScalarValue<long double>>(ScalarValue<long double>(value, BaseValue::VALUE_FLOAT128));
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ScalarValue data type");
-        return nullptr;
-      }
-    };
     ScalarValue(const T& val, const BaseValue::ValueDtype dt): BaseScalarValue<T>(val, dt) {};
   protected:
     void value_to_string(std::ostringstream& oss, int precision=0) {
@@ -95,11 +71,8 @@ namespace dip {
   template <>
   class ScalarValue<std::string> : public BaseScalarValue<std::string> {
   public:
-    static BaseValue::PointerType create(std::string value) {
-      return std::make_unique<ScalarValue<std::string>>(ScalarValue<std::string>(value));
-    };
     ScalarValue(const std::string& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
-    ScalarValue(const std::string& val): ScalarValue(val,BaseValue::VALUE_STRING) {};
+    ScalarValue(const std::string& val): ScalarValue(val,BaseValue::STRING) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    
       if (precision==0)
@@ -112,11 +85,8 @@ namespace dip {
   template <>
   class ScalarValue<bool> : public BaseScalarValue<bool> {
   public:
-    static BaseValue::PointerType create(bool value) {
-      return std::make_unique<ScalarValue<bool>>(ScalarValue<bool>(value));
-    };
     ScalarValue(const bool& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
-    ScalarValue(const bool& val): ScalarValue(val,BaseValue::VALUE_BOOL) {};
+    ScalarValue(const bool& val): ScalarValue(val,BaseValue::BOOLEAN) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) {    
       if (precision==0)
@@ -191,32 +161,6 @@ namespace dip {
   template <typename T>
   class ArrayValue: public BaseArrayValue<T> {
   public:
-    static BaseValue::PointerType create(const std::vector<T>&  arr, std::vector<int> sh={}) {
-      if (sh.empty())
-	sh.push_back(arr.size());
-      if constexpr (std::is_same_v<T, short>)
-	return std::make_unique<ArrayValue<short>>(ArrayValue<short>(arr, sh, BaseValue::VALUE_INT16));
-      else if constexpr (std::is_same_v<T, unsigned short>)
-	return std::make_unique<ArrayValue<unsigned short>>(ArrayValue<unsigned short>(arr, sh, BaseValue::VALUE_UINT16));
-      else if constexpr (std::is_same_v<T, int>)
-	return std::make_unique<ArrayValue<int>>(ArrayValue<int>(arr, sh, BaseValue::VALUE_INT32));
-      else if constexpr (std::is_same_v<T, unsigned int>)
-	return std::make_unique<ArrayValue<unsigned int>>(ArrayValue<unsigned int>(arr, sh, BaseValue::VALUE_UINT32));
-      else if constexpr (std::is_same_v<T, long long>)
-	return std::make_unique<ArrayValue<long long>>(ArrayValue<long long>(arr, sh, BaseValue::VALUE_INT64));
-      else if constexpr (std::is_same_v<T, unsigned long long>)
-	return std::make_unique<ArrayValue<unsigned long long>>(ArrayValue<unsigned long long>(arr, sh, BaseValue::VALUE_UINT64));
-      else if constexpr (std::is_same_v<T, float>)
-	return std::make_unique<ArrayValue<float>>(ArrayValue<float>(arr, sh, BaseValue::VALUE_FLOAT32));
-      else if constexpr (std::is_same_v<T, double>)
-	return std::make_unique<ArrayValue<double>>(ArrayValue<double>(arr, sh, BaseValue::VALUE_FLOAT64));
-      else if constexpr (std::is_same_v<T, long double>)
-	return std::make_unique<ArrayValue<long double>>(ArrayValue<long double>(arr, sh, BaseValue::VALUE_FLOAT128));
-      else {
-	static_assert(std::is_integral_v<T>, "Unsupported ArrayValue data type");
-        return nullptr;
-      }
-    };
     ArrayValue(const T& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
     ArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
   private:
@@ -234,15 +178,10 @@ namespace dip {
   template <>
   class ArrayValue<std::string>: public BaseArrayValue<std::string> {
   public:
-    static BaseValue::PointerType create(const std::vector<std::string>&  arr, std::vector<int> sh={}) {
-      if (sh.empty())
-	sh.push_back(arr.size());
-      return std::make_unique<ArrayValue<std::string>>(ArrayValue<std::string>(arr, sh));
-    };
     ArrayValue(const std::string& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
     ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
-    ArrayValue(const std::string& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::VALUE_STRING) {};
-    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::VALUE_STRING) {};
+    ArrayValue(const std::string& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::STRING) {};
+    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::STRING) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
       oss << "'" << value[offset] << "'";
@@ -261,15 +200,10 @@ namespace dip {
   template <>
   class ArrayValue<bool>: public BaseArrayValue<bool> {
   public:
-    static BaseValue::PointerType create(const std::vector<bool>&  arr, std::vector<int> sh={}) {
-      if (sh.empty())
-	sh.push_back(arr.size());
-      return std::make_unique<ArrayValue<bool>>(ArrayValue<bool>(arr, sh));
-    };
     ArrayValue(const bool& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
     ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
-    ArrayValue(const bool& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::VALUE_BOOL) {};
-    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::VALUE_BOOL) {};
+    ArrayValue(const bool& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::BOOLEAN) {};
+    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::BOOLEAN) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
       if (value[offset])
@@ -288,6 +222,66 @@ namespace dip {
     };
   };
 
+  // helper function that create a scalar value pointer from a C++ data type
+  template <typename T>
+  BaseValue::PointerType create_scalar_value(T value) {
+    if constexpr (std::is_same_v<T, bool>)
+      return std::make_unique<ScalarValue<bool>>(ScalarValue<bool>(value));
+    else if constexpr (std::is_same_v<T, short>)
+      return std::make_unique<ScalarValue<short>>(ScalarValue<short>(value, BaseValue::INTEGER_16));
+    else if constexpr (std::is_same_v<T, unsigned short>)
+      return std::make_unique<ScalarValue<unsigned short>>(ScalarValue<unsigned short>(value, BaseValue::INTEGER_16_U));
+    else if constexpr (std::is_same_v<T, int>)
+      return std::make_unique<ScalarValue<int>>(ScalarValue<int>(value, BaseValue::INTEGER_32));
+    else if constexpr (std::is_same_v<T, unsigned int>)
+      return std::make_unique<ScalarValue<unsigned int>>(ScalarValue<unsigned int>(value, BaseValue::INTEGER_32_U));
+    else if constexpr (std::is_same_v<T, long long>)
+      return std::make_unique<ScalarValue<long long>>(ScalarValue<long long>(value, BaseValue::INTEGER_64));
+    else if constexpr (std::is_same_v<T, unsigned long long>)
+      return std::make_unique<ScalarValue<unsigned long long>>(ScalarValue<unsigned long long>(value, BaseValue::INTEGER_64_U));
+    else if constexpr (std::is_same_v<T, float>)
+      return std::make_unique<ScalarValue<float>>(ScalarValue<float>(value, BaseValue::FLOAT_32));
+    else if constexpr (std::is_same_v<T, double>)
+      return std::make_unique<ScalarValue<double>>(ScalarValue<double>(value, BaseValue::FLOAT_64));
+    else if constexpr (std::is_same_v<T, long double>)
+      return std::make_unique<ScalarValue<long double>>(ScalarValue<long double>(value, BaseValue::FLOAT_128));
+    else if constexpr (std::is_same_v<T, std::string>)
+      return std::make_unique<ScalarValue<std::string>>(ScalarValue<std::string>(value));
+    else
+      static_assert(std::is_integral_v<T>, "Given data type is not associated with any scalar value");
+  };
+
+  // helper function that create a array value pointer from a C++ data type
+  template <typename T>
+  BaseValue::PointerType create_array_value(const std::vector<T>&  arr, std::vector<int> sh={}) {
+    if (sh.empty())
+      sh.push_back(arr.size());
+    if constexpr (std::is_same_v<T, bool>)
+      return std::make_unique<ArrayValue<bool>>(ArrayValue<bool>(arr, sh));
+    else if constexpr (std::is_same_v<T, short>)
+      return std::make_unique<ArrayValue<short>>(ArrayValue<short>(arr, sh, BaseValue::INTEGER_16));
+    else if constexpr (std::is_same_v<T, unsigned short>)
+      return std::make_unique<ArrayValue<unsigned short>>(ArrayValue<unsigned short>(arr, sh, BaseValue::INTEGER_16_U));
+    else if constexpr (std::is_same_v<T, int>)
+      return std::make_unique<ArrayValue<int>>(ArrayValue<int>(arr, sh, BaseValue::INTEGER_32));
+    else if constexpr (std::is_same_v<T, unsigned int>)
+      return std::make_unique<ArrayValue<unsigned int>>(ArrayValue<unsigned int>(arr, sh, BaseValue::INTEGER_32_U));
+    else if constexpr (std::is_same_v<T, long long>)
+      return std::make_unique<ArrayValue<long long>>(ArrayValue<long long>(arr, sh, BaseValue::INTEGER_64));
+    else if constexpr (std::is_same_v<T, unsigned long long>)
+      return std::make_unique<ArrayValue<unsigned long long>>(ArrayValue<unsigned long long>(arr, sh, BaseValue::INTEGER_64_U));
+    else if constexpr (std::is_same_v<T, float>)
+      return std::make_unique<ArrayValue<float>>(ArrayValue<float>(arr, sh, BaseValue::FLOAT_32));
+    else if constexpr (std::is_same_v<T, double>)
+      return std::make_unique<ArrayValue<double>>(ArrayValue<double>(arr, sh, BaseValue::FLOAT_64));
+    else if constexpr (std::is_same_v<T, long double>)
+      return std::make_unique<ArrayValue<long double>>(ArrayValue<long double>(arr, sh, BaseValue::FLOAT_128));
+    else if constexpr (std::is_same_v<T, std::string>)
+      return std::make_unique<ArrayValue<std::string>>(ArrayValue<std::string>(arr, sh));
+    else 
+      static_assert(std::is_integral_v<T>, "Given data type is not associated with any array value");
+  };
+  
 }
 
 #endif // DIP_VALUES_H

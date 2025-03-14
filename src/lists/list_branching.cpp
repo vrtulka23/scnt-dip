@@ -75,7 +75,7 @@ namespace dip {
   }
 
   // Manage condition nodes
-  void BranchingList::solve_case(std::shared_ptr<BaseNode> node) {
+  void BranchingList::solve_case(BaseNode::PointerType node) {
     std::ostringstream oss;
     oss << "(.*[" << SIGN_CONDITION << "])C([0-9]+)";
     std::regex pattern(oss.str());
@@ -149,7 +149,7 @@ namespace dip {
   }
 
   // Manage parameter nodes in a condition
-  void BranchingList::prepare_node(std::shared_ptr<BaseNode> node) {
+  void BranchingList::prepare_node(BaseNode::PointerType node) {
     if (state.empty())
       return;
     std::string case_id = get_case_id();

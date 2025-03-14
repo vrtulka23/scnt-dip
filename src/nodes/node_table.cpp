@@ -7,11 +7,10 @@
 
 namespace dip {
   
-  std::shared_ptr<BaseNode> TableNode::is_node(Parser& parser) {
-    if (parser.has_dtype(Node::NODE_TABLE)) {
+  BaseNode::PointerType TableNode::is_node(Parser& parser) {
+    if (parser.dtype_raw[1]=="table") {
       parser.part_dimension();
-      parser.part_equal();
-      if (parser.is_parsed(Parser::PART_EQUAL))
+      if (parser.part_equal(false))
 	parser.part_value();
       parser.part_units();
       parser.part_comment();
@@ -40,7 +39,7 @@ namespace dip {
       if (parser.do_continue())
 	throw std::runtime_error("Incorrect header format: "+line.code);
       // initialize actual node
-      std::shared_ptr<BaseNode> node(nullptr);
+      BaseNode::PointerType node(nullptr);
       if (node==nullptr) node = BooleanNode::is_node(parser);
       if (node==nullptr) node = IntegerNode::is_node(parser);
       if (node==nullptr) node = FloatNode::is_node(parser);
@@ -63,6 +62,7 @@ namespace dip {
 	if (i>0)
 	  parser.part_delimiter(SEPARATOR_TABLE_COLUMNS);
 	auto node = nodes.at(i);
+	parser.value_raw.clear();
 	if (parser.part_string()) {
 	  node->value_raw.push_back(parser.value_raw[0]);
 	} else {

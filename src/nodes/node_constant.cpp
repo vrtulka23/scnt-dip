@@ -3,9 +3,8 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> ConstantNode::is_node(Parser& parser) {
-    parser.kwd_constant();
-    if (parser.is_parsed(Parser::KWD_CONSTANT)) {
+  BaseNode::PointerType ConstantNode::is_node(Parser& parser) {
+    if (parser.kwd_constant()) {
       return std::make_shared<ConstantNode>(parser);
     }
     return nullptr;
@@ -14,8 +13,8 @@ namespace dip {
   BaseNode::NodeListType ConstantNode::parse(Environment& env) {
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a node that can be constant: "+line.code);
-    std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
-    std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+    BaseNode::PointerType node = env.nodes[env.nodes.size()-1];
+    ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(node->indent)+"' of a preceding node: "+line.code);

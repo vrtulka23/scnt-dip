@@ -5,31 +5,16 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> StringNode::is_node(Parser& parser) {
-    if (parser.has_dtype(Node::NODE_STRING)) {
+  BaseNode::PointerType StringNode::is_node(Parser& parser) {
+    if (parser.dtype_raw[1]=="str") {
       parser.part_dimension();
-      parser.part_equal();
-      if (parser.is_parsed(Parser::PART_EQUAL))
+      if (parser.part_equal(false))
 	parser.part_value();
       parser.part_units();
       parser.part_comment();
       return std::make_shared<StringNode>(parser);
     }
     return nullptr;
-  }
-
-  std::shared_ptr<BaseNode> StringNode::create_scalar(const std::string& name, const std::string value) {
-    std::unique_ptr<ScalarValue<std::string>> ptr_value = std::make_unique<ScalarValue<std::string>>(value);
-    std::shared_ptr<dip::StringNode> ptr_node = std::make_shared<dip::StringNode>(name, std::move(ptr_value));
-    return std::move(ptr_node);
-  }
-  
-  std::shared_ptr<BaseNode> StringNode::create_array(const std::string& name, const std::vector<std::string>&  arr, std::vector<int> sh) {
-    if (sh.empty())
-      sh.push_back(arr.size());
-    std::unique_ptr<BaseValue> ptr_value = ArrayValue<std::string>::create(arr,sh);
-    std::shared_ptr<dip::StringNode> ptr_node = std::make_shared<dip::StringNode>(name, std::move(ptr_value));
-    return ptr_node;
   }
   
   BaseNode::NodeListType StringNode::parse(Environment& env) {

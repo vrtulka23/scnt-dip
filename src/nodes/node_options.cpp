@@ -5,16 +5,14 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> OptionsNode::is_node(Parser& parser) {
-    parser.part_equal();
-    if (parser.is_parsed(Parser::PART_EQUAL)) {
+  BaseNode::PointerType OptionsNode::is_node(Parser& parser) {
+    if (parser.part_equal(false)) {
       parser.part_value();
       parser.part_units();
       parser.part_comment();
       return std::make_shared<OptionsNode>(parser);
     }
-    parser.kwd_options();
-    if (parser.is_parsed(Parser::KWD_OPTIONS)) {
+    if (parser.kwd_options()) {
       parser.part_value();
       parser.part_comment();
       return std::make_shared<OptionsNode>(parser);
@@ -25,8 +23,8 @@ namespace dip {
   BaseNode::NodeListType OptionsNode::parse(Environment& env) {
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a node that can have options: "+line.code);
-    std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
-    std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+    BaseNode::PointerType node = env.nodes[env.nodes.size()-1];
+    ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);

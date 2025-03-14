@@ -5,9 +5,8 @@
 
 namespace dip {
 
-  std::shared_ptr<BaseNode> FormatNode::is_node(Parser& parser) {
-    parser.kwd_format();
-    if (parser.is_parsed(Parser::KWD_FORMAT)) {
+  BaseNode::PointerType FormatNode::is_node(Parser& parser) {
+    if (parser.kwd_format()) {
       parser.part_value();
       parser.part_comment();
       return std::make_shared<FormatNode>(parser);
@@ -18,12 +17,12 @@ namespace dip {
   BaseNode::NodeListType FormatNode::parse(Environment& env) {
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a string node that can have a format: "+line.code);
-    std::shared_ptr<BaseNode> node = env.nodes[env.nodes.size()-1];
-    std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+    BaseNode::PointerType node = env.nodes[env.nodes.size()-1];
+    ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);
-      if (vnode->dtype != Node::NODE_STRING)
+      if (vnode->dtype != BaseNode::STRING)
 	throw std::runtime_error("Format can be set only to string node. Previous node is: "+vnode->line.code);
       vnode->format = value_raw[0];
     } else {

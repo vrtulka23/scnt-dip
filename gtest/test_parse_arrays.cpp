@@ -10,17 +10,17 @@ TEST(ParseArrays, BooleanValue) {
   d.add_string("foo bool[2,3] = [[true,false,true],[true,true,false]]");
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"true","false","true","true","true","false"}));
   EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
-  EXPECT_EQ(node->dtype, dip::Node::NODE_BOOLEAN);
+  EXPECT_EQ(node->dtype, dip::BaseNode::BOOLEAN);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
-  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "[[true, false, true], [true, true, false]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_BOOL);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::BOOLEAN);
 
 }
 
@@ -30,17 +30,17 @@ TEST(ParseArrays, IntegerValue) {
   d.add_string("foo int[2,3] = [[1,2,3],[-4,-5,-678910111]]");
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","-4","-5","-678910111"}));
   EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
-  EXPECT_EQ(node->dtype, dip::Node::NODE_INTEGER);
+  EXPECT_EQ(node->dtype, dip::BaseNode::INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
-  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "[[1, 2, 3], [-4, -5, -678910111]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_INT32);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::INTEGER_32);
 
 }
 
@@ -50,17 +50,17 @@ TEST(ParseArrays, FloatValue) {
   d.add_string("foo float[2,3] = [[1,2.2,3.3e3],[-4,-5.5,-6.6e6]]");
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2.2","3.3e3","-4","-5.5","-6.6e6"}));
   EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
-  EXPECT_EQ(node->dtype, dip::Node::NODE_FLOAT);
+  EXPECT_EQ(node->dtype, dip::BaseNode::FLOAT);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
-  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "[[1.0000, 2.2000, 3300.0], [-4.0000, -5.5000, -6.6000e+06]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_FLOAT64);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::FLOAT_64);
 
 }
 
@@ -70,16 +70,16 @@ TEST(ParseArrays, StringValue) {
   d.add_string("foo str[2,3] = [[position,'velo,ci\"ty',\"acce]lera'tion\"],['jerk','snap','crackle']]");
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"position","velo,ci\"ty","acce]lera'tion","jerk","snap","crackle"}));
   EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
-  EXPECT_EQ(node->dtype, dip::Node::NODE_STRING);
+  EXPECT_EQ(node->dtype, dip::BaseNode::STRING);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
-  std::shared_ptr<dip::ValueNode> vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes[0]);
   EXPECT_EQ(vnode->value->to_string(), "[['position', 'velo,ci\"ty', 'acce]lera'tion'], ['jerk', 'snap', 'crackle']]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::VALUE_STRING);
+  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::STRING);
 
 }

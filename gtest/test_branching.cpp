@@ -16,7 +16,7 @@ TEST(Branchig, FirstCase) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "age");
 
 }
@@ -34,7 +34,7 @@ TEST(Branchig, SecondCase) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "height");
 
 }
@@ -52,7 +52,7 @@ TEST(Branchig, FirstAndSecondCase) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "age");
 
 }
@@ -69,7 +69,7 @@ TEST(Branchig, ElseCase) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "weight");
   
 }
@@ -89,7 +89,7 @@ TEST(Branchig, ConsecutiveBranches) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 2);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "age");
   node = env.nodes[1];
   EXPECT_EQ(node->name, "weight");
@@ -116,7 +116,7 @@ TEST(Branchig, LowerIndentClosing) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 3);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "man.boy.age");
   node = env.nodes[1];
   EXPECT_EQ(node->name, "man.age");
@@ -150,7 +150,7 @@ TEST(Branchig, NestedBranches) {
   d.add_string("@end");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 2);
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "man.age");
   node = env.nodes[1];
   EXPECT_EQ(node->name, "weight");          

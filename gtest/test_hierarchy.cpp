@@ -10,7 +10,7 @@ TEST(Hierarchy, ParentChildNodes) {
   d.add_string("foo int = 2\n  bar int = 3\n bim int = 4\nbom int = 5"); 
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "foo");
   
   node = env.nodes[1];
@@ -30,7 +30,7 @@ TEST(Hierarchy, GroupNodes) {
   d.add_string("foo\n  bar int = 3"); 
   dip::Environment env = d.parse();
   
-  std::shared_ptr<dip::BaseNode> node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->name, "foo.bar");
 
 }

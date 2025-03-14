@@ -39,6 +39,18 @@ namespace dip {
     env.sources.append(source_name,path,code,{source.name, lineno});
   }
 
+  void DIP::add_file(const std::string file_path, const std::string source_name, const bool absolute) {
+    // TODO: implement
+  }
+  
+  void DIP::add_source(const std::string name, const std::string path) {
+    // TODO: implement
+  }
+  
+  void DIP::add_unit(const std::string name, const double value, const std::string unit) {
+    // TODO: implement
+  }
+
   void DIP::add_value_function(const std::string name, FunctionList::ValueFunctionType func) {
     env.functions.append_value(name, func);
   }
@@ -58,16 +70,16 @@ namespace dip {
       lines.pop();
       // group block strings
       size_t pos = 0;
-      if ((pos = line.code.find(SIGN_BLOCK)) != std::string::npos) {      // opening """
+      if ((pos = line.code.find(SIGN_BLOCK)) != std::string::npos) {      // opening block quotes
 	pos += SIGN_BLOCK.length();
 	std::ostringstream oss;
 	oss << line.code;
-	if (line.code.find(SIGN_BLOCK, pos) == std::string::npos) {       // closing """ on the same line
+	if (line.code.find(SIGN_BLOCK, pos) == std::string::npos) {       // closing block quotes on the same line
 	  while (lines.size()>0) {
 	    Line block_line = lines.front();
 	    lines.pop();
 	    oss << SIGN_NEWLINE << block_line.code;
-	    if (block_line.code.find(SIGN_BLOCK) != std::string::npos) {  // closing """ on a subsequent line
+	    if (block_line.code.find(SIGN_BLOCK) != std::string::npos) {  // closing block quotes on a subsequent line
 	      break;
 	    }
 	  }
@@ -75,24 +87,24 @@ namespace dip {
 	line.code = oss.str();
       }
       // determine node type
-      std::shared_ptr<BaseNode> node = _determine_node(line);
+      BaseNode::PointerType node = _determine_node(line);
       queue.push_back(node);
     }
     return queue;
   }
 
-  std::shared_ptr<BaseNode> DIP::_determine_node(Line& line) {
+  BaseNode::PointerType DIP::_determine_node(Line& line) {
     // add replacement mark for escape symbols
     Parser::encode_escape_symbols(line.code);
     
     // determine node type
     Parser parser(line);
-    std::shared_ptr<BaseNode> node(nullptr);
+    BaseNode::PointerType node = nullptr;
     node = EmptyNode::is_node(parser);
     if (node==nullptr) parser.part_indent();
     // if (node==nullptr) node = ImportNode::is_node(parser);
     // if (node==nullptr) node = UnitNode::is_node(parser);
-    // if (node==nullptr) node = SourceNode::is_node(parser);
+    if (node==nullptr) node = SourceNode::is_node(parser);
     if (node==nullptr) node = CaseNode::is_node(parser);
     if (node==nullptr) node = OptionsNode::is_node(parser);
     if (node==nullptr) node = ConstantNode::is_node(parser);
@@ -133,8 +145,8 @@ namespace dip {
     NodeList queue = _get_queue();
     Environment target = env;
     while (queue.size()>0) {
-      std::shared_ptr<BaseNode> node = queue.pop_front();
-      if (!target.branching.false_case() or node->has_dtype(Node::NODE_CASE)) {
+      BaseNode::PointerType node = queue.pop_front();
+      if (!target.branching.false_case() or node->dtype==BaseNode::CASE) {
 	// TODO: value injecting
 	// Perform specific node parsing only outside of case or inside of valid case
 	BaseNode::NodeListType parsed = node->parse(target);
@@ -151,7 +163,7 @@ namespace dip {
       // Add nodes to the node list
       if (std::find(nodes_notypes.begin(), nodes_notypes.end(), node->dtype) != nodes_notypes.end()) {
 	continue;
-      } else if (node->dtype==Node::NODE_CASE) {
+      } else if (node->dtype==BaseNode::CASE) {
 	target.branching.solve_case(node);
       }	else if (target.branching.false_case()) {
 	continue;
@@ -161,7 +173,7 @@ namespace dip {
 	node->name = target.branching.clean_name(node->name);
 	// Set the node value
 	// TODO: maybe this can be done after modifications?!
-	std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(node);
+	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
 	if (vnode and vnode->value==nullptr) {
 	  vnode->set_value();
 	}
@@ -169,14 +181,14 @@ namespace dip {
 	bool new_node = true;
 	for (size_t i=0; i<target.nodes.size(); i++) {
 	  if (target.nodes[i]->name==node->name) {
-	    std::shared_ptr<ValueNode> pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+	    ValueNode::PointerType pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
 	    pnode->validate_constant();
 	    pnode->modify_value(node, target);
 	    new_node = false;
 	  }
 	}
 	if (new_node) {
-	  if (node->dtype==Node::NODE_MODIFICATION) {
+	  if (node->dtype==BaseNode::MODIFICATION) {
 	    std::string prefix = "DIP"+std::to_string(name)+"_"+std::string(STRING_SOURCE);
 	    if (node->line.source.name.compare(0, prefix.size(), prefix) == 0)
 	      throw std::runtime_error("Modifying undefined node: "+node->line.code);
@@ -187,7 +199,7 @@ namespace dip {
     }
     // Validate nodes
     for (ssize_t i=0; i<target.nodes.size(); i++) {
-      std::shared_ptr<ValueNode> vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+      ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
       if (vnode) {
 	vnode->validate_definition();
 	vnode->validate_options();
