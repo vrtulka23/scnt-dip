@@ -21,14 +21,15 @@ namespace dip {
     if (!units_raw.empty())
       throw std::runtime_error("Boolean data type does not support units: "+line.code);
     if (!value_func.empty()) {
-      FunctionSolver solver(env);
-      set_value(solver.solve_value(value_func));
+      set_value(env.request_value(value_func, Environment::FUNCTION));
+    } else if (!value_ref.empty()) {
+      set_value(env.request_value(value_ref, Environment::REFERENCE));
     }
     // TODO: process expression
     return {};
   }
   
-  BaseValue::PointerType BooleanNode::cast_scalar_value(const std::string value_input) {
+  BaseValue::PointerType BooleanNode::cast_scalar_value(const std::string value_input) const {
     if (value_input==KEYWORD_TRUE)
       return std::make_unique<ScalarValue<bool>>(true, value_dtype);
     else if (value_input==KEYWORD_FALSE)
@@ -37,7 +38,7 @@ namespace dip {
       throw std::runtime_error("Value cannot be casted as boolean from the given string: "+value_input);
   }
   
-  BaseValue::PointerType BooleanNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
+  BaseValue::PointerType BooleanNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
     std::vector<bool> bool_values;
     for (auto value: value_inputs) {
       if (value==KEYWORD_TRUE)
@@ -54,7 +55,14 @@ namespace dip {
     throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.code);
   }
   
-  void BooleanNode::validate_options() {
+  BaseNode::PointerType BooleanNode::clone(const std::string& nm) const {
+    if (value==nullptr) 
+      return std::make_shared<BooleanNode>(nm, nullptr);
+    else
+      return std::make_shared<BooleanNode>(nm, std::move(value->clone()));
+  }
+  
+  void BooleanNode::validate_options() const {
     if (format.size()>0)
       throw std::runtime_error("Options property is not implemented for boolean nodes: "+line.code);
   }

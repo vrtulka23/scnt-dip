@@ -6,19 +6,28 @@ namespace dip {
   class BaseValue {
   public:
     typedef std::unique_ptr<BaseValue> PointerType;
+    typedef std::vector<int> ShapeType;
     enum ValueDtype { // TODO: INTX and FLOATX should support arbitrary precision types
       BOOLEAN,    STRING,
       INTEGER_16,   INTEGER_32,   INTEGER_64,    INTEGER_X,   
       INTEGER_16_U,  INTEGER_32_U,  INTEGER_64_U,  
       FLOAT_32, FLOAT_64, FLOAT_128, FLOAT_X
     };
+    static constexpr std::string_view ValueDtypeNames[] = {
+      "bool", "str",
+      "int16", "int32", "int64", "intx",
+      "uint16", "uint32", "uint64",
+      "float32", "float64", "float128", "floatx"
+    };
     ValueDtype dtype;
     BaseValue(ValueDtype dt): dtype(dt) {};
     virtual ~BaseValue() = default;
     virtual void print() = 0;
-    virtual std::string to_string(const int precision=0) = 0;
+    virtual std::string to_string(const int precision=0) const = 0;
     virtual bool equals_to(const BaseValue* other) const = 0;
-    virtual std::vector<int> dimension() const = 0;
+    virtual BaseValue::ShapeType get_shape() const = 0;
+    virtual size_t get_size() const = 0;
+    virtual BaseValue::PointerType clone() const = 0;
   };
 
   
@@ -32,10 +41,12 @@ namespace dip {
     BaseScalarValue(const T& val, const ValueDtype dt): value(val), BaseValue(dt) {};
     void print() override {std::cout << value << std::endl;};
     T get_value() {return value;};
+    BaseValue::ShapeType get_shape() const override { return {1};};
+    size_t get_size() const override {return 1;};
   protected:
-    virtual void value_to_string(std::ostringstream& oss, int precision=0) = 0;
+    virtual void value_to_string(std::ostringstream& oss, int precision=0) const = 0;
   public:
-    std::string to_string(const int precision=0) override {
+    std::string to_string(const int precision=0) const override {
       std::ostringstream oss;
       value_to_string(oss, precision);
       return oss.str();
@@ -47,9 +58,6 @@ namespace dip {
       else
 	throw std::runtime_error("Could not convert BaseValue into the BaseScalarValue.");
     };
-    virtual std::vector<int> dimension() const override {
-      return {1};
-    };
   };
   
   template <typename T>
@@ -57,7 +65,7 @@ namespace dip {
   public:
     ScalarValue(const T& val, const BaseValue::ValueDtype dt): BaseScalarValue<T>(val, dt) {};
   protected:
-    void value_to_string(std::ostringstream& oss, int precision=0) {
+    void value_to_string(std::ostringstream& oss, int precision=0) const override {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
       int exponent = static_cast<int>(std::log10(std::fabs(this->value)));
       if (exponent > 3 || exponent < -3) {
@@ -66,6 +74,9 @@ namespace dip {
         oss << std::fixed << std::setprecision(precision-exponent) << this->value;
       }
     };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ScalarValue<T>>(this->value, this->dtype);
+    }
   };
   
   template <>
@@ -74,12 +85,15 @@ namespace dip {
     ScalarValue(const std::string& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
     ScalarValue(const std::string& val): ScalarValue(val,BaseValue::STRING) {};
   private:
-    void value_to_string(std::ostringstream& oss, int precision=0) {    
+    void value_to_string(std::ostringstream& oss, int precision=0) const override {    
       if (precision==0)
 	oss << value;
       else
 	throw std::runtime_error("String value does not support precision parameter for to_string() method.");
     };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ScalarValue<std::string>>(this->value, this->dtype);
+    }
   };
 
   template <>
@@ -88,7 +102,7 @@ namespace dip {
     ScalarValue(const bool& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
     ScalarValue(const bool& val): ScalarValue(val,BaseValue::BOOLEAN) {};
   private:
-    void value_to_string(std::ostringstream& oss, int precision=0) {    
+    void value_to_string(std::ostringstream& oss, int precision=0) const override {    
       if (precision==0)
 	if (value)
 	  oss << KEYWORD_TRUE;
@@ -97,6 +111,9 @@ namespace dip {
       else
 	throw std::runtime_error("Boolean value does not support precision parameter for to_string() method.");
     };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ScalarValue<bool>>(this->value, this->dtype);
+    }
   };
 
   // Array values
@@ -105,16 +122,17 @@ namespace dip {
   class BaseArrayValue: public BaseValue {
   protected:
     std::vector<T> value;
-    std::vector<int> shape;
+    BaseValue::ShapeType shape;
   public:
-    BaseArrayValue(const T& val, const std::vector<int>& sh, const ValueDtype dt): value({val}), shape(sh), BaseValue(dt) {};
-    BaseArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const ValueDtype dt): value(arr), shape(sh), BaseValue(dt) {};
+    BaseArrayValue(const T& val, const BaseValue::ShapeType& sh, const ValueDtype dt): value({val}), shape(sh), BaseValue(dt) {};
+    BaseArrayValue(const std::vector<T>&  arr, const BaseValue::ShapeType& sh, const ValueDtype dt): value(arr), shape(sh), BaseValue(dt) {};
     void print() override {std::cout << to_string() << std::endl;};
     std::vector<T> get_value() {return value;};
-    std::vector<int> get_shape() {return shape;};
+    BaseValue::ShapeType get_shape() const override {return shape;};
+    size_t get_size() const override {return value.size();};
   protected:
-    virtual void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) = 0;
-    std::string to_string_dim(size_t& offset, const int& precision=0, int dim=0) {
+    virtual void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const = 0;
+    std::string to_string_dim(size_t& offset, const int& precision=0, int dim=0) const {
       std::ostringstream oss;
       oss << "[";
       for (int i=0; i<shape[dim];i++) {
@@ -130,7 +148,7 @@ namespace dip {
       return oss.str();
     }
   public:
-    std::string to_string(const int precision=0) override {
+    std::string to_string(const int precision=0) const override {
       size_t offset = 0;
       if (precision==0) {
 	return to_string_dim(offset);
@@ -153,18 +171,15 @@ namespace dip {
 	throw std::runtime_error("Could not convert BaseValue into a BaseArrayValue");
       }
     };
-    virtual std::vector<int> dimension() const override {
-      return shape;
-    };
   };
   
   template <typename T>
   class ArrayValue: public BaseArrayValue<T> {
   public:
-    ArrayValue(const T& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
-    ArrayValue(const std::vector<T>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
+    ArrayValue(const T& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
+    ArrayValue(const std::vector<T>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
   private:
-    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
+    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
       int exponent = static_cast<int>(std::log10(std::fabs(this->value[offset])));
       if (exponent > 3 || exponent < -3) {
@@ -172,22 +187,25 @@ namespace dip {
       } else {
         oss << std::fixed << std::setprecision(precision-exponent) << this->value[offset];
       }
-    }
+    };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ArrayValue<T>>(this->value, this->shape, this->dtype);
+    };
   };
   
   template <>
   class ArrayValue<std::string>: public BaseArrayValue<std::string> {
   public:
-    ArrayValue(const std::string& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
-    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
-    ArrayValue(const std::string& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::STRING) {};
-    ArrayValue(const std::vector<std::string>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::STRING) {};
+    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
+    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
+    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,BaseValue::STRING) {};
+    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,BaseValue::STRING) {};
   private:
-    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
+    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       oss << "'" << value[offset] << "'";
     }
   public:
-    std::string to_string(int precision=0) {
+    std::string to_string(int precision=0) const override {
       size_t offset = 0;
       if (precision==0) {
 	return to_string_dim(offset);
@@ -195,30 +213,36 @@ namespace dip {
 	throw std::runtime_error("String value does not support precision parameter for to_string() method.");
       }
     };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ArrayValue<std::string>>(this->value, this->shape, this->dtype);
+    };
   };
 
   template <>
   class ArrayValue<bool>: public BaseArrayValue<bool> {
   public:
-    ArrayValue(const bool& val, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
-    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
-    ArrayValue(const bool& val, const std::vector<int>& sh): ArrayValue(val,sh,BaseValue::BOOLEAN) {};
-    ArrayValue(const std::vector<bool>&  arr, const std::vector<int>& sh): ArrayValue(arr,sh,BaseValue::BOOLEAN) {};
+    ArrayValue(const bool& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
+    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
+    ArrayValue(const bool& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,BaseValue::BOOLEAN) {};
+    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,BaseValue::BOOLEAN) {};
   private:
-    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) {
+    void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       if (value[offset])
 	oss << KEYWORD_TRUE;
       else
 	oss << KEYWORD_FALSE;
     }
   public:
-    std::string to_string(int precision=0) {
+    std::string to_string(int precision=0) const override {
       size_t offset = 0;
       if (precision==0) {
 	return to_string_dim(offset);
       } else {
 	throw std::runtime_error("Boolean value does not support precision parameter for to_string() method.");
       }
+    };
+    BaseValue::PointerType clone() const override {
+      return std::make_unique<ArrayValue<bool>>(this->value, this->shape, this->dtype);
     };
   };
 
@@ -253,7 +277,7 @@ namespace dip {
 
   // helper function that create a array value pointer from a C++ data type
   template <typename T>
-  BaseValue::PointerType create_array_value(const std::vector<T>&  arr, std::vector<int> sh={}) {
+  BaseValue::PointerType create_array_value(const std::vector<T>&  arr, BaseValue::ShapeType sh={}) {
     if (sh.empty())
       sh.push_back(arr.size());
     if constexpr (std::is_same_v<T, bool>)

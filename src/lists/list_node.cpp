@@ -33,4 +33,11 @@ namespace dip {
       throw std::invalid_argument("Index "+std::to_string(index)+" exceded number of nodes: "+std::to_string(nodes.size()));
   }
   
+  BaseNode::PointerType NodeList::operator[](const size_t index) const {
+    if (index<nodes.size())
+      return nodes[index];
+    else
+      throw std::invalid_argument("Index "+std::to_string(index)+" exceded number of nodes: "+std::to_string(nodes.size()));
+  }
+  
 }

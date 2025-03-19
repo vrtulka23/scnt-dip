@@ -12,6 +12,7 @@ namespace dip {
     value_shape = parser.value_shape;
     value_func = parser.value_func;
     value_expr = parser.value_expr;
+    value_ref = parser.value_ref;
     dtype_raw = parser.dtype_raw;
     dimension = parser.dimension;
   }

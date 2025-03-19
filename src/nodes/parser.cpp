@@ -257,13 +257,23 @@ namespace dip {
   }
   
   bool Parser::part_reference(const bool inject) {
+    std::regex pattern("^[ ]*[{]([a-zA-Z0-9.?-_]*)[}]");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      value_raw.clear();
+      value_ref = matchResult[1].str();
+      // TODO: implement inject switch
+      strip(matchResult[0].str());
+      return true;
+    }
     return false;
   }
   
   bool Parser::part_function() {
-    std::regex pattern("^[(]([a-zA-Z0-9_-]+)[)]");
+    std::regex pattern("^[ ]*[(]([a-zA-Z0-9_-]+)[)]");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
+      std::cout << "fnc " << code << std::endl;
       value_raw.clear();
       value_func = matchResult[1].str();
       strip(matchResult[0].str());

@@ -12,7 +12,7 @@ TEST(ParseArrays, BooleanValue) {
   
   dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"true","false","true","true","true","false"}));
-  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
   EXPECT_EQ(node->dtype, dip::BaseNode::BOOLEAN);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -32,7 +32,7 @@ TEST(ParseArrays, IntegerValue) {
   
   dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","-4","-5","-678910111"}));
-  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
   EXPECT_EQ(node->dtype, dip::BaseNode::INTEGER);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -52,7 +52,7 @@ TEST(ParseArrays, FloatValue) {
   
   dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2.2","3.3e3","-4","-5.5","-6.6e6"}));
-  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
   EXPECT_EQ(node->dtype, dip::BaseNode::FLOAT);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -72,7 +72,7 @@ TEST(ParseArrays, StringValue) {
   
   dip::BaseNode::PointerType node = env.nodes[0];
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"position","velo,ci\"ty","acce]lera'tion","jerk","snap","crackle"}));
-  EXPECT_EQ(node->value_shape, std::vector<int>({2,3}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
   EXPECT_EQ(node->dtype, dip::BaseNode::STRING);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
@@ -83,3 +83,19 @@ TEST(ParseArrays, StringValue) {
   EXPECT_EQ(vnode->value->dtype, dip::BaseValue::STRING);
 
 }
+
+TEST(ParseArrays, ArrayToScalarsError) {
+  
+  dip::DIP d;
+  d.add_string("foo int = [1,2,3]");
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Value size is an array but node is defined as scalar: foo int = [1,2,3]");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+
+}
+

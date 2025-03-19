@@ -8,12 +8,17 @@ namespace dip {
   class Environment {
   private:
   public:
+    enum RequestType {
+      FUNCTION, REFERENCE
+    };
     SourceList sources;
     NodeList nodes;
     HierarchyList hierarchy;
     BranchingList branching;
     FunctionList functions;
     Environment();
+    BaseValue::PointerType request_value(const std::string& request, const RequestType rtype, const std::string& in_units="") const;
+    BaseNode::NodeListType request_nodes(const std::string& request, const RequestType rtype, const std::string& in_units="") const;
   };
 
 }

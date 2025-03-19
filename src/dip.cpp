@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 #include "dip.h"
 #include "settings.h"
@@ -8,15 +9,15 @@
 namespace dip {
 
   int DIP::num_instances = 0;
-  
-  DIP::DIP(const Environment* e) {
-    // Initial settings
-    name = DIP::num_instances++;
-    source.name = "DIP"+std::to_string(name)+"_"+std::string(ROOT_SOURCE);
+
+  DIP::DIP() {
+    // initial settings
+    instance_number = DIP::num_instances++;
+    source.name = "DIP"+std::to_string(instance_number);
     source.line_number = 0;
     env.sources.append(source.name,"","",{"",0});
     
-    // Populate node lists
+    // populate node lists
     nodes_nohierarchy.insert(nodes_nohierarchy.end(), nodes_special.begin(), nodes_special.end());
     nodes_nohierarchy.insert(nodes_nohierarchy.end(), nodes_properties.begin(), nodes_properties.end());
     nodes_notypes.insert(nodes_notypes.end(), nodes_special.begin(), nodes_special.end());
@@ -24,30 +25,89 @@ namespace dip {
     nodes_notypes.insert(nodes_notypes.end(), nodes_hierarchy.begin(), nodes_hierarchy.end());
   }
   
-  void DIP::add_string(const std::string code) {
+  DIP::DIP(const Source& src) {
+    // initial settings
+    instance_number = DIP::num_instances++;
+    source = src;
+    env.sources.append(source.name,"","",{"",0});
+    
+    // populate node lists
+    nodes_nohierarchy.insert(nodes_nohierarchy.end(), nodes_special.begin(), nodes_special.end());
+    nodes_nohierarchy.insert(nodes_nohierarchy.end(), nodes_properties.begin(), nodes_properties.end());
+    nodes_notypes.insert(nodes_notypes.end(), nodes_special.begin(), nodes_special.end());
+    nodes_notypes.insert(nodes_notypes.end(), nodes_properties.begin(), nodes_properties.end());
+    nodes_notypes.insert(nodes_notypes.end(), nodes_hierarchy.begin(), nodes_hierarchy.end());
+  }
+  
+  void DIP::add_string(const std::string& code) {
     std::istringstream ss(code);
-    std::string token;
-    num_strings += 1;
-    std::string source_name = "DIP"+std::to_string(name)+"_"+std::string(STRING_SOURCE)+std::to_string(num_strings);
+    std::string line;
+    std::string source_name = source.name+"_"+std::string(STRING_SOURCE)+std::to_string(num_strings);
+    num_strings++;
     int line_number = 0;
-    while (getline(ss, token, SEPARATOR_NEWLINE)) {
-      lines.push({token,{source_name,line_number}});
-      line_number += 1;
+    while (std::getline(ss, line)) {
+      // register only non empty lines
+      if (!line.empty() and !std::all_of(line.begin(), line.end(), isspace))
+	lines.push({line,{source_name,line_number}});
+      line_number++;
     }
-    int lineno = source.line_number;
     std::string path = env.sources[source.name].path;
-    env.sources.append(source_name,path,code,{source.name, lineno});
+    env.sources.append(source_name,path,code,{source.name, source.line_number});
   }
 
-  void DIP::add_file(const std::string file_path, const std::string source_name, const bool absolute) {
-    // TODO: implement
+  void DIP::add_file(const std::string& file_path, std::string source_name, const bool absolute) {
+    // open the file
+    std::ifstream file(file_path);
+    if (!file) 
+      throw std::runtime_error("Following file could not be found: "+file_path);
+    if (source_name.empty()) {
+      // TODO: implement 'absolute' switch
+      source_name = source.name+"_"+std::string(FILE_SOURCE)+std::to_string(num_files);
+      num_files++;
+    }
+    // read file line by line
+    std::string line;
+    std::ostringstream code;
+    int line_number = 0;
+    while (std::getline(file, line)) {
+      // register only non empty lines
+      if (!line.empty() and !std::all_of(line.begin(), line.end(), isspace))
+	lines.push({line,{source_name,line_number}});
+      if (line_number>0)
+	code << SEPARATOR_NEWLINE; 
+      code << line;
+      line_number += 1;
+    }
+    // TODO: treat source lineno and file_path with respect to where this method is called 
+    env.sources.append(source_name,file_path,code.str(),{source.name, source.line_number});
+  }
+
+  EnvSource DIP::read_source(const std::string& sname, const std::string& spath, const Source& parent) {
+    if (spath.size() >= FILE_SUFFIX_DIP.size() &&
+	spath.compare(spath.size() - FILE_SUFFIX_DIP.size(), FILE_SUFFIX_DIP.size(), FILE_SUFFIX_DIP) == 0) {
+      DIP d(parent);
+      d.add_file(spath, sname);
+      Environment senv = d.parse();
+      return EnvSource({sname, spath, senv.sources[sname].code, parent, senv.nodes});
+    } else {
+      std::ifstream file(spath);
+      if (!file) 
+	throw std::runtime_error("Following file could not be found: "+spath);
+      std::ostringstream buffer;
+      buffer << file.rdbuf();
+      return EnvSource({sname, spath, buffer.str(), parent});
+    }    
   }
   
-  void DIP::add_source(const std::string name, const std::string path) {
-    // TODO: implement
+  void DIP::add_source(const std::string& sname, const std::string& spath) {
+    std::string source_name = source.name+"_"+std::string(DIRECT_SOURCE)+std::to_string(num_sources);
+    num_sources++;
+    Source sparent = {source_name, 0};
+    EnvSource senv = DIP::read_source(sname, spath, sparent);
+    env.sources.append(sname, senv);
   }
   
-  void DIP::add_unit(const std::string name, const double value, const std::string unit) {
+  void DIP::add_unit(const std::string& name, const double value, const std::string unit) {
     // TODO: implement
   }
 
@@ -55,7 +115,7 @@ namespace dip {
     env.functions.append_value(name, func);
   }
   
-  void DIP::add_table_function(const std::string name, FunctionList::TableFunctionType func) {
+  void DIP::add_node_function(const std::string name, FunctionList::TableFunctionType func) {
     env.functions.append_table(name, func);
   }
   
@@ -78,7 +138,7 @@ namespace dip {
 	  while (lines.size()>0) {
 	    Line block_line = lines.front();
 	    lines.pop();
-	    oss << SIGN_NEWLINE << block_line.code;
+	    oss << SEPARATOR_NEWLINE << block_line.code;
 	    if (block_line.code.find(SIGN_BLOCK) != std::string::npos) {  // closing block quotes on a subsequent line
 	      break;
 	    }
@@ -102,7 +162,7 @@ namespace dip {
     BaseNode::PointerType node = nullptr;
     node = EmptyNode::is_node(parser);
     if (node==nullptr) parser.part_indent();
-    // if (node==nullptr) node = ImportNode::is_node(parser);
+    if (node==nullptr) node = ImportNode::is_node(parser);
     // if (node==nullptr) node = UnitNode::is_node(parser);
     if (node==nullptr) node = SourceNode::is_node(parser);
     if (node==nullptr) node = CaseNode::is_node(parser);
@@ -114,7 +174,7 @@ namespace dip {
     // if (node==nullptr) node = ConditionNode::is_node(parser);
     if (node==nullptr) parser.part_name();
     if (node==nullptr) node = GroupNode::is_node(parser);
-    // if (node==nullptr) node = ImportNode::is_node(parser);
+    if (node==nullptr) node = ImportNode::is_node(parser);
     if (node==nullptr) node = ModificationNode::is_node(parser);
     if (node==nullptr) parser.part_type();
     if (node==nullptr) node = BooleanNode::is_node(parser);
@@ -189,7 +249,7 @@ namespace dip {
 	}
 	if (new_node) {
 	  if (node->dtype==BaseNode::MODIFICATION) {
-	    std::string prefix = "DIP"+std::to_string(name)+"_"+std::string(STRING_SOURCE);
+	    std::string prefix = source.name+"_"+std::string(STRING_SOURCE);
 	    if (node->line.source.name.compare(0, prefix.size(), prefix) == 0)
 	      throw std::runtime_error("Modifying undefined node: "+node->line.code);
 	  }
@@ -206,7 +266,6 @@ namespace dip {
 	// TODO Check conditions
 	vnode->validate_format();
       } else {
-	std::cout << target.nodes[i]->name << std::endl;
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.code);
       }
     }

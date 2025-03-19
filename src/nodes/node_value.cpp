@@ -6,6 +6,12 @@ namespace dip {
 
   ValueNode::ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {
     name=nm;
+    BaseValue::ShapeType dims = val->get_shape();
+    if (val->get_size()>1) {
+      dimension.clear();
+      for (int dim: dims)
+	dimension.push_back({dim, dim});
+    }
     set_value(std::move(val));
   };
 
@@ -14,8 +20,10 @@ namespace dip {
   }
 
   BaseValue::PointerType ValueNode::cast_value(std::vector<std::string> value_input) {
-    if (dimension.size()>0) {
+    if (!dimension.empty()) {
       return cast_array_value(value_input, value_shape);
+    } else if (value_input.size()>1) {
+      throw std::runtime_error("Value size is an array but node is defined as scalar: "+line.code);
     } else {
       return cast_scalar_value(value_input[0]);
     }
@@ -28,11 +36,20 @@ namespace dip {
       value = cast_value();
     } else if (value_input!=nullptr) {
       value = std::move(value_input);
-      if (value->dtype!=value_dtype)
-	throw std::runtime_error("Value data type has ID="+std::to_string(value_dtype)+", but node data type has ID="+std::to_string(value->dtype));
+      if (value->dtype!=value_dtype) {
+	std::string d1 = std::string(BaseValue::ValueDtypeNames[value_dtype]);
+	std::string d2 = std::string(BaseValue::ValueDtypeNames[value->dtype]);
+	throw std::runtime_error("Assigning '"+d2+"' value to the '"+d1+"' node: "+line.code);
+      }
     }
-    if (value!=nullptr and !dimension.empty())
-      validate_dimensions(); // check if value shape corresponds with dimension ranges
+    if (value!=nullptr) {
+      if (dimension.empty()) {
+	if (value->get_size()>1)
+	  throw std::runtime_error("Assigning array value to the scalar node: "+line.code);
+      } else {
+	validate_dimensions(); // check if value shape corresponds with dimension ranges
+      }
+    }
   }
 
   void ValueNode::modify_value(BaseNode::PointerType node, Environment& env) {
@@ -48,17 +65,17 @@ namespace dip {
    * Validation of node properties and values
    */
   
-  void ValueNode::validate_constant() {
+  void ValueNode::validate_constant() const {
     if (constant)
       throw std::runtime_error("Node '"+name+"' is constant and cannot be modified: "+line.code);
   }
   
-  void ValueNode::validate_definition() {
+  void ValueNode::validate_definition() const {
     if (value==nullptr) 
       throw std::runtime_error("Declared node has undefined value: "+line.code);
   }
   
-  void ValueNode::validate_options() {
+  void ValueNode::validate_options() const {
     if (options.size()>0) {
       bool match = false;
       for (int i=0; i<options.size(); i++) {
@@ -76,13 +93,13 @@ namespace dip {
     }
   }
 
-  void ValueNode::validate_format() {
+  void ValueNode::validate_format() const {
     if (format.size()>0)
       throw std::runtime_error("Format property can be used only with string nodes: "+line.code);
   }
 
-  void ValueNode::validate_dimensions() {
-    std::vector<int> vdim = value->dimension();
+  void ValueNode::validate_dimensions() const {
+    BaseValue::ShapeType vdim = value->get_shape();
     if (dimension.size()!=vdim.size())
       throw std::runtime_error("Number of value dimensions does not match that of node: "+std::to_string(vdim.size())+"!="+std::to_string(dimension.size()));
     for (int i=0; i<dimension.size(); i++) {

@@ -78,10 +78,10 @@ namespace dip {
   BaseNode::NodeListType TableNode::parse(Environment& env) {
     NodeListType nodes;
     if (!value_func.empty()) {
-      // parse nodes using a custom function
-      FunctionSolver solver(env);
-      nodes = solver.solve_table(value_func);
-    } else if (!value_raw[0].empty()) {
+      nodes = env.request_nodes(value_func, Environment::FUNCTION);
+    } else if (!value_ref.empty()) {
+      nodes = env.request_nodes(value_ref, Environment::REFERENCE);
+    } else if (!value_raw.empty() and !value_raw[0].empty()) {
       // parse nodes from a text
       std::queue<Line> lines;
       std::string token;
@@ -98,7 +98,7 @@ namespace dip {
     // update node settings
     for (auto node: nodes) {
       int size = node->value_raw.size();
-      node->indent = indent;
+      node->indent += indent;
       node->name = name + std::string(1,SIGN_SEPARATOR) + node->name;
       node->value_shape = {size};
       if (node->dimension.empty())

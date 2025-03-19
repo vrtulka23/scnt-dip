@@ -13,7 +13,7 @@ namespace dip {
     ss << "dimension(";
     for (auto slice: dimension)
       ss << std::get<0>(slice) << SEPARATOR_SLICE << std::get<1>(slice) << SEPARATOR_DIMENSION;
-    if (dimension.size()>0)
+    if (!dimension.empty())
       ss.seekp(-1, std::ios_base::end);
     ss << ") ";
     return ss.str();

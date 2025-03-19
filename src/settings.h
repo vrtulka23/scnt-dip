@@ -10,6 +10,7 @@ namespace dip {
   constexpr std::string_view ROOT_SOURCE    = "ROOT";
   constexpr std::string_view FILE_SOURCE    = "FILE";
   constexpr std::string_view STRING_SOURCE  = "STRING";
+  constexpr std::string_view DIRECT_SOURCE  = "SOURCE";
 
   // Parsing separators
   constexpr char SEPARATOR_NEWLINE                  = '\n';
@@ -26,7 +27,6 @@ namespace dip {
   constexpr char SIGN_CONDITION         = '@';
   constexpr char SIGN_VARIABLE          = '$';
   constexpr char SIGN_VALIDATION        = '!';
-  constexpr char SIGN_NEWLINE           = '\n';
   constexpr std::string_view SIGN_BLOCK = "\"\"\"";
 
   // Keywords
@@ -43,7 +43,8 @@ namespace dip {
   constexpr std::string_view KEYWORD_SOURCE      = "source";
   
   // Various settings
-  constexpr int DISPLAY_FLOAT_PRECISION = 4;
+  constexpr int DISPLAY_FLOAT_PRECISION      = 4;
+  constexpr std::string_view FILE_SUFFIX_DIP = ".dip";
   
   struct Source {
     std::string name;

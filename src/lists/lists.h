@@ -23,6 +23,7 @@ namespace dip {
     BaseNode::PointerType pop_front();
     BaseNode::PointerType pop_back();
     BaseNode::PointerType operator[](const size_t index);
+    BaseNode::PointerType operator[](const size_t index) const;
   };
 
   // Source list
@@ -30,12 +31,12 @@ namespace dip {
   class SourceList; // EnvSource needs a forward declaration
   
   struct EnvSource {
-    std::string name;
-    std::string path;
-    std::string code;
-    Source parent;
-    NodeList nodes;
-    std::shared_ptr<SourceList> sources;
+    std::string name;   // source key
+    std::string path;   // source path
+    std::string code;   // source code
+    Source parent;      // parent source
+    NodeList nodes;     // parsed nodes
+    //std::shared_ptr<SourceList> sources;
   };
   
   class SourceList {
@@ -43,8 +44,10 @@ namespace dip {
     std::map<std::string,EnvSource> sources;
   public:
     SourceList();
-    void append(const std::string name, const std::string path, const std::string code, const Source parent);
-    EnvSource& operator[](const std::string name);
+    void append(const std::string& name, const std::string& path, const std::string& code, const Source& parent);
+    void append(const std::string& name, const EnvSource& src);
+    EnvSource& operator[](const std::string& name);
+    const EnvSource& operator[](const std::string& name) const;
   };
 
   // Hierarchy list

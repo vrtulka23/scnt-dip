@@ -15,7 +15,6 @@ namespace dip {
     return nullptr;
   }
 
-
   FloatNode::FloatNode(Parser& parser): BaseNode(parser, BaseNode::FLOAT) {
     if (dtype_raw[2]=="32") {
       value_dtype = BaseValue::FLOAT_32;
@@ -30,15 +29,16 @@ namespace dip {
   
   BaseNode::NodeListType FloatNode::parse(Environment& env) {
     if (!value_func.empty()) {
-      FunctionSolver solver(env);
-      set_value(solver.solve_value(value_func));
+      set_value(env.request_value(value_func, Environment::FUNCTION));
+    } else if (!value_ref.empty()) {
+      set_value(env.request_value(value_ref, Environment::REFERENCE));
     }
     // TODO: process expression
     // TODO: process units
     return {};
   }  
   
-  BaseValue::PointerType FloatNode::cast_scalar_value(const std::string value_input) {
+  BaseValue::PointerType FloatNode::cast_scalar_value(const std::string value_input) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::FLOAT_32:
@@ -52,7 +52,7 @@ namespace dip {
     }
   }
   
-  BaseValue::PointerType FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {
+  BaseValue::PointerType FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::FLOAT_32: {
@@ -96,6 +96,13 @@ namespace dip {
     }
     // TODO: cast option value into the units of the node
     options.push_back({std::move(ovalue), option_value, option_units});
+  }
+  
+  BaseNode::PointerType FloatNode::clone(const std::string& nm) const {
+    if (value==nullptr) 
+      return std::make_shared<FloatNode>(nm, nullptr, value->dtype);
+    else
+      return std::make_shared<FloatNode>(nm, std::move(value->clone()), value->dtype);
   }
   
 }

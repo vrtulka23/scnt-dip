@@ -21,18 +21,19 @@ namespace dip {
     if (!units_raw.empty())
       throw std::runtime_error("String data type does not support units: "+line.code);
     if (!value_func.empty()) {
-      FunctionSolver solver(env);
-      set_value(solver.solve_value(value_func));
+      set_value(env.request_value(value_func, Environment::FUNCTION));
+    } else if (!value_ref.empty()) {
+      set_value(env.request_value(value_ref, Environment::REFERENCE));
     }
     // TODO: process expression
     return {};
   }
 
-  BaseValue::PointerType StringNode::cast_scalar_value(const std::string value_input) {
+  BaseValue::PointerType StringNode::cast_scalar_value(const std::string value_input) const {
     return std::make_unique<ScalarValue<std::string>>(value_input, value_dtype);
   }
 
-  BaseValue::PointerType StringNode::cast_array_value(const std::vector<std::string>& value_inputs, const std::vector<int>& shape) {      
+  BaseValue::PointerType StringNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {      
     return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, value_dtype);
   }
   
@@ -41,7 +42,14 @@ namespace dip {
     options.push_back({std::move(ovalue), option_value, option_units});
   }
 
-  void StringNode::validate_format() {
+  BaseNode::PointerType StringNode::clone(const std::string& nm) const {
+    if (value==nullptr) 
+      return std::make_shared<StringNode>(nm, nullptr);
+    else
+      return std::make_shared<StringNode>(nm, std::move(value->clone()));
+  }
+  
+  void StringNode::validate_format() const {
     if (format.size()>0) {
       std::regex pattern(format);
       if (!std::regex_match(value->to_string(), pattern)) {
