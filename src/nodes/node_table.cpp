@@ -21,8 +21,8 @@ namespace dip {
   BaseNode::NodeListType TableNode::parse(Environment& env) {
     std::string source_name = line.source.name+"_"+std::string(TABLE_SOURCE);
     NodeListType nodes;
-    if (!value_func.empty()) {
-      nodes = env.request_nodes(value_func, Environment::FUNCTION);
+    if (value_origin==Node::FROM_FUNCTION) {
+      nodes = env.request_nodes(value_raw[0], Environment::FUNCTION);
     } else if (!value_ref.empty()) {
       nodes = env.request_nodes(value_ref, Environment::REFERENCE);
     } else if (!value_raw.empty() and !value_raw[0].empty()) {

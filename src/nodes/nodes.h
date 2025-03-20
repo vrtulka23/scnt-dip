@@ -24,8 +24,6 @@ namespace dip {
     BaseValue::ShapeType value_shape;      // shape of an array value
     ValueOrigin value_origin;              // origin of the value
     std::string value_ref;                 // reference string
-    std::string value_func;                // function name; in Python this was 'value_fn' variable
-    std::string value_expr;                // expression string
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions

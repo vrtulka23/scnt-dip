@@ -19,8 +19,8 @@ namespace dip {
   
   BaseNode::NodeListType ImportNode::parse(Environment& env) {
     NodeListType nodes;
-    if (!value_func.empty()) {
-      nodes = env.request_nodes(value_func, Environment::FUNCTION);
+    if (value_origin==Node::FROM_FUNCTION) {
+      nodes = env.request_nodes(value_raw[0], Environment::FUNCTION);
     } else if (!value_ref.empty()) {
       nodes = env.request_nodes(value_ref, Environment::REFERENCE);
     } else {

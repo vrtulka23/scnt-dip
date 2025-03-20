@@ -196,6 +196,7 @@ namespace dip {
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back(matchResult[0].str());
+      value_origin = Node::FROM_STRING;
       strip(matchResult[0].str());
       if (do_continue() and code[0]!=' ')
 	throw std::runtime_error("Key has an invalid format: "+line.code);
@@ -265,7 +266,6 @@ namespace dip {
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      value_raw.clear();
       value_ref = matchResult[1].str();
       // TODO: implement inject switch
       strip(matchResult[0].str());
@@ -280,8 +280,8 @@ namespace dip {
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      value_raw.clear();
-      value_func = matchResult[1].str();
+      value_raw.push_back( matchResult[1].str() );
+      value_origin = Node::FROM_FUNCTION;
       strip(matchResult[0].str());
       return true;
     }
@@ -375,6 +375,7 @@ namespace dip {
 	std::string vraw = matchResult[i].str();
 	if (vraw!="") {
 	  value_raw.push_back(vraw);
+	  value_origin = Node::FROM_STRING;
 	  break;
 	}
       }

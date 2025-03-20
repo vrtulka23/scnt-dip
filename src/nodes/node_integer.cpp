@@ -28,8 +28,8 @@ namespace dip {
   };
   
   BaseNode::NodeListType IntegerNode::parse(Environment& env) {
-    if (!value_func.empty()) {
-      set_value(env.request_value(value_func, Environment::FUNCTION));
+    if (value_origin==Node::FROM_FUNCTION) {
+      set_value(env.request_value(value_raw[0], Environment::FUNCTION));
     } else if (!value_ref.empty()) {
       set_value(env.request_value(value_ref, Environment::REFERENCE));
     }

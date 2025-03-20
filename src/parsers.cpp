@@ -98,10 +98,6 @@ namespace dip {
 	throw std::runtime_error("Could not parse all text on the line: "+line.code);
 
       // convert escape symbols to original characterss
-      if (!node->value_func.empty())
-	Parser::decode_escape_symbols(node->value_func);
-      if (!node->value_expr.empty())
-	Parser::decode_escape_symbols(node->value_expr);
       for (size_t i=0; i<node->value_raw.size(); i++)
 	Parser::decode_escape_symbols(node->value_raw[i]);
       Parser::decode_escape_symbols(node->line.code);

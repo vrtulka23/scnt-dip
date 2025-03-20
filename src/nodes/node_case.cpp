@@ -26,10 +26,9 @@ namespace dip {
       name = matchResult[1].str() + "C" + std::to_string(case_id);
       if (case_type==KEYWORD_CASE) {
 	// TODO: use logical solver to solve cases
-	if (value_expr.empty()) {
-	  value = (value_raw[0]==KEYWORD_TRUE) ? true : false;
-	} else
-	  value = (value_expr==KEYWORD_TRUE) ? true : false;
+	if (value_raw.empty())
+	  throw std::runtime_error("Case node requires an input value: "+line.code);
+	value = (value_raw[0]==KEYWORD_TRUE) ? true : false;
       } else if (case_type==KEYWORD_ELSE) {
 	value = true;
       }

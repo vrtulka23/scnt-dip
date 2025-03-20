@@ -20,8 +20,8 @@ namespace dip {
   BaseNode::NodeListType BooleanNode::parse(Environment& env) {
     if (!units_raw.empty())
       throw std::runtime_error("Boolean data type does not support units: "+line.code);
-    if (!value_func.empty()) {
-      set_value(env.request_value(value_func, Environment::FUNCTION));
+    if (value_origin==Node::FROM_FUNCTION) {
+      set_value(env.request_value(value_raw[0], Environment::FUNCTION));
     } else if (!value_ref.empty()) {
       set_value(env.request_value(value_ref, Environment::REFERENCE));
     }

@@ -141,7 +141,8 @@ namespace dip {
       }
       // std::cout << std::endl;
       // register new case
-      cases[case_id] = Case(path_new, cnode->line.code, cnode->value_expr, case_value,
+      std::string expr = (cnode->value_raw.empty()) ? "" : cnode->value_raw[0];
+      cases[case_id] = Case(path_new, cnode->line.code, expr, case_value,
 			    branch_id, branch_part, case_id, cnode->case_type);
     } else {
       throw std::runtime_error("Invalid condition format: "+node->line.code);
