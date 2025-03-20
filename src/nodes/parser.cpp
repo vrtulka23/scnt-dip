@@ -7,8 +7,7 @@
 
 namespace dip {
 
-  constexpr int NUM_ESCAPE_SYMBOLS = 3;
-  constexpr std::array<std::string, NUM_ESCAPE_SYMBOLS> escape_symbols = {"\\\"", "\\'", "\\n"};
+  const std::array<std::string, 3> Parser::ESCAPE_SYMBOLS = {"\\\"", "\\'", "\\n"};
   
   void Parser::strip(const std::string text) {
     code = code.substr(text.length(), code.length());
@@ -23,23 +22,23 @@ namespace dip {
    */
 
   void Parser::encode_escape_symbols(std::string& str) {
-    for (int i=0; i<NUM_ESCAPE_SYMBOLS; i++) {
+    for (int i=0; i<ESCAPE_SYMBOLS.size(); i++) {
       std::string replace_symbol = "Z@"+std::to_string(i)+";";
       size_t pos = 0;
-      while ((pos = str.find(escape_symbols[i], pos)) != std::string::npos) {
-        str.replace(pos, escape_symbols[i].length(), replace_symbol);
+      while ((pos = str.find(ESCAPE_SYMBOLS[i], pos)) != std::string::npos) {
+        str.replace(pos, ESCAPE_SYMBOLS[i].length(), replace_symbol);
         pos += replace_symbol.length();
       }
     }
   }
    
   void Parser::decode_escape_symbols(std::string& str) {
-    for (int i=0; i<NUM_ESCAPE_SYMBOLS; i++) {
+    for (int i=0; i<ESCAPE_SYMBOLS.size(); i++) {
       std::string replace_symbol = "Z@"+std::to_string(i)+";";
       size_t pos = 0;
       while ((pos = str.find(replace_symbol, pos)) != std::string::npos) {
-        str.replace(pos, replace_symbol.length(), escape_symbols[i]);
-        pos += escape_symbols[i].length();
+        str.replace(pos, replace_symbol.length(), ESCAPE_SYMBOLS[i]);
+        pos += ESCAPE_SYMBOLS[i].length();
       }
     }
   }
@@ -50,7 +49,7 @@ namespace dip {
 
   bool Parser::kwd_case() {
     std::ostringstream oss;
-    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_CONDITION << "]" << KEYWORD_CASE << ")[ ]*";
+    oss << "^(" << PATTERN_PATH << "*[" << SIGN_CONDITION << "]" << KEYWORD_CASE << ")[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
@@ -60,7 +59,7 @@ namespace dip {
     } else {
       oss.str("");
       oss.clear();
-      oss << "^[a-zA-Z0-9_.-]*(";
+      oss << "^" << PATTERN_PATH << "*(";
       oss << "[" << SIGN_CONDITION << "]" << KEYWORD_ELSE << "|";
       oss << "[" << SIGN_CONDITION << "]" << KEYWORD_END  << ")";
       pattern = oss.str();
@@ -79,7 +78,7 @@ namespace dip {
   
   bool Parser::kwd_source() {
     std::ostringstream oss;
-    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_VARIABLE << "]" << KEYWORD_SOURCE << ")[ ]*";
+    oss << "^(" << PATTERN_PATH << "*[" << SIGN_VARIABLE << "]" << KEYWORD_SOURCE << ")[ ]*";
     std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
@@ -174,7 +173,9 @@ namespace dip {
   }
   
   bool Parser::part_name(bool required) {
-    std::regex pattern("^[a-zA-Z0-9_.-]+");
+    std::ostringstream oss;
+    oss << "^" << PATTERN_PATH << "+";
+    std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[0].str();
@@ -189,7 +190,9 @@ namespace dip {
   }
   
   bool Parser::part_key(bool required) {
-    std::regex pattern("^[a-zA-Z0-9_]+");
+    std::ostringstream oss;
+    oss << "^" << PATTERN_KEY << "+";
+    std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back(matchResult[0].str());
@@ -255,9 +258,11 @@ namespace dip {
     }
     return false;
   }
-  
+
   bool Parser::part_reference(const bool inject) {
-    std::regex pattern("^[ ]*[{]([a-zA-Z0-9.?-_]*)[}]");
+    std::ostringstream oss;
+    oss << "^[ ]*[{](" << PATTERN_KEY << "*[?]" << PATTERN_PATH << "*)[}]";
+    std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.clear();
@@ -270,10 +275,11 @@ namespace dip {
   }
   
   bool Parser::part_function() {
-    std::regex pattern("^[ ]*[(]([a-zA-Z0-9_-]+)[)]");
+    std::ostringstream oss;
+    oss << "^[ ]*[(](" << PATTERN_KEY << "+)[)]";
+    std::regex pattern(oss.str());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      std::cout << "fnc " << code << std::endl;
       value_raw.clear();
       value_func = matchResult[1].str();
       strip(matchResult[0].str());

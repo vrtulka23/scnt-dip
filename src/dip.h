@@ -36,15 +36,12 @@ namespace dip {
     size_t num_sources = 0; // number of explicitely added sources
     size_t num_units = 0;   // number of explicitely added units
     
-    NodeList _get_queue();
-    BaseNode::PointerType _determine_node(Line& line);
   public:
     DIP();
     DIP(const Source& src);
-    void add_string(const std::string& code);
-    void add_file(const std::string& file_path, std::string source_name="", const bool absolute=true);
-    static EnvSource read_source(const std::string& sname, const std::string& spath, const Source& parent);
-    void add_source(const std::string& name, const std::string& path);
+    void add_string(const std::string& source_code);
+    void add_file(const std::string& source_file, std::string source_name="", const bool absolute=true);
+    void add_source(const std::string& source_name, const std::string& source_file);
     void add_unit(const std::string& name, const double value, const std::string unit="");    
     void add_value_function(const std::string name, FunctionList::ValueFunctionType func);
     void add_node_function(const std::string name, FunctionList::TableFunctionType func);

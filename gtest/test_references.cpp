@@ -185,20 +185,20 @@ TEST(References, ImportNodes) {
   d.add_string("foo");
   d.add_string("  snap str = 'snap'");
   d.add_string("  crackle bool[2] = [true,false]");
-  d.add_string("bar {?foo}");
+  d.add_string("bar {?}");
   d.add_string("baz");
   d.add_string("  {?foo}");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 6);
 
   dip::BaseNode::PointerType node = env.nodes[2];
-  EXPECT_EQ(node->name, "bar.snap");
+  EXPECT_EQ(node->name, "bar.foo.snap");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "snap");
 
   node = env.nodes[3];
-  EXPECT_EQ(node->name, "bar.crackle");
+  EXPECT_EQ(node->name, "bar.foo.crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "[true, false]");  
@@ -236,8 +236,9 @@ TEST(References, RemoteSource) {
   d.add_string("snap int = {"+source_name+"?foo.bar}");
   d.add_string("crackle bool[2] = {"+source_name+"?foo.baz}");
   d.add_string("pop {"+source_name+"?foo}");
+  d.add_string("jerk {"+source_name+"?}");
   dip::Environment env = d.parse();
-  EXPECT_EQ(env.nodes.size(), 4);
+  EXPECT_EQ(env.nodes.size(), 6);
   
   // remove temporary file
   std::filesystem::remove(source_filename);  
@@ -265,6 +266,18 @@ TEST(References, RemoteSource) {
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "[false, true]");  
+  
+  node = env.nodes[4];
+  EXPECT_EQ(node->name, "jerk.foo.bar");
+  vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->value->to_string(), "3");
+  
+  node = env.nodes[5];
+  EXPECT_EQ(node->name, "jerk.foo.baz");
+  vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->value->to_string(), "[false, true]");
   
 }
 

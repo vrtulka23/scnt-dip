@@ -16,7 +16,7 @@ namespace dip {
 
   BaseNode::NodeListType CaseNode::parse(Environment& env) {
     std::ostringstream oss;
-    oss << "^([a-zA-Z0-9_.-]*[" << SIGN_CONDITION << "])";
+    oss << "^(" << PATTERN_PATH << "*[" << SIGN_CONDITION << "])";
     oss << "(" << KEYWORD_CASE << "|" << KEYWORD_ELSE << "|" << KEYWORD_END << ")";
     std::regex pattern(oss.str());
     std::smatch matchResult;
@@ -24,13 +24,13 @@ namespace dip {
       case_id = env.branching.register_case();
       case_type = matchResult[2].str();
       name = matchResult[1].str() + "C" + std::to_string(case_id);
-      if (case_type == std::string(KEYWORD_CASE)) {
+      if (case_type==KEYWORD_CASE) {
 	// TODO: use logical solver to solve cases
 	if (value_expr.empty()) {
-	  value = (value_raw[0]==std::string(KEYWORD_TRUE)) ? true : false;
+	  value = (value_raw[0]==KEYWORD_TRUE) ? true : false;
 	} else
-	  value = (value_expr==std::string(KEYWORD_TRUE)) ? true : false;
-      } else if (case_type == std::string(KEYWORD_ELSE)) {
+	  value = (value_expr==KEYWORD_TRUE) ? true : false;
+      } else if (case_type==KEYWORD_ELSE) {
 	value = true;
       }
     }

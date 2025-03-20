@@ -11,6 +11,7 @@ namespace dip {
   constexpr std::string_view FILE_SOURCE    = "FILE";
   constexpr std::string_view STRING_SOURCE  = "STRING";
   constexpr std::string_view DIRECT_SOURCE  = "SOURCE";
+  constexpr std::string_view TABLE_SOURCE   = "TABLE";
 
   // Parsing separators
   constexpr char SEPARATOR_NEWLINE                  = '\n';
@@ -41,6 +42,10 @@ namespace dip {
   constexpr std::string_view KEYWORD_ELSE        = "else";
   constexpr std::string_view KEYWORD_END         = "end";
   constexpr std::string_view KEYWORD_SOURCE      = "source";
+
+  // Regex Patterns
+  constexpr std::string_view PATTERN_KEY  = "[a-zA-Z0-9_-]";
+  constexpr std::string_view PATTERN_PATH = "[a-zA-Z0-9._-]";
   
   // Various settings
   constexpr int DISPLAY_FLOAT_PRECISION      = 4;

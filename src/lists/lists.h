@@ -17,6 +17,8 @@ namespace dip {
   private:
     BaseNode::NodeListType nodes;
   public:
+    NodeList() {};
+    NodeList(const BaseNode::NodeListType& nl): nodes(nl) {};
     size_t size() const;
     void push_front(BaseNode::PointerType node);
     void push_back(BaseNode::PointerType node);

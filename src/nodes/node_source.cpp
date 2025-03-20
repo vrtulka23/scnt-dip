@@ -4,6 +4,7 @@
 #include "nodes.h"
 #include "../environment.h"
 #include "../dip.h"
+#include "../parsers.h"
 
 namespace dip {
 
@@ -22,7 +23,7 @@ namespace dip {
   }
   
   BaseNode::NodeListType SourceNode::parse(Environment& env) {
-    EnvSource senv = DIP::read_source(value_raw[0], value_raw[1], line.source);
+    EnvSource senv = parse_source(value_raw[0], value_raw[1], line.source);
     env.sources.append(value_raw[0], senv);
     return {};
   }  

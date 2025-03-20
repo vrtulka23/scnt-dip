@@ -3,8 +3,6 @@
 
 #include "nodes.h"
 #include "../environment.h"
-#include "../dip.h"
-#include "../solvers/solvers.h"
 
 namespace dip {
 

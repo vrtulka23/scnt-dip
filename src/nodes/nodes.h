@@ -15,32 +15,34 @@ namespace dip {
   class Node {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
+    enum ValueOrigin {FROM_STRING, FROM_REFERENCE, FROM_FUNCTION, FROM_EXPRESSION};
     Line line;                             // source code line information; in Python this were 'code' & 'source' variables
     int indent;                            // indent of a node
     std::string name;                      // node name
     std::vector<std::string> dtype_raw;    // data type properties (unsigned/type/precision)
     std::vector<std::string> value_raw;    // raw value string(s)
-    BaseValue::ShapeType value_shape;          // shape of an array value
+    BaseValue::ShapeType value_shape;      // shape of an array value
+    ValueOrigin value_origin;              // origin of the value
     std::string value_ref;                 // reference string
     std::string value_func;                // function name; in Python this was 'value_fn' variable
     std::string value_expr;                // expression string
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions
-    Node(): indent(0) {};
-    Node(const Line& l): line(l), indent(0) {};
-    Node(const std::string& nm): name(nm), indent(0) {};
+    Node(): indent(0), value_origin(FROM_STRING) {};
+    Node(const Line& l): line(l), indent(0), value_origin(FROM_STRING) {};
+    Node(const std::string& nm): name(nm), indent(0), value_origin(FROM_STRING) {};
     virtual ~Node() = default;
     std::string to_string();
   };
   
   class Parser: public Node {
+  private:
+    void strip(const std::string text); 
+    static const std::array<std::string, 3> ESCAPE_SYMBOLS;
   public:
     std::string code;                      // in Python this was 'ccode', the original 'code' is now in the 'line' struct
     std::string comment;
-  private:
-    void strip(const std::string text); 
-  public:
     Parser(const Line& l): Node(l), code(l.code) {};
     static void encode_escape_symbols(std::string& str);
     static void decode_escape_symbols(std::string& str);
@@ -185,7 +187,6 @@ namespace dip {
     static BaseNode::PointerType is_node(Parser& parser);
     TableNode(Parser& parser): BaseNode(parser, BaseNode::TABLE) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    static BaseNode::NodeListType parse_lines(std::queue<Line>& lines);
   };
 
   class ValueNode: virtual public BaseNode {

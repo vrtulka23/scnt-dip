@@ -2,7 +2,7 @@
 #define H_HELPERS
 
 namespace dip {
-  
+
   // trim whitespace from the beginning and the end of a string
   void trim(std::string& str) {
     auto start = std::find_if_not(str.begin(), str.end(), ::isspace);
