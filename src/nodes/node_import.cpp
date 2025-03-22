@@ -19,12 +19,15 @@ namespace dip {
   
   BaseNode::NodeListType ImportNode::parse(Environment& env) {
     NodeListType nodes;
-    if (value_origin==Node::FROM_FUNCTION) {
-      nodes = env.request_nodes(value_raw[0], Environment::FUNCTION);
-    } else if (!value_ref.empty()) {
-      nodes = env.request_nodes(value_ref, Environment::REFERENCE);
-    } else {
-      throw std::runtime_error("Table node could not be parsed: "+line.code);      
+    switch (value_origin) {
+    case ValueOrigin::FUNCTION:
+      nodes = env.request_nodes(value_raw.at(0), Environment::FUNCTION);
+      break;
+    case ValueOrigin::REFERENCE:
+      nodes = env.request_nodes(value_raw.at(0), Environment::REFERENCE);
+      break;
+    default:
+      throw std::runtime_error("Import nodes could not be parsed: "+line.code);      
     }
     // update node settings
     for (auto node: nodes) {

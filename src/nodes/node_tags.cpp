@@ -17,7 +17,7 @@ namespace dip {
   BaseNode::NodeListType TagsNode::parse(Environment& env) {
     if (env.nodes.size()==0)
       throw std::runtime_error("Could not find a node that can have tags: "+line.code);
-    BaseNode::PointerType node = env.nodes[env.nodes.size()-1];
+    BaseNode::PointerType node = env.nodes.at(env.nodes.size()-1);
     ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
     if (vnode) {
       if (vnode->indent>=indent)

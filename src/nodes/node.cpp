@@ -9,7 +9,7 @@ namespace dip {
     std::stringstream ss;
     ss << "indent(" << indent << ") ";
     ss << "name(" << name << ") ";
-    ss << "value_raw(" << value_raw[0] << ") ";
+    ss << "value_raw(" << value_raw.at(0) << ") ";
     ss << "dimension(";
     for (auto slice: dimension)
       ss << std::get<0>(slice) << SEPARATOR_SLICE << std::get<1>(slice) << SEPARATOR_DIMENSION;

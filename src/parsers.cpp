@@ -30,6 +30,7 @@ namespace dip {
     std::istringstream ss(source_code);
     int line_number = 0;
     while (std::getline(ss, line)) {
+      // skip empty lines
       if (!line.empty() and !std::all_of(line.begin(), line.end(), isspace))
 	lines.push({line, {source_name, line_number}});
       line_number++;
@@ -99,7 +100,7 @@ namespace dip {
 
       // convert escape symbols to original characterss
       for (size_t i=0; i<node->value_raw.size(); i++)
-	Parser::decode_escape_symbols(node->value_raw[i]);
+	Parser::decode_escape_symbols(node->value_raw.at(i));
       Parser::decode_escape_symbols(node->line.code);
 
       // put node into the list
@@ -153,7 +154,7 @@ namespace dip {
 	auto node = nodes.at(i);
 	parser.value_raw.clear();
 	if (parser.part_string()) {
-	  node->value_raw.push_back(parser.value_raw[0]);
+	  node->value_raw.push_back(parser.value_raw.at(0));
 	} else {
 	  throw std::runtime_error("Could not parse column '"+node->name+"' from the table row: "+line.code);
 	}
@@ -163,5 +164,89 @@ namespace dip {
     }
     return nodes;
   }  
+
+  std::string parse_array(const std::string& value_string, std::vector<std::string>& value_raw, BaseValue::ShapeType& value_shape) {
+    std::stringstream ss(value_string), rm;
+    char ch;
+
+    // test for an openning bracket
+    ss.get(ch);
+    rm << ch;
+    if (ch!=SIGN_ARRAY_OPEN)
+      throw std::runtime_error("Given source code is not a valid array: "+value_string);
+    
+    std::string value;
+    bool inString = false;
+    int  dim = 1;
+    value_shape.push_back(0);
+    
+    while (ss.get(ch) and dim>0) {
+      rm << ch;
+      if (ch == SIGN_ARRAY_OPEN) {
+	dim++;
+	if (value_shape.size()<dim)
+	  value_shape.push_back(0);
+	value.clear();
+      } else if (ch == SEPARATOR_ARRAY) {
+	if (!value.empty()) {
+	  value_raw.push_back(value);
+	  value.clear();
+	}
+	value_shape[dim-1]++;
+      } else if (ch == SIGN_ARRAY_CLOSE) {
+	if (!value.empty()) {
+	  value_raw.push_back(value);
+	  value.clear();
+	}
+	value_shape[dim-1]++;
+	dim--;
+      } else if (ch == '"') {
+	value.clear();
+	while (ss.get(ch) && ch != '"') {
+	  value += ch;
+	  rm << ch;
+	}
+	rm << ch;
+      } else if (ch == '\'') {
+	value.clear();
+	while (ss.get(ch) && ch != '\'') {
+	  value += ch;
+	  rm << ch;
+	}
+	rm << ch;
+      } else if (ch == ' ') {
+	continue;
+      } else {
+	value += ch;
+      }
+    }
+    
+    // Check if all nested arrays are closed
+    if (dim!=0)
+      throw std::runtime_error("Definition of an array has some unclosed brackets or quotes: "+value_string);
+
+    // Normalize shape and check coherence of nested arrays
+    int coef = 1;
+    for (int d=1; d<value_shape.size(); d++) {
+      coef *= value_shape[d-1];
+      if (value_shape[d]%coef != 0) 
+	throw std::runtime_error("Items in dimension "+std::to_string(d+1)+" do not have the same shape: "+value_string);
+      value_shape[d] /= coef;
+    }    
+    //std::cout << ss.str() << std::endl;
+    //std::cout << rm.str() << std::endl;
+    return rm.str();
+  }
+
+  void parse_value(std::string value_string, std::vector<std::string>& value_raw, BaseValue::ShapeType& value_shape) {
+    trim(value_string);
+    value_string.erase(std::remove(value_string.begin(), value_string.end(), '\n'), value_string.end());
+    if (value_string.empty())
+      throw std::runtime_error("Source code of the value is empty");
+    else if (value_string.at(0)==SIGN_ARRAY_OPEN)
+      parse_array(value_string, value_raw, value_shape);
+    else
+      value_raw.push_back(value_string);
+  }
   
 }

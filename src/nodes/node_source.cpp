@@ -23,8 +23,8 @@ namespace dip {
   }
   
   BaseNode::NodeListType SourceNode::parse(Environment& env) {
-    EnvSource senv = parse_source(value_raw[0], value_raw[1], line.source);
-    env.sources.append(value_raw[0], senv);
+    EnvSource senv = parse_source(value_raw.at(0), value_raw.at(1), line.source);
+    env.sources.append(value_raw.at(0), senv);
     return {};
   }  
  

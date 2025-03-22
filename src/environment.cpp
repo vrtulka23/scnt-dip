@@ -14,6 +14,10 @@ namespace dip {
     
   }
 
+  std::string Environment::request_code(const std::string& source_name) const {
+    return sources[source_name].code;
+  }
+  
   BaseValue::PointerType Environment::request_value(const std::string& request, const RequestType rtype, const std::string& in_units) const {
     BaseValue::PointerType new_value = nullptr;
     switch (rtype) {
@@ -23,11 +27,11 @@ namespace dip {
       break;
     }
     case Environment::REFERENCE: {
-      auto [source, path] = parse_request(request);
-      const NodeList& node_pool = (source.empty()) ? nodes : sources[source].nodes;
+      auto [source_name, node_path] = parse_request(request);
+      const NodeList& node_pool = (source_name.empty()) ? nodes : sources[source_name].nodes;
       for (size_t i=0; i<node_pool.size(); i++) {
-	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool[i]);
-	if (vnode and vnode->name==path)
+	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool.at(i));
+	if (vnode and vnode->name==node_path)
 	  new_value = vnode->value->clone();
       }
       break;
@@ -49,14 +53,14 @@ namespace dip {
       break;
     }
     case Environment::REFERENCE: {
-      auto [source, path] = parse_request(request);
-      if (!path.empty())
-	path += std::string(1,SIGN_SEPARATOR);
-      const NodeList& node_pool = (source.empty()) ? nodes : sources[source].nodes;
+      auto [source_name, node_path] = parse_request(request);
+      if (!node_path.empty())
+	node_path += std::string(1,SIGN_SEPARATOR);
+      const NodeList& node_pool = (source_name.empty()) ? nodes : sources[source_name].nodes;
       for (size_t i=0; i<node_pool.size(); i++) {
-	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool[i]);
-	if (vnode and vnode->name.rfind(path, 0) == 0 and vnode->name.size()>path.size()) {
-	  std::string new_name = vnode->name.substr(path.size(), vnode->name.size());
+	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool.at(i));
+	if (vnode and vnode->name.rfind(node_path, 0) == 0 and vnode->name.size()>node_path.size()) {
+	  std::string new_name = vnode->name.substr(node_path.size(), vnode->name.size());
 	  new_nodes.push_back(vnode->clone(new_name));
 	}
       }

@@ -17,21 +17,32 @@ namespace dip {
     }
     return nullptr;
   }
+
+  inline BaseNode::NodeListType parse_nodes(const std::string& value_raw, const std::string& source_name) {
+    std::queue<Line> lines;
+    parse_lines(lines, value_raw, source_name);
+    return parse_table_nodes(lines);
+  }
   
   BaseNode::NodeListType TableNode::parse(Environment& env) {
     std::string source_name = line.source.name+"_"+std::string(TABLE_SOURCE);
     NodeListType nodes;
-    if (value_origin==Node::FROM_FUNCTION) {
-      nodes = env.request_nodes(value_raw[0], Environment::FUNCTION);
-    } else if (!value_ref.empty()) {
-      nodes = env.request_nodes(value_ref, Environment::REFERENCE);
-    } else if (!value_raw.empty() and !value_raw[0].empty()) {
-      std::queue<Line> lines;
-      parse_lines(lines, value_raw[0], source_name);
-      nodes = parse_table_nodes(lines);
-    } else {
-      throw std::runtime_error("Table node could not be parsed: "+line.code);      
-    }
+    switch (value_origin) {
+    case ValueOrigin::FUNCTION:
+      nodes = env.request_nodes(value_raw.at(0), Environment::FUNCTION);
+      break;
+    case ValueOrigin::REFERENCE:
+      nodes = env.request_nodes(value_raw.at(0), Environment::REFERENCE);
+      break;
+    case ValueOrigin::REFERENCE_RAW:
+      nodes = parse_nodes(env.request_code(value_raw.at(0)), source_name);
+      break;
+    case ValueOrigin::STRING:
+      nodes = parse_nodes(value_raw.at(0), source_name);
+      break;
+    default:
+      throw std::runtime_error("Table nodes could not be parsed: "+line.code);
+    }      
     // update node settings
     for (auto node: nodes) {
       int size = node->value_raw.size();

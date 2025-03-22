@@ -16,23 +16,23 @@ namespace dip {
   };
 
   BaseValue::PointerType ValueNode::cast_value() {
-    return cast_value(value_raw);
+    return cast_value(value_raw, value_shape);
   }
 
-  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string> value_input) {
+  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string> value_input, const BaseValue::ShapeType& shape) {
     if (!dimension.empty()) {
-      return cast_array_value(value_input, value_shape);
+      return cast_array_value(value_input, shape);
     } else if (value_input.size()>1) {
       throw std::runtime_error("Value size is an array but node is defined as scalar: "+line.code);
     } else {
-      return cast_scalar_value(value_input[0]);
+      return cast_scalar_value(value_input.at(0));
     }
 
   }
 
   void ValueNode::set_value(BaseValue::PointerType value_input) {
     value = nullptr;
-    if (value_input==nullptr and !value_raw.empty() and !value_raw[0].empty()) {
+    if (value_input==nullptr and !value_raw.empty() and !value_raw.at(0).empty()) {
       value = cast_value();
     } else if (value_input!=nullptr) {
       value = std::move(value_input);
@@ -54,8 +54,8 @@ namespace dip {
 
   void ValueNode::modify_value(BaseNode::PointerType node, Environment& env) {
     if (node->dtype!=BaseNode::MODIFICATION and node->dtype!=dtype)
-	throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw[1]+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw[1]+"'");
-    BaseValue::PointerType value = cast_value(node->value_raw);
+      throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw.at(1)+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw.at(1)+"'");
+    BaseValue::PointerType value = cast_value(node->value_raw, node->value_shape);
     // TODO: add conversion to original units
     value_raw = node->value_raw;
     set_value(std::move(value));

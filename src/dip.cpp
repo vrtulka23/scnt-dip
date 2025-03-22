@@ -43,9 +43,9 @@ namespace dip {
   void DIP::add_string(const std::string& source_code) {
 
     // prepare source data
+    std::string source_file = env.sources[source.name].path;
     std::string source_name = source.name+"_"+std::string(STRING_SOURCE)+std::to_string(num_strings);
     num_strings++;
-    std::string source_file = env.sources[source.name].path;
     
     // create a new source
     env.sources.append(source_name,source_file,source_code,{source.name, source.line_number});
@@ -141,8 +141,8 @@ namespace dip {
 	// If node was previously defined, modify its value
 	bool new_node = true;
 	for (size_t i=0; i<target.nodes.size(); i++) {
-	  if (target.nodes[i]->name==node->name) {
-	    ValueNode::PointerType pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+	  if (target.nodes.at(i)->name==node->name) {
+	    ValueNode::PointerType pnode = std::dynamic_pointer_cast<ValueNode>(target.nodes.at(i));
 	    pnode->validate_constant();
 	    pnode->modify_value(node, target);
 	    new_node = false;
@@ -160,14 +160,14 @@ namespace dip {
     }
     // Validate nodes
     for (ssize_t i=0; i<target.nodes.size(); i++) {
-      ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes[i]);
+      ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(target.nodes.at(i));
       if (vnode) {
 	vnode->validate_definition();
 	vnode->validate_options();
 	// TODO Check conditions
 	vnode->validate_format();
       } else {
-	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes[i]->line.code);
+	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes.at(i)->line.code);
       }
     }
     return target;

@@ -1,9 +1,11 @@
-#include "nodes.h"
-
 #include <regex>
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+
+#include "nodes.h"
+#include "../parsers.h"
+#include "../helpers.h"
 
 namespace dip {
 
@@ -48,21 +50,18 @@ namespace dip {
    */
 
   bool Parser::kwd_case() {
-    std::ostringstream oss;
-    oss << "^(" << PATTERN_PATH << "*[" << SIGN_CONDITION << "]" << KEYWORD_CASE << ")[ ]*";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^(", PATTERN_PATH, "*[", SIGN_CONDITION, "]", KEYWORD_CASE, ")[ ]*");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[1].str();
       strip(matchResult[0].str());
       return true;
     } else {
-      oss.str("");
-      oss.clear();
-      oss << "^" << PATTERN_PATH << "*(";
-      oss << "[" << SIGN_CONDITION << "]" << KEYWORD_ELSE << "|";
-      oss << "[" << SIGN_CONDITION << "]" << KEYWORD_END  << ")";
-      pattern = oss.str();
+      constexpr auto pstr = ce_concat<50>("^", PATTERN_PATH, "*(",
+					   "[", SIGN_CONDITION, "]", KEYWORD_ELSE, "|"
+					   "[", SIGN_CONDITION, "]", KEYWORD_END , ")");
+      pattern = pstr.data();
       if (std::regex_search(code, matchResult, pattern)) {
 	name = matchResult[0].str();
 	strip(matchResult[0].str());
@@ -75,11 +74,10 @@ namespace dip {
   bool Parser::kwd_unit() {
     return false;
   }
-  
+
   bool Parser::kwd_source() {
-    std::ostringstream oss;
-    oss << "^(" << PATTERN_PATH << "*[" << SIGN_VARIABLE << "]" << KEYWORD_SOURCE << ")[ ]*";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^(", PATTERN_PATH, "*[", SIGN_VARIABLE, "]", KEYWORD_SOURCE, ")[ ]*");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[1].str();
@@ -90,9 +88,8 @@ namespace dip {
   }
   
   bool Parser::kwd_options() {
-    std::ostringstream oss;
-    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_OPTIONS << "[ ]*";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_OPTIONS, "[ ]*");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       dimension.push_back({0,-1});
@@ -103,9 +100,8 @@ namespace dip {
   }
   
   bool Parser::kwd_constant() {
-    std::ostringstream oss;
-    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_CONSTANT;
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_CONSTANT);
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       strip(matchResult[0].str());
@@ -115,9 +111,8 @@ namespace dip {
   } 
   
   bool Parser::kwd_format() {
-    std::ostringstream oss;
-    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_FORMAT << "[ ]*";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_FORMAT, "[ ]*");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       strip(matchResult[0].str());
@@ -127,9 +122,8 @@ namespace dip {
   }
   
   bool Parser::kwd_tags() {
-    std::ostringstream oss;
-    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_TAGS << "[ ]*";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_TAGS, "[ ]*");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       strip(matchResult[0].str());
@@ -139,12 +133,8 @@ namespace dip {
   }
   
   bool Parser::kwd_description() {
-    std::ostringstream oss;
-    oss << "^((";
-    oss << "^[" << SIGN_VALIDATION << "]" << KEYWORD_DESCRIPTION << "|";
-    oss << "^[" << SIGN_VALIDATION << "]" << std::string(KEYWORD_DESCRIPTION).substr(0,4);
-    oss << ")[ ]*)";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^([", SIGN_VALIDATION, "]", KEYWORD_DESCRIPTION, "[ ]*)");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       strip(matchResult[1].str());
@@ -173,9 +163,8 @@ namespace dip {
   }
   
   bool Parser::part_name(bool required) {
-    std::ostringstream oss;
-    oss << "^" << PATTERN_PATH << "+";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^", PATTERN_PATH, "+");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       name = matchResult[0].str();
@@ -190,13 +179,12 @@ namespace dip {
   }
   
   bool Parser::part_key(bool required) {
-    std::ostringstream oss;
-    oss << "^" << PATTERN_KEY << "+";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^", PATTERN_KEY, "+");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back(matchResult[0].str());
-      value_origin = Node::FROM_STRING;
+      value_origin = ValueOrigin::STRING;
       strip(matchResult[0].str());
       if (do_continue() and code[0]!=' ')
 	throw std::runtime_error("Key has an invalid format: "+line.code);
@@ -254,19 +242,30 @@ namespace dip {
   }
 
   bool Parser::part_equal(bool required) {
-    if (part_delimiter('=', required)) {
+    constexpr auto pstr = ce_concat<50>("^[ ]*[", SIGN_EQUAL, "][ ]*");
+    std::regex pattern(pstr.data());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      strip(matchResult[0].str());
       return true;
+    } else if (required) {
+      throw std::runtime_error("Equal sign '"+std::string(1,SIGN_EQUAL)+"' is required: "+line.code);
     }
     return false;
   }
 
   bool Parser::part_reference(const bool inject) {
-    std::ostringstream oss;
-    oss << "^[ ]*[{](" << PATTERN_KEY << "*[?]" << PATTERN_PATH << "*)[}]";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[ ]*[{](", PATTERN_KEY, "*([?]", PATTERN_PATH, "*|))[}]");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      value_ref = matchResult[1].str();
+      value_raw.push_back( matchResult[1].str() );
+      if (!matchResult[2].str().empty())
+	value_origin = ValueOrigin::REFERENCE;
+      else if (!matchResult[1].str().empty())
+	value_origin = ValueOrigin::REFERENCE_RAW;
+      else
+	throw std::runtime_error("Reference cannot be empty: "+line.code);
       // TODO: implement inject switch
       strip(matchResult[0].str());
       return true;
@@ -275,13 +274,12 @@ namespace dip {
   }
   
   bool Parser::part_function() {
-    std::ostringstream oss;
-    oss << "^[ ]*[(](" << PATTERN_KEY << "+)[)]";
-    std::regex pattern(oss.str());
+    constexpr auto pstr = ce_concat<50>("^[ ]*[(](", PATTERN_KEY, "+)[)]");
+    std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back( matchResult[1].str() );
-      value_origin = Node::FROM_FUNCTION;
+      value_origin = ValueOrigin::FUNCTION;
       strip(matchResult[0].str());
       return true;
     }
@@ -293,77 +291,10 @@ namespace dip {
   }
     
   bool Parser::part_array() {
-    std::stringstream ss(code), rm;
-    char ch;
-
-    // test for an openning bracket
-    ss.get(ch);
-    rm << ch;
-    if (ch!='[')
+    if (code.empty() or code.at(0)!=SIGN_ARRAY_OPEN)
       return false;
-    
-    std::string value;
-    bool inString = false;
-    int  dim = 1;
-    value_shape.push_back(0);
-    
-    while (ss.get(ch) and dim>0) {
-      rm << ch;
-      if (ch == '[') {
-	dim++;
-	if (value_shape.size()<dim)
-	  value_shape.push_back(0);
-	value.clear();
-      } else if (ch == ',') {
-	if (!value.empty()) {
-	  value_raw.push_back(value);
-	  value.clear();
-	}
-	value_shape[dim-1]++;
-      } else if (ch == ']') {
-	if (!value.empty()) {
-	  value_raw.push_back(value);
-	  value.clear();
-	}
-	value_shape[dim-1]++;
-	dim--;
-      } else if (ch == '"') {
-	value.clear();
-	while (ss.get(ch) && ch != '"') {
-	  value += ch;
-	  rm << ch;
-	}
-	rm << ch;
-      } else if (ch == '\'') {
-	value.clear();
-	while (ss.get(ch) && ch != '\'') {
-	  value += ch;
-	  rm << ch;
-	}
-	rm << ch;
-      } else if (ch == ' ') {
-	continue;
-      } else {
-	value += ch;
-      }
-    }
-    
-    // Check if all nested arrays are closed
-    if (dim!=0)
-      throw std::runtime_error("Definition of an array has some unclosed brackets or quotes: "+line.code);
-
-    // Normalize shape and check coherence of nested arrays
-    int coef = 1;
-    for (int d=1; d<value_shape.size(); d++) {
-      coef *= value_shape[d-1];
-      if (value_shape[d]%coef != 0) 
-	throw std::runtime_error("Items in dimension "+std::to_string(d+1)+" do not have the same shape: "+line.code);
-      value_shape[d] /= coef;
-    }
-    //std::cout << line.code << std::endl;
-    //std::cout << ss.str() << std::endl;
-    //std::cout << rm.str() << std::endl;
-    strip(rm.str());
+    std::string rm = parse_array(code, value_raw, value_shape);
+    strip(rm);
     return true;
   }
 
@@ -375,7 +306,7 @@ namespace dip {
 	std::string vraw = matchResult[i].str();
 	if (vraw!="") {
 	  value_raw.push_back(vraw);
-	  value_origin = Node::FROM_STRING;
+	  value_origin = ValueOrigin::STRING;
 	  break;
 	}
       }
@@ -405,7 +336,8 @@ namespace dip {
     
   bool Parser::part_units() {
     // In numerical expressions starting signs +-*/ have to be explicitely excluded
-    std::regex pattern1("^[ ]+([^#= ]+)"), pattern2("^[ ]+[/*+-]+");
+    std::regex pattern1("^[ ]+([^#= ]+)");
+    std::regex pattern2("^[ ]+[/*+-]+");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern1) and !std::regex_match(code, pattern2)) {
       units_raw = matchResult[1].str();

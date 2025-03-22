@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "../parsers.h"
 #include "../solvers/solvers.h"
 
 namespace dip {
@@ -28,10 +29,23 @@ namespace dip {
   };
   
   BaseNode::NodeListType IntegerNode::parse(Environment& env) {
-    if (value_origin==Node::FROM_FUNCTION) {
-      set_value(env.request_value(value_raw[0], Environment::FUNCTION));
-    } else if (!value_ref.empty()) {
-      set_value(env.request_value(value_ref, Environment::REFERENCE));
+    switch (value_origin) {
+    case ValueOrigin::FUNCTION:
+      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION));
+      break;
+    case ValueOrigin::REFERENCE:
+      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE));
+      break;
+    case ValueOrigin::REFERENCE_RAW: {
+      std::string source_code = env.request_code(value_raw.at(0));
+      std::vector<std::string> source_value_raw;
+      BaseValue::ShapeType source_value_shape;
+      parse_value(source_code, source_value_raw, source_value_shape);
+      set_value(cast_value(source_value_raw, source_value_shape));
+      break;
+    }
+    default:
+      break;
     }
     // TODO: process expression
     // TODO: process units

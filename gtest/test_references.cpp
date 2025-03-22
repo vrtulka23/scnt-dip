@@ -17,13 +17,13 @@ TEST(References, BooleanValues) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 4);
   
-  dip::BaseNode::PointerType node = env.nodes[1];
+  dip::BaseNode::PointerType node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "true");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -42,13 +42,13 @@ TEST(References, IntegerValues) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 4);
   
-  dip::BaseNode::PointerType node = env.nodes[1];
+  dip::BaseNode::PointerType node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "32");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -67,13 +67,13 @@ TEST(References, FloatValues) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 4);
   
-  dip::BaseNode::PointerType node = env.nodes[1];
+  dip::BaseNode::PointerType node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "2.3450e+06");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -92,13 +92,13 @@ TEST(References, StringValues) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 4);
   
-  dip::BaseNode::PointerType node = env.nodes[1];
+  dip::BaseNode::PointerType node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "baz");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -164,13 +164,13 @@ TEST(References, TableNodes) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 4);
 
-  dip::BaseNode::PointerType node = env.nodes[2];
+  dip::BaseNode::PointerType node = env.nodes.at(2);
   EXPECT_EQ(node->name, "bar.snap");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "snap");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "bar.crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -191,25 +191,25 @@ TEST(References, ImportNodes) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 6);
 
-  dip::BaseNode::PointerType node = env.nodes[2];
+  dip::BaseNode::PointerType node = env.nodes.at(2);
   EXPECT_EQ(node->name, "bar.foo.snap");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "snap");
 
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "bar.foo.crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "[true, false]");  
   
-  node = env.nodes[4];
+  node = env.nodes.at(4);
   EXPECT_EQ(node->name, "baz.snap");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "snap");  
 
-  node = env.nodes[5];
+  node = env.nodes.at(5);
   EXPECT_EQ(node->name, "baz.crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -243,37 +243,37 @@ TEST(References, RemoteSource) {
   // remove temporary file
   std::filesystem::remove(source_filename);  
 
-  dip::BaseNode::PointerType node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->name, "snap");
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "3");
 
-  node = env.nodes[1];
+  node = env.nodes.at(1);
   EXPECT_EQ(node->name, "crackle");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "[false, true]");  
   
-  node = env.nodes[2];
+  node = env.nodes.at(2);
   EXPECT_EQ(node->name, "pop.bar");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "3");
   
-  node = env.nodes[3];
+  node = env.nodes.at(3);
   EXPECT_EQ(node->name, "pop.baz");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "[false, true]");  
   
-  node = env.nodes[4];
+  node = env.nodes.at(4);
   EXPECT_EQ(node->name, "jerk.foo.bar");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->value->to_string(), "3");
   
-  node = env.nodes[5];
+  node = env.nodes.at(5);
   EXPECT_EQ(node->name, "jerk.foo.baz");
   vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
   EXPECT_TRUE(vnode);
@@ -295,4 +295,3 @@ TEST(References, ExceptionSource) {
   }
   
 }
-

@@ -11,25 +11,27 @@
 #include "values.h"
 
 namespace dip {
-  
+
+  enum ValueOrigin {
+    STRING, REFERENCE, REFERENCE_RAW, FUNCTION, EXPRESSION
+  };
+
   class Node {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
-    enum ValueOrigin {FROM_STRING, FROM_REFERENCE, FROM_FUNCTION, FROM_EXPRESSION};
     Line line;                             // source code line information; in Python this were 'code' & 'source' variables
     int indent;                            // indent of a node
     std::string name;                      // node name
     std::vector<std::string> dtype_raw;    // data type properties (unsigned/type/precision)
     std::vector<std::string> value_raw;    // raw value string(s)
     BaseValue::ShapeType value_shape;      // shape of an array value
-    ValueOrigin value_origin;              // origin of the value
-    std::string value_ref;                 // reference string
+    ValueOrigin value_origin;              // origin of the value; in Python there were separate variables: value_ref, value_expr, value_func
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions
-    Node(): indent(0), value_origin(FROM_STRING) {};
-    Node(const Line& l): line(l), indent(0), value_origin(FROM_STRING) {};
-    Node(const std::string& nm): name(nm), indent(0), value_origin(FROM_STRING) {};
+    Node(): indent(0), value_origin(ValueOrigin::STRING) {};
+    Node(const Line& l): line(l), indent(0), value_origin(ValueOrigin::STRING) {};
+    Node(const std::string& nm): name(nm), indent(0), value_origin(ValueOrigin::STRING) {};
     virtual ~Node() = default;
     std::string to_string();
   };
@@ -210,7 +212,7 @@ namespace dip {
     ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt);
     virtual ~ValueNode() = default;
     BaseValue::PointerType cast_value();
-    BaseValue::PointerType cast_value(std::vector<std::string> value_input);
+    BaseValue::PointerType cast_value(std::vector<std::string> value_input, const BaseValue::ShapeType& shape);
     void set_value(BaseValue::PointerType value_input=nullptr);
     void modify_value(BaseNode::PointerType node, Environment& env);
     virtual void set_option(const std::string option_value, const std::string option_units, Environment& env) = 0;

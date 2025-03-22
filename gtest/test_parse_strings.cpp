@@ -18,12 +18,12 @@ TEST(ParseStrings, BlockQuotes) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 2);
   
-  dip::BaseNode::PointerType node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->value_raw[0], "\nbar1\nbar2\n");
-  node = env.nodes[1];
+  EXPECT_EQ(node->value_raw.at(0), "\nbar1\nbar2\n");
+  node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
-  EXPECT_EQ(node->value_raw[0], " ");  
+  EXPECT_EQ(node->value_raw.at(0), " ");  
 
 }
 
@@ -36,15 +36,15 @@ TEST(ParseStrings, EscapeSymbols) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 3);
   
-  dip::BaseNode::PointerType node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->value_raw[0], "foo \\\" foo \\' foo \\n foo");  
-  node = env.nodes[1];
+  EXPECT_EQ(node->value_raw.at(0), "foo \\\" foo \\' foo \\n foo");  
+  node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
-  EXPECT_EQ(node->value_raw[0], "bar \\\" bar \\' bar \\n bar");
-  node = env.nodes[2];
+  EXPECT_EQ(node->value_raw.at(0), "bar \\\" bar \\' bar \\n bar");
+  node = env.nodes.at(2);
   EXPECT_EQ(node->name, "baz");
-  EXPECT_EQ(node->value_raw[0], "baz \\\" baz \\' baz \\n baz");  
+  EXPECT_EQ(node->value_raw.at(0), "baz \\\" baz \\' baz \\n baz");  
     
 }
 
@@ -57,13 +57,13 @@ TEST(ParseStrings, CommentSymbol) {
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 3);
   
-  dip::BaseNode::PointerType node = env.nodes[0];
+  dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->value_raw[0], "bar#baz");
-  node = env.nodes[1];
+  EXPECT_EQ(node->value_raw.at(0), "bar#baz");
+  node = env.nodes.at(1);
   EXPECT_EQ(node->name, "bar");
-  EXPECT_EQ(node->value_raw[0], "baz#foo");
-  node = env.nodes[2];
+  EXPECT_EQ(node->value_raw.at(0), "baz#foo");
+  node = env.nodes.at(2);
   EXPECT_EQ(node->name, "baz");
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"foo#","bar"}));  
   

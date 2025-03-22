@@ -141,7 +141,7 @@ namespace dip {
       }
       // std::cout << std::endl;
       // register new case
-      std::string expr = (cnode->value_raw.empty()) ? "" : cnode->value_raw[0];
+      std::string expr = (cnode->value_raw.empty()) ? "" : cnode->value_raw.at(0);
       cases[case_id] = Case(path_new, cnode->line.code, expr, case_value,
 			    branch_id, branch_part, case_id, cnode->case_type);
     } else {

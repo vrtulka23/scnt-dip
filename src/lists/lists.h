@@ -24,8 +24,8 @@ namespace dip {
     void push_back(BaseNode::PointerType node);
     BaseNode::PointerType pop_front();
     BaseNode::PointerType pop_back();
-    BaseNode::PointerType operator[](const size_t index);
-    BaseNode::PointerType operator[](const size_t index) const;
+    BaseNode::PointerType at(const size_t index);
+    BaseNode::PointerType at(const size_t index) const;
   };
 
   // Source list
