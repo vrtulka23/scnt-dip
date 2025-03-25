@@ -14,6 +14,7 @@ namespace dip {
     }
     if (parser.kwd_options()) {
       parser.part_value();
+      parser.part_units();
       parser.part_comment();
       return std::make_shared<OptionsNode>(parser);
     }

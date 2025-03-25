@@ -72,6 +72,14 @@ namespace dip {
   }
   
   bool Parser::kwd_unit() {
+    constexpr auto pstr = ce_concat<50>("^(", PATTERN_PATH, "*[", SIGN_VARIABLE, "]", KEYWORD_UNIT, ")[ ]*");
+    std::regex pattern(pstr.data());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      name = matchResult[1].str();
+      strip(matchResult[0].str());
+      return true;
+    }
     return false;
   }
 

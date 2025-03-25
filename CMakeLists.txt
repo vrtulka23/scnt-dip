@@ -20,11 +20,13 @@ set(CMAKE_INSTALL_INCLUDEDIR include)
 message("Code version: ${CODE_VERSION}")
 
 find_package(SCNT-EXS REQUIRED)
+find_package(SCNT-PUQ REQUIRED)
 
 message("Building library: dip-cpp")
 file(GLOB source_files "src/*.cpp" "src/**/*.cpp")
 add_library(dip-cpp STATIC ${source_files})
-target_compile_definitions(dip-cpp PRIVATE CONFIG_FILE="../src/config.h")
+target_compile_definitions(dip-cpp PRIVATE)
+target_link_libraries(dip-cpp PRIVATE puq-cpp)
 
 message("Compiling executable: dip")
 file(GLOB example_files "exec/dip/*.cpp" "exec/dip/**/*.cpp")

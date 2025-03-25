@@ -15,11 +15,11 @@ namespace dip {
   }
 
   std::string Environment::request_code(const std::string& source_name) const {
-    return sources[source_name].code;
+    return sources.at(source_name).code;
   }
   
-  BaseValue::PointerType Environment::request_value(const std::string& request, const RequestType rtype, const std::string& in_units) const {
-    BaseValue::PointerType new_value = nullptr;
+  BaseValue::PointerType Environment::request_value(const std::string& request, const RequestType rtype, const std::string& to_unit) const {
+    BaseValue::PointerType new_value = nullptr; 
     switch (rtype) {
     case Environment::FUNCTION: {
       FunctionList::ValueFunctionType func = functions.get_value(request);
@@ -28,13 +28,24 @@ namespace dip {
     }
     case Environment::REFERENCE: {
       auto [source_name, node_path] = parse_request(request);
-      const NodeList& node_pool = (source_name.empty()) ? nodes : sources[source_name].nodes;
-      for (size_t i=0; i<node_pool.size(); i++) {
-	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool.at(i));
-	if (vnode and vnode->name==node_path)
-	  new_value = vnode->value->clone();
-      }
-      break;
+      const NodeList& node_pool = (source_name.empty()) ? nodes : sources.at(source_name).nodes;
+       for (size_t i=0; i<node_pool.size(); i++) {
+	 BaseNode::PointerType node = node_pool.at(i);
+	 ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
+	 if (vnode and vnode->name==node_path) {
+	   new_value = vnode->value->clone();
+	   QuantityNode::PointerType qnode = std::dynamic_pointer_cast<QuantityNode>(node);
+	   if (qnode) {
+	     if (qnode->units==nullptr and !to_unit.empty()) 
+	       throw std::runtime_error("Trying to convert nondimensional quantity into '"+qnode->units_raw+"': "+qnode->line.code);
+	     else if (qnode->units!=nullptr and to_unit.empty())
+	       throw std::runtime_error("Trying to convert '"+qnode->units_raw+"' into a nondimensional quantity: "+qnode->line.code);
+	     else if (qnode->units!=nullptr)
+	       new_value->convert_units(qnode->units, to_unit);
+	   }
+	 }
+       }
+       break;
     }
     default:
       throw std::runtime_error("Unrecognized environment request type: "+std::to_string(rtype));
@@ -44,7 +55,7 @@ namespace dip {
     return std::move(new_value);
   }
   
-  BaseNode::NodeListType Environment::request_nodes(const std::string& request, const RequestType rtype, const std::string& in_units) const {
+  BaseNode::NodeListType Environment::request_nodes(const std::string& request, const RequestType rtype) const {
     BaseNode::NodeListType new_nodes;
     switch (rtype) {
     case Environment::FUNCTION: {
@@ -56,7 +67,7 @@ namespace dip {
       auto [source_name, node_path] = parse_request(request);
       if (!node_path.empty())
 	node_path += std::string(1,SIGN_SEPARATOR);
-      const NodeList& node_pool = (source_name.empty()) ? nodes : sources[source_name].nodes;
+      const NodeList& node_pool = (source_name.empty()) ? nodes : sources.at(source_name).nodes;
       for (size_t i=0; i<node_pool.size(); i++) {
 	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node_pool.at(i));
 	if (vnode and vnode->name.rfind(node_path, 0) == 0 and vnode->name.size()>node_path.size()) {

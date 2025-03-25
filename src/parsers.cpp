@@ -13,7 +13,7 @@ namespace dip {
       DIP d(parent);
       d.add_file(source_file, source_name);
       Environment senv = d.parse();
-      return EnvSource({source_name, source_file, senv.sources[source_name].code, parent, senv.nodes});
+      return EnvSource({source_name, source_file, senv.sources.at(source_name).code, parent, senv.nodes});
     } else {
       std::ifstream file(source_file);
       if (!file) 
@@ -72,7 +72,7 @@ namespace dip {
       node = EmptyNode::is_node(parser);
       if (node==nullptr) parser.part_indent();
       if (node==nullptr) node = ImportNode::is_node(parser);
-      // if (node==nullptr) node = UnitNode::is_node(parser);
+      if (node==nullptr) node = UnitNode::is_node(parser);
       if (node==nullptr) node = SourceNode::is_node(parser);
       if (node==nullptr) node = CaseNode::is_node(parser);
       if (node==nullptr) node = OptionsNode::is_node(parser);

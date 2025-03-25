@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <scnt-puq/quantity.h>
 
 namespace dip {
 
@@ -46,6 +47,7 @@ namespace dip {
   constexpr std::string_view KEYWORD_ELSE        = "else";
   constexpr std::string_view KEYWORD_END         = "end";
   constexpr std::string_view KEYWORD_SOURCE      = "source";
+  constexpr std::string_view KEYWORD_UNIT        = "unit";
 
   // Regex Patterns
   constexpr std::string_view PATTERN_KEY  = "[a-zA-Z0-9_-]";
@@ -72,6 +74,12 @@ namespace dip {
 
   // Forward declarations
   class Environment;
+
+  // Define a pointer type for SCNT-PUQ Quantity
+  // TODO: move this to the puq
+  namespace Quantity {
+    typedef std::unique_ptr<puq::Quantity> PointerType;
+  }  
   
 }
 

@@ -48,10 +48,28 @@ namespace dip {
     SourceList();
     void append(const std::string& name, const std::string& path, const std::string& code, const Source& parent);
     void append(const std::string& name, const EnvSource& src);
-    EnvSource& operator[](const std::string& name);
-    const EnvSource& operator[](const std::string& name) const;
+    EnvSource& at(const std::string& name);
+    const EnvSource& at(const std::string& name) const;
   };
 
+  // Unit list
+
+  struct EnvUnit {
+    std::string name;         // unit key
+    std::string definition;   // unit definition
+  };
+  
+  class UnitList {
+  private:
+    std::map<std::string,EnvUnit> units;
+  public:
+    UnitList();
+    void append(const std::string& name, const std::string& definition);
+    void append(const std::string& name, const EnvUnit& src);
+    EnvUnit& at(const std::string& name);
+    const EnvUnit& at(const std::string& name) const;
+  };  
+  
   // Hierarchy list
   
   struct Parent {

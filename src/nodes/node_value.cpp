@@ -56,7 +56,13 @@ namespace dip {
     if (node->dtype!=BaseNode::MODIFICATION and node->dtype!=dtype)
       throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw.at(1)+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw.at(1)+"'");
     BaseValue::PointerType value = cast_value(node->value_raw, node->value_shape);
-    // TODO: add conversion to original units
+    QuantityNode* qnode = dynamic_cast<QuantityNode*>(this);
+    if (qnode and !node->units_raw.empty()) {
+      if (qnode->units==nullptr)
+	throw std::runtime_error("Trying to convert '"+node->units_raw+"' into a nondimensional quantity: "+line.code);
+      else
+	value->convert_units(node->units_raw, qnode->units);
+    }
     value_raw = node->value_raw;
     set_value(std::move(value));
   }

@@ -106,11 +106,12 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
-  /*
   class UnitNode: public BaseNode {
   public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    UnitNode(Parser& parser): BaseNode(parser, BaseNode::UNIT) {};
+    BaseNode::NodeListType parse(Environment& env) override;
   };
-  */
   
   class SourceNode: public BaseNode {
   public:
@@ -189,6 +190,10 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
+  /*
+   *  Value nodes
+   */
+  
   class ValueNode: virtual public BaseNode {
     virtual BaseValue::PointerType cast_scalar_value(const std::string value_input) const = 0;
     virtual BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const = 0;
@@ -238,32 +243,6 @@ namespace dip {
     void validate_options() const override;
   };  
   
-  class IntegerNode: public ValueNode {
-    BaseValue::PointerType cast_scalar_value(const std::string value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
-  public:
-    static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
-    static BaseNode::PointerType is_node(Parser& parser);
-    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
-    IntegerNode(Parser& parser);
-    BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
-    BaseNode::PointerType clone(const std::string& nm) const override;
-  };  
-  
-  class FloatNode: public ValueNode {
-    BaseValue::PointerType cast_scalar_value(const std::string value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
-  public:
-    static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
-    static BaseNode::PointerType is_node(Parser& parser);
-    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::FLOAT), ValueNode(nm, std::move(val), vdt) {};
-    FloatNode(Parser& parser);
-    BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
-    BaseNode::PointerType clone(const std::string& nm) const override;
-  };  
-  
   class StringNode: public ValueNode {
     BaseValue::PointerType cast_scalar_value(const std::string value_input) const override;
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
@@ -276,6 +255,43 @@ namespace dip {
     BaseNode::PointerType clone(const std::string& nm) const override;
     void validate_format() const override;
   };
+
+  /*
+   *  Quantity nodes
+   */
+
+  class QuantityNode: virtual public ValueNode {
+  public:
+    typedef std::shared_ptr<QuantityNode> PointerType;
+    Quantity::PointerType units;
+    void set_units(Quantity::PointerType units_input=nullptr);
+  };
+  
+  class IntegerNode: public QuantityNode {
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) const override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+  public:
+    static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
+    static BaseNode::PointerType is_node(Parser& parser);
+    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
+    IntegerNode(Parser& parser);
+    BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
+    BaseNode::PointerType clone(const std::string& nm) const override;
+  };  
+  
+  class FloatNode: public QuantityNode {
+    BaseValue::PointerType cast_scalar_value(const std::string value_input) const override;
+    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+  public:
+    static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
+    static BaseNode::PointerType is_node(Parser& parser);
+    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::FLOAT), ValueNode(nm, std::move(val), vdt) {};
+    FloatNode(Parser& parser);
+    BaseNode::NodeListType parse(Environment& env) override;
+    void set_option(const std::string option_value, const std::string option_units, Environment& env) override;
+    BaseNode::PointerType clone(const std::string& nm) const override;
+  };  
   
   // helper function that create a scalar value node pointer from a C++ data type
   template <typename T>

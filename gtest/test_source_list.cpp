@@ -6,7 +6,7 @@
 #include "../src/environment.h"
 #include "../src/nodes/nodes.h"
 
-TEST(Sources, KeywordSourceCode) {
+TEST(SourceList, KeywordSourceCode) {
 
   // create temporary file
   std::filesystem::path temp_dir = std::filesystem::temp_directory_path();
@@ -28,7 +28,7 @@ TEST(Sources, KeywordSourceCode) {
   // remove temporary file
   std::filesystem::remove(source_filename);
 
-  dip::EnvSource& senv = env.sources[source_name];
+  dip::EnvSource& senv = env.sources.at(source_name);
   EXPECT_EQ(senv.name, source_name);
   EXPECT_EQ(senv.path, source_filename);
   EXPECT_EQ(senv.code, source_code);
@@ -49,7 +49,7 @@ TEST(Sources, KeywordSourceCode) {
 
 }
 
-TEST(Sources, KeywordSourceText) {
+TEST(SourceList, KeywordSourceText) {
 
   // create temporary file
   std::filesystem::path temp_dir = std::filesystem::temp_directory_path();
@@ -71,7 +71,7 @@ TEST(Sources, KeywordSourceText) {
   // remove temporary file
   std::filesystem::remove(source_filename);
 
-  dip::EnvSource& senv = env.sources[source_name];
+  dip::EnvSource& senv = env.sources.at(source_name);
   EXPECT_EQ(senv.name, source_name);
   EXPECT_EQ(senv.path, source_filename);
   EXPECT_EQ(senv.code, source_code);
@@ -80,7 +80,7 @@ TEST(Sources, KeywordSourceText) {
 
 }
 
-TEST(Sources, AddSourceCode) {
+TEST(SourceList, AddSourceCode) {
 
   // create temporary file
   std::filesystem::path temp_dir = std::filesystem::temp_directory_path();
@@ -102,7 +102,7 @@ TEST(Sources, AddSourceCode) {
   // remove temporary file
   std::filesystem::remove(source_filename);
 
-  dip::EnvSource& senv = env.sources[source_name];
+  dip::EnvSource& senv = env.sources.at(source_name);
   EXPECT_EQ(senv.name, source_name);
   EXPECT_EQ(senv.path, source_filename);
   EXPECT_EQ(senv.code, source_code);

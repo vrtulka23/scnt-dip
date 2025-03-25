@@ -43,7 +43,7 @@ namespace dip {
   void DIP::add_string(const std::string& source_code) {
 
     // prepare source data
-    std::string source_file = env.sources[source.name].path;
+    std::string source_file = env.sources.at(source.name).path;
     std::string source_name = source.name+"_"+std::string(STRING_SOURCE)+std::to_string(num_strings);
     num_strings++;
     
@@ -132,11 +132,15 @@ namespace dip {
 	target.branching.prepare_node(node);
 	// Clean node name from cases
 	node->name = target.branching.clean_name(node->name);
-	// Set the node value
+	// Set the node value an unit
 	// TODO: maybe this can be done after modifications?!
 	ValueNode::PointerType vnode = std::dynamic_pointer_cast<ValueNode>(node);
 	if (vnode and vnode->value==nullptr) {
 	  vnode->set_value();
+	}
+	QuantityNode::PointerType qnode = std::dynamic_pointer_cast<QuantityNode>(node);
+	if (qnode and qnode->units==nullptr) {
+	  qnode->set_units();
 	}
 	// If node was previously defined, modify its value
 	bool new_node = true;

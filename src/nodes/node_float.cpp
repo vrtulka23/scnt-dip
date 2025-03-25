@@ -31,10 +31,10 @@ namespace dip {
   BaseNode::NodeListType FloatNode::parse(Environment& env) {
     switch (value_origin) {
     case ValueOrigin::FUNCTION:
-      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION));
+      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION, units_raw));
       break;
     case ValueOrigin::REFERENCE:
-      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE));
+      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE, units_raw));
       break;
     case ValueOrigin::REFERENCE_RAW: {
       std::string source_code = env.request_code(value_raw.at(0));
@@ -108,7 +108,13 @@ namespace dip {
     default:
       throw std::runtime_error("Option value cannot be casted as "+dtype_raw[2]+" bit float type from the given string: "+option_value);
     }
-    // TODO: cast option value into the units of the node
+    QuantityNode* qnode = dynamic_cast<QuantityNode*>(this);
+    if (qnode and !option_units.empty()) {
+      if (qnode->units==nullptr)
+	throw std::runtime_error("Trying to convert '"+option_units+"' into a nondimensional quantity: "+line.code);
+      else
+	ovalue->convert_units(option_units, qnode->units);
+    }
     options.push_back({std::move(ovalue), option_value, option_units});
   }
   

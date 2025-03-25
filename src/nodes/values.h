@@ -1,6 +1,8 @@
 #ifndef DIP_VALUES_H
 #define DIP_VALUES_H
 
+#include <typeinfo>
+
 namespace dip {
 
   class BaseValue {
@@ -28,6 +30,8 @@ namespace dip {
     virtual BaseValue::ShapeType get_shape() const = 0;
     virtual size_t get_size() const = 0;
     virtual BaseValue::PointerType clone() const = 0;
+    virtual void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) = 0;
+    virtual void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) = 0;
   };
 
   
@@ -58,6 +62,12 @@ namespace dip {
       else
 	throw std::runtime_error("Could not convert BaseValue into the BaseScalarValue.");
     };
+    void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) override {
+      throw std::runtime_error("Scalar value of type '"+std::string(ValueDtypeNames[dtype])+"' does not support unit conversion.");
+    };
+    void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) override {
+      throw std::runtime_error("Scalar value of type '"+std::string(ValueDtypeNames[dtype])+"' does not support unit conversion.");
+    };
   };
   
   template <typename T>
@@ -77,6 +87,18 @@ namespace dip {
     BaseValue::PointerType clone() const override {
       return std::make_unique<ScalarValue<T>>(this->value, this->dtype);
     }
+    void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) override {
+      // TODO: use the same BaseValue pointers in the puq to allow variable precision
+      puq::Quantity quantity(this->value, from_units);
+      quantity = quantity.convert(*to_quantity);
+      this->value = quantity.value.magnitude.value.value.at(0);
+    };
+    void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) override {
+      // TODO: use the same BaseValue pointers in the puq to allow variable precision
+      puq::Quantity quantity = this->value * (*from_quantity);
+      quantity = quantity.convert(to_units);
+      this->value = quantity.value.magnitude.value.value.at(0);
+    };
   };
   
   template <>
@@ -171,6 +193,12 @@ namespace dip {
 	throw std::runtime_error("Could not convert BaseValue into a BaseArrayValue");
       }
     };
+    void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) override {
+      throw std::runtime_error("Array value of type '"+std::string(ValueDtypeNames[dtype])+"' does not support unit conversion.");
+    };
+    void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) override {
+      throw std::runtime_error("Array value of type '"+std::string(ValueDtypeNames[dtype])+"' does not support unit conversion.");
+    };
   };
   
   template <typename T>
@@ -190,6 +218,22 @@ namespace dip {
     };
     BaseValue::PointerType clone() const override {
       return std::make_unique<ArrayValue<T>>(this->value, this->shape, this->dtype);
+    };
+    void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) override {
+      // TODO: use the same BaseValue pointers in the puq to allow variable precision
+      std::vector<double> input(this->value.begin(), this->value.end());
+      puq::Quantity quantity = puq::Quantity(input, from_units);
+      quantity = quantity.convert(*to_quantity);
+      std::vector<double> output = quantity.value.magnitude.value.value;
+      std::copy(output.begin(), output.end(), this->value.begin());
+    };
+    void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) override {
+      // TODO: use the same BaseValue pointers in the puq to allow variable precision
+      std::vector<double> input(this->value.begin(), this->value.end());
+      puq::Quantity quantity = input * (*from_quantity);
+      quantity = quantity.convert(to_units);
+      std::vector<double> output = quantity.value.magnitude.value.value;
+      std::copy(output.begin(), output.end(), this->value.begin());
     };
   };
   
