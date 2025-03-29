@@ -16,13 +16,13 @@ namespace dip {
     return nullptr;
   }
   
-  IntegerNode::IntegerNode(Parser& parser): BaseNode(parser, BaseNode::INTEGER) {
+  IntegerNode::IntegerNode(Parser& parser): BaseNode(parser, NodeDtype::Integer) {
     if (dtype_raw[2]=="16") {
-      value_dtype = (dtype_raw[0]=="u") ? BaseValue::INTEGER_16_U : BaseValue::INTEGER_16;
+      value_dtype = (dtype_raw[0]=="u") ? ValueDtype::Integer16_U : ValueDtype::Integer16;
     } else if (dtype_raw[2]=="32" or dtype_raw[2]=="") {
-      value_dtype = (dtype_raw[0]=="u") ? BaseValue::INTEGER_32_U : BaseValue::INTEGER_32;
+      value_dtype = (dtype_raw[0]=="u") ? ValueDtype::Integer32_U : ValueDtype::Integer32;
     } else if (dtype_raw[2]=="64") {
-      value_dtype = (dtype_raw[0]=="u") ? BaseValue::INTEGER_64_U : BaseValue::INTEGER_64;
+      value_dtype = (dtype_raw[0]=="u") ? ValueDtype::Integer64_U : ValueDtype::Integer64;
     } else {
       throw std::runtime_error("Value data type cannot be determined from the node settings");
     }
@@ -30,13 +30,13 @@ namespace dip {
   
   BaseNode::NodeListType IntegerNode::parse(Environment& env) {
     switch (value_origin) {
-    case ValueOrigin::FUNCTION:
-      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION, units_raw));
+    case ValueOrigin::Function:
+      set_value(env.request_value(value_raw.at(0), RequestType::Function, units_raw));
       break;
-    case ValueOrigin::REFERENCE:
-      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE, units_raw));
+    case ValueOrigin::Reference:
+      set_value(env.request_value(value_raw.at(0), RequestType::Reference, units_raw));
       break;
-    case ValueOrigin::REFERENCE_RAW: {
+    case ValueOrigin::ReferenceRaw: {
       std::string source_code = env.request_code(value_raw.at(0));
       std::vector<std::string> source_value_raw;
       BaseValue::ShapeType source_value_shape;
@@ -55,23 +55,23 @@ namespace dip {
   BaseValue::PointerType IntegerNode::cast_scalar_value(const std::string& value_input) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
-    case BaseValue::INTEGER_16_U:
-      return std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoi(value_input), BaseValue::INTEGER_16_U);
+    case ValueDtype::Integer16_U:
+      return std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoi(value_input), ValueDtype::Integer16_U);
       break;
-    case BaseValue::INTEGER_16:
-      return std::make_unique<ScalarValue<short>>((short)std::stoi(value_input), BaseValue::INTEGER_16);
+    case ValueDtype::Integer16:
+      return std::make_unique<ScalarValue<short>>((short)std::stoi(value_input), ValueDtype::Integer16);
       break;
-    case BaseValue::INTEGER_32_U:
-      return std::make_unique<ScalarValue<unsigned int>>(std::stoi(value_input), BaseValue::INTEGER_32_U);
+    case ValueDtype::Integer32_U:
+      return std::make_unique<ScalarValue<unsigned int>>(std::stoi(value_input), ValueDtype::Integer32_U);
       break;
-    case BaseValue::INTEGER_32:
-      return std::make_unique<ScalarValue<int>>(std::stoi(value_input), BaseValue::INTEGER_32);
+    case ValueDtype::Integer32:
+      return std::make_unique<ScalarValue<int>>(std::stoi(value_input), ValueDtype::Integer32);
       break;
-    case BaseValue::INTEGER_64_U:
-      return std::make_unique<ScalarValue<unsigned long long>>(std::stoull(value_input), BaseValue::INTEGER_64_U);
+    case ValueDtype::Integer64_U:
+      return std::make_unique<ScalarValue<unsigned long long>>(std::stoull(value_input), ValueDtype::Integer64_U);
       break;
-    case BaseValue::INTEGER_64:
-      return std::make_unique<ScalarValue<long long>>(std::stoll(value_input), BaseValue::INTEGER_64);
+    case ValueDtype::Integer64:
+      return std::make_unique<ScalarValue<long long>>(std::stoll(value_input), ValueDtype::Integer64);
       break;
     default:
       if (dtype_raw[0]=="u")
@@ -84,41 +84,41 @@ namespace dip {
   BaseValue::PointerType IntegerNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
-    case BaseValue::INTEGER_16_U: {
+    case ValueDtype::Integer16_U: {
       std::vector<unsigned short> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back((unsigned short)std::stoul(s));
-      return std::make_unique<ArrayValue<unsigned short>>(arr, shape, BaseValue::INTEGER_16_U);
+      return std::make_unique<ArrayValue<unsigned short>>(arr, shape, ValueDtype::Integer16_U);
     }
-    case BaseValue::INTEGER_16: {
+    case ValueDtype::Integer16: {
       std::vector<short> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back((short)std::stoi(s));
-      return std::make_unique<ArrayValue<short>>(arr, shape, BaseValue::INTEGER_16);
+      return std::make_unique<ArrayValue<short>>(arr, shape, ValueDtype::Integer16);
     }
-    case BaseValue::INTEGER_32_U: {
+    case ValueDtype::Integer32_U: {
       std::vector<unsigned int> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stoul(s));
-      return std::make_unique<ArrayValue<unsigned int>>(arr, shape, BaseValue::INTEGER_32_U);
+      return std::make_unique<ArrayValue<unsigned int>>(arr, shape, ValueDtype::Integer32_U);
     }
-    case BaseValue::INTEGER_32: {
+    case ValueDtype::Integer32: {
       std::vector<int> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stoi(s));
-      return std::make_unique<ArrayValue<int>>(arr, shape, BaseValue::INTEGER_32);
+      return std::make_unique<ArrayValue<int>>(arr, shape, ValueDtype::Integer32);
     }
-    case BaseValue::INTEGER_64_U: {
+    case ValueDtype::Integer64_U: {
       std::vector<unsigned long long> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stoull(s));
-      return std::make_unique<ArrayValue<unsigned long long>>(arr, shape, BaseValue::INTEGER_64_U);
+      return std::make_unique<ArrayValue<unsigned long long>>(arr, shape, ValueDtype::Integer64_U);
     }
-    case BaseValue::INTEGER_64: {
+    case ValueDtype::Integer64: {
       std::vector<long long> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stoll(s));
-      return std::make_unique<ArrayValue<long long>>(arr, shape, BaseValue::INTEGER_64);
+      return std::make_unique<ArrayValue<long long>>(arr, shape, ValueDtype::Integer64);
     }
     default:
       std::ostringstream oss;
@@ -136,23 +136,23 @@ namespace dip {
     // TODO: variable precision x should be implemented
     BaseValue::PointerType ovalue;
     switch (value_dtype) {
-    case BaseValue::INTEGER_16_U:
-      ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), BaseValue::INTEGER_16_U);
+    case ValueDtype::Integer16_U:
+      ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), ValueDtype::Integer16_U);
       break;
-    case BaseValue::INTEGER_16:
-      ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), BaseValue::INTEGER_16);
+    case ValueDtype::Integer16:
+      ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), ValueDtype::Integer16);
       break;
-    case BaseValue::INTEGER_32_U:
-      ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), BaseValue::INTEGER_32_U);
+    case ValueDtype::Integer32_U:
+      ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), ValueDtype::Integer32_U);
       break;
-    case BaseValue::INTEGER_32:
-      ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), BaseValue::INTEGER_32);
+    case ValueDtype::Integer32:
+      ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), ValueDtype::Integer32);
       break;
-    case BaseValue::INTEGER_64_U:
-      ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), BaseValue::INTEGER_64_U);
+    case ValueDtype::Integer64_U:
+      ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), ValueDtype::Integer64_U);
       break;
-    case BaseValue::INTEGER_64:
-      ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), BaseValue::INTEGER_64);
+    case ValueDtype::Integer64:
+      ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), ValueDtype::Integer64);
       break;
     default:
       if (dtype_raw[0]=="u")

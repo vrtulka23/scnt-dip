@@ -12,15 +12,15 @@
 
 namespace dip {
 
-  enum ValueOrigin {
-    STRING, REFERENCE, REFERENCE_RAW, FUNCTION, EXPRESSION
+  enum class ValueOrigin {
+    String, Reference, ReferenceRaw, Function, Expression
   };
 
   class Node {
   public:
     typedef std::vector<std::tuple<int,int>> DimensionType;
     Line line;                             // source code line information; in Python this were 'code' & 'source' variables
-    int indent;                            // indent of a node
+    size_t indent;                         // indent of a node
     std::string name;                      // node name
     std::array<std::string,3> dtype_raw;   // data type properties (unsigned/type/precision)
     std::vector<std::string> value_raw;    // raw value string(s)
@@ -29,9 +29,9 @@ namespace dip {
     //std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions
-    Node(): indent(0), value_origin(ValueOrigin::STRING) {};
-    Node(const Line& l): line(l), indent(0), value_origin(ValueOrigin::STRING) {};
-    Node(const std::string& nm): name(nm), indent(0), value_origin(ValueOrigin::STRING) {};
+    Node(): indent(0), value_origin(ValueOrigin::String) {};
+    Node(const Line& l): line(l), indent(0), value_origin(ValueOrigin::String) {};
+    Node(const std::string& nm): name(nm), indent(0), value_origin(ValueOrigin::String) {};
     virtual ~Node() = default;
     std::string to_string();
   };
@@ -73,20 +73,21 @@ namespace dip {
     bool part_comment();
     bool part_delimiter(char symbol, bool required=true);
   };
+
+  enum class NodeDtype {
+    None, Empty, Group, Unit, Source, Case, Modification, Import,
+    Boolean, String, Integer, Float, Table,
+    Options, Constant, Format, Condition, Tags, Description
+  };
   
   class BaseNode: virtual public Node {
   public:
-    enum NodeDtype {
-      NONE, EMPTY, GROUP, UNIT, SOURCE, CASE, MODIFICATION, IMPORT,
-      BOOLEAN, STRING, INTEGER, FLOAT, TABLE,
-      OPTIONS, CONSTANT, FORMAT, CONDITION, TAGS, DESCRIPTION
-    };
     NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable in Node class
     size_t branch_id;
-    std::string case_id;
+    size_t case_id;
     typedef std::shared_ptr<BaseNode> PointerType;
     typedef std::deque<BaseNode::PointerType> NodeListType;
-    BaseNode(): dtype(NONE) {};
+    BaseNode(): dtype(NodeDtype::None) {};
     BaseNode(const NodeDtype dt): dtype(dt) {};
     BaseNode(Parser& parser, const NodeDtype dt);
     virtual ~BaseNode() = default;
@@ -96,72 +97,72 @@ namespace dip {
   class EmptyNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    EmptyNode(Parser& parser): BaseNode(parser, BaseNode::EMPTY) {};
+    EmptyNode(Parser& parser): BaseNode(parser, NodeDtype::Empty) {};
   };
 
   class ImportNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    ImportNode(Parser& parser): BaseNode(parser, BaseNode::IMPORT) {};
+    ImportNode(Parser& parser): BaseNode(parser, NodeDtype::Import) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
   class UnitNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    UnitNode(Parser& parser): BaseNode(parser, BaseNode::UNIT) {};
+    UnitNode(Parser& parser): BaseNode(parser, NodeDtype::Unit) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class SourceNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    SourceNode(Parser& parser): BaseNode(parser, BaseNode::SOURCE) {};
+    SourceNode(Parser& parser): BaseNode(parser, NodeDtype::Source) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class CaseNode: public BaseNode {
   public:
     bool value;             // case value
-    int case_id;            // ID of a case
+    size_t case_id;         // ID of a case
     CaseType case_type;     // type of a case
     static BaseNode::PointerType is_node(Parser& parser);
-    CaseNode(Parser& parser): BaseNode(parser, BaseNode::CASE), case_id(0), value(false) {};
+    CaseNode(Parser& parser): BaseNode(parser, NodeDtype::Case), case_id(0), value(false) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class OptionsNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    OptionsNode(Parser& parser): BaseNode(parser, BaseNode::OPTIONS) {};
+    OptionsNode(Parser& parser): BaseNode(parser, NodeDtype::Options) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class ConstantNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    ConstantNode(Parser& parser): BaseNode(parser, BaseNode::CONSTANT) {};
+    ConstantNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class FormatNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    FormatNode(Parser& parser): BaseNode(parser, BaseNode::FORMAT) {};
+    FormatNode(Parser& parser): BaseNode(parser, NodeDtype::Format) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
   class TagsNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    TagsNode(Parser& parser): BaseNode(parser, BaseNode::TAGS) {};
+    TagsNode(Parser& parser): BaseNode(parser, NodeDtype::Tags) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
   class DescriptionNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    DescriptionNode(Parser& parser): BaseNode(parser, BaseNode::CONSTANT) {};
+    DescriptionNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
@@ -174,19 +175,19 @@ namespace dip {
   class GroupNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    GroupNode(Parser& parser): BaseNode(parser, BaseNode::GROUP) {};
+    GroupNode(Parser& parser): BaseNode(parser, NodeDtype::Group) {};
   };
     
   class ModificationNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    ModificationNode(Parser& parser): BaseNode(parser, BaseNode::MODIFICATION) {};
+    ModificationNode(Parser& parser): BaseNode(parser, NodeDtype::Modification) {};
   };
   
   class TableNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    TableNode(Parser& parser): BaseNode(parser, BaseNode::TABLE) {};
+    TableNode(Parser& parser): BaseNode(parser, NodeDtype::Table) {};
     BaseNode::NodeListType parse(Environment& env) override;
   };
 
@@ -203,7 +204,7 @@ namespace dip {
       std::string value_raw;
       std::string units_raw;
     };
-    BaseValue::ValueDtype value_dtype;
+    ValueDtype value_dtype;
   public:
     typedef std::shared_ptr<ValueNode> PointerType;
     BaseValue::PointerType value;
@@ -213,8 +214,8 @@ namespace dip {
     std::vector<OptionStruct> options;
     std::string format;
     ValueNode(): constant(false) {};
-    ValueNode(const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {};
-    ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt);
+    ValueNode(const ValueDtype vdt): constant(false), value_dtype(vdt) {};
+    ValueNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt);
     virtual ~ValueNode() = default;
     BaseValue::PointerType cast_value();
     BaseValue::PointerType cast_value(std::vector<std::string>& value_input, const BaseValue::ShapeType& shape);
@@ -235,8 +236,8 @@ namespace dip {
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), BaseValue::BOOLEAN) {};
-    BooleanNode(Parser& parser): BaseNode(parser, BaseNode::BOOLEAN), ValueNode(BaseValue::BOOLEAN) {};
+    BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::Boolean), ValueNode(nm, std::move(val), ValueDtype::Boolean) {};
+    BooleanNode(Parser& parser): BaseNode(parser, NodeDtype::Boolean), ValueNode(ValueDtype::Boolean) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
@@ -248,8 +249,8 @@ namespace dip {
     BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
   public:
     static BaseNode::PointerType is_node(Parser& parser);
-    StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(BaseNode::STRING), ValueNode(nm, std::move(val), BaseValue::STRING) {};
-    StringNode(Parser& parser): BaseNode(parser, BaseNode::STRING), ValueNode(BaseValue::STRING) {};
+    StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::String), ValueNode(nm, std::move(val), ValueDtype::String) {};
+    StringNode(Parser& parser): BaseNode(parser, NodeDtype::String), ValueNode(ValueDtype::String) {};
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
@@ -273,7 +274,7 @@ namespace dip {
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
     static BaseNode::PointerType is_node(Parser& parser);
-    IntegerNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::BOOLEAN), ValueNode(nm, std::move(val), vdt) {};
+    IntegerNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): BaseNode(NodeDtype::Boolean), ValueNode(nm, std::move(val), vdt) {};
     IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
@@ -286,7 +287,7 @@ namespace dip {
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
     static BaseNode::PointerType is_node(Parser& parser);
-    FloatNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): BaseNode(BaseNode::FLOAT), ValueNode(nm, std::move(val), vdt) {};
+    FloatNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): BaseNode(NodeDtype::Float), ValueNode(nm, std::move(val), vdt) {};
     FloatNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
@@ -300,23 +301,23 @@ namespace dip {
     if constexpr (std::is_same_v<T, bool>)
       return std::make_shared<BooleanNode>(name, std::move(ptr_value));
     else if constexpr (std::is_same_v<T, short>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer16);
     else if constexpr (std::is_same_v<T, unsigned short>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer16_U);
     else if constexpr (std::is_same_v<T, int>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer32);
     else if constexpr (std::is_same_v<T, unsigned int>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer32_U);
     else if constexpr (std::is_same_v<T, long long>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer64);
     else if constexpr (std::is_same_v<T, unsigned long long>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer64_U);
     else if constexpr (std::is_same_v<T, float>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_32);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float32);
     else if constexpr (std::is_same_v<T, double>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_64);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float64);
     else if constexpr (std::is_same_v<T, long double>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_128);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float128);
     else if constexpr (std::is_same_v<T, std::string>)      
       return std::make_shared<StringNode>(name, std::move(ptr_value));
     else 
@@ -332,23 +333,23 @@ namespace dip {
     if constexpr (std::is_same_v<T, bool>)
       return std::make_shared<BooleanNode>(name, std::move(ptr_value));
     else if constexpr (std::is_same_v<T, short>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer16);
     else if constexpr (std::is_same_v<T, unsigned short>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_16_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer16_U);
     else if constexpr (std::is_same_v<T, int>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer32);
     else if constexpr (std::is_same_v<T, unsigned int>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_32_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer32_U);
     else if constexpr (std::is_same_v<T, long long>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer64);
     else if constexpr (std::is_same_v<T, unsigned long long>)
-      return std::make_shared<IntegerNode>(name, std::move(ptr_value), BaseValue::INTEGER_64_U);
+      return std::make_shared<IntegerNode>(name, std::move(ptr_value), ValueDtype::Integer64_U);
     else if constexpr (std::is_same_v<T, float>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_32);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float32);
     else if constexpr (std::is_same_v<T, double>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_64);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float64);
     else if constexpr (std::is_same_v<T, long double>)
-      return std::make_shared<FloatNode>(name, std::move(ptr_value), BaseValue::FLOAT_128);
+      return std::make_shared<FloatNode>(name, std::move(ptr_value), ValueDtype::Float128);
     else if constexpr (std::is_same_v<T, std::string>)
       return std::make_shared<StringNode>(name, std::move(ptr_value));
     else

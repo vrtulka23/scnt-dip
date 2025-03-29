@@ -28,16 +28,16 @@ namespace dip {
     std::string source_name = line.source.name+"_"+std::string(TABLE_SOURCE);
     NodeListType nodes;
     switch (value_origin) {
-    case ValueOrigin::FUNCTION:
-      nodes = env.request_nodes(value_raw.at(0), Environment::FUNCTION);
+    case ValueOrigin::Function:
+      nodes = env.request_nodes(value_raw.at(0), RequestType::Function);
       break;
-    case ValueOrigin::REFERENCE:
-      nodes = env.request_nodes(value_raw.at(0), Environment::REFERENCE);
+    case ValueOrigin::Reference:
+      nodes = env.request_nodes(value_raw.at(0), RequestType::Reference);
       break;
-    case ValueOrigin::REFERENCE_RAW:
+    case ValueOrigin::ReferenceRaw:
       nodes = parse_nodes(env.request_code(value_raw.at(0)), source_name);
       break;
-    case ValueOrigin::STRING:
+    case ValueOrigin::String:
       nodes = parse_nodes(value_raw.at(0), source_name);
       break;
     default:

@@ -22,7 +22,7 @@ namespace dip {
     if (vnode) {
       if (vnode->indent>=indent)
 	throw std::runtime_error("The indent '"+std::to_string(indent)+"' of a property is not higher than the indent '"+std::to_string(vnode->indent)+"' of a preceding node: "+line.code);
-      if (vnode->dtype != BaseNode::STRING)
+      if (vnode->dtype != NodeDtype::String)
 	throw std::runtime_error("Format can be set only to string node. Previous node is: "+vnode->line.code);
       vnode->format = value_raw.at(0);
     } else {

@@ -18,18 +18,18 @@ namespace dip {
 
     Source source;
 
-    static constexpr std::array<BaseNode::NodeDtype,3> nodes_special = {
-      BaseNode::EMPTY,BaseNode::UNIT,BaseNode::SOURCE
+    static constexpr std::array<NodeDtype,3> nodes_special = {
+      NodeDtype::Empty,NodeDtype::Unit,NodeDtype::Source
     };
-    static constexpr std::array<BaseNode::NodeDtype,6> nodes_properties = {
-      BaseNode::OPTIONS,BaseNode::CONSTANT,BaseNode::FORMAT,
-      BaseNode::CONDITION,BaseNode::TAGS,BaseNode::DESCRIPTION
+    static constexpr std::array<NodeDtype,6> nodes_properties = {
+      NodeDtype::Options,NodeDtype::Constant,NodeDtype::Format,
+      NodeDtype::Condition,NodeDtype::Tags,NodeDtype::Description
     };
-    static constexpr std::array<BaseNode::NodeDtype,1> nodes_hierarchy  = {
-      BaseNode::GROUP
+    static constexpr std::array<NodeDtype,1> nodes_hierarchy  = {
+      NodeDtype::Group
     };
-    std::vector<BaseNode::NodeDtype> nodes_nohierarchy;
-    std::vector<BaseNode::NodeDtype> nodes_notypes;
+    std::vector<NodeDtype> nodes_nohierarchy;
+    std::vector<NodeDtype> nodes_notypes;
     
     size_t num_strings = 0; // counter of code inputs from a string
     size_t num_files = 0;   // counter of code inputs from a file

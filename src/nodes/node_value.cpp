@@ -4,7 +4,7 @@
 
 namespace dip {
 
-  ValueNode::ValueNode(const std::string& nm, BaseValue::PointerType val, const BaseValue::ValueDtype vdt): constant(false), value_dtype(vdt) {
+  ValueNode::ValueNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): constant(false), value_dtype(vdt) {
     name=nm;
     BaseValue::ShapeType dims = val->get_shape();
     if (val->get_size()>1) {
@@ -37,8 +37,8 @@ namespace dip {
     } else if (value_input!=nullptr) {
       value = std::move(value_input);
       if (value->dtype!=value_dtype) {
-	std::string d1 = std::string(BaseValue::ValueDtypeNames[value_dtype]);
-	std::string d2 = std::string(BaseValue::ValueDtypeNames[value->dtype]);
+	std::string d1 = std::string(ValueDtypeNames[value_dtype]);
+	std::string d2 = std::string(ValueDtypeNames[value->dtype]);
 	throw std::runtime_error("Assigning '"+d2+"' value to the '"+d1+"' node: "+line.code);
       }
     }
@@ -53,7 +53,7 @@ namespace dip {
   }
 
   void ValueNode::modify_value(BaseNode::PointerType node, Environment& env) {
-    if (node->dtype!=BaseNode::MODIFICATION and node->dtype!=dtype)
+    if (node->dtype!=NodeDtype::Modification and node->dtype!=dtype)
       throw std::runtime_error("Node '"+name+"' with type '"+dtype_raw.at(1)+"' cannot modify node '"+node->name+"' with type '"+node->dtype_raw.at(1)+"'");
     BaseValue::PointerType value = cast_value(node->value_raw, node->value_shape);
     QuantityNode* qnode = dynamic_cast<QuantityNode*>(this);

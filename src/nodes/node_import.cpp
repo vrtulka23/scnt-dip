@@ -20,11 +20,11 @@ namespace dip {
   BaseNode::NodeListType ImportNode::parse(Environment& env) {
     NodeListType nodes;
     switch (value_origin) {
-    case ValueOrigin::FUNCTION:
-      nodes = env.request_nodes(value_raw.at(0), Environment::FUNCTION);
+    case ValueOrigin::Function:
+      nodes = env.request_nodes(value_raw.at(0), RequestType::Function);
       break;
-    case ValueOrigin::REFERENCE:
-      nodes = env.request_nodes(value_raw.at(0), Environment::REFERENCE);
+    case ValueOrigin::Reference:
+      nodes = env.request_nodes(value_raw.at(0), RequestType::Reference);
       break;
     default:
       throw std::runtime_error("Import nodes could not be parsed: "+line.code);      

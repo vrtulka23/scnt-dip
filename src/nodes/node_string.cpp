@@ -22,13 +22,13 @@ namespace dip {
     if (!units_raw.empty())
       throw std::runtime_error("String data type does not support units: "+line.code);
     switch (value_origin) {
-    case ValueOrigin::FUNCTION:
-      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION));
+    case ValueOrigin::Function:
+      set_value(env.request_value(value_raw.at(0), RequestType::Function));
       break;
-    case ValueOrigin::REFERENCE:
-      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE));
+    case ValueOrigin::Reference:
+      set_value(env.request_value(value_raw.at(0), RequestType::Reference));
       break;
-    case ValueOrigin::REFERENCE_RAW: {
+    case ValueOrigin::ReferenceRaw: {
       std::string source_code = env.request_code(value_raw.at(0));
       std::vector<std::string> source_value_raw;
       BaseValue::ShapeType source_value_shape;

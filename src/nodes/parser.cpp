@@ -192,7 +192,7 @@ namespace dip {
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back(matchResult[0].str());
-      value_origin = ValueOrigin::STRING;
+      value_origin = ValueOrigin::String;
       strip(matchResult[0].str());
       if (do_continue() and code[0]!=' ')
 	throw std::runtime_error("Key has an invalid format: "+line.code);
@@ -269,9 +269,9 @@ namespace dip {
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back( matchResult[1].str() );
       if (!matchResult[2].str().empty())
-	value_origin = ValueOrigin::REFERENCE;
+	value_origin = ValueOrigin::Reference;
       else if (!matchResult[1].str().empty())
-	value_origin = ValueOrigin::REFERENCE_RAW;
+	value_origin = ValueOrigin::ReferenceRaw;
       else
 	throw std::runtime_error("Reference cannot be empty: "+line.code);
       // TODO: implement inject switch
@@ -287,7 +287,7 @@ namespace dip {
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
       value_raw.push_back( matchResult[1].str() );
-      value_origin = ValueOrigin::FUNCTION;
+      value_origin = ValueOrigin::Function;
       strip(matchResult[0].str());
       return true;
     }
@@ -314,7 +314,7 @@ namespace dip {
 	std::string vraw = matchResult[i].str();
 	if (vraw!="") {
 	  value_raw.push_back(vraw);
-	  value_origin = ValueOrigin::STRING;
+	  value_origin = ValueOrigin::String;
 	  break;
 	}
       }

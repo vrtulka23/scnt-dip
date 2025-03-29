@@ -3,24 +3,23 @@
 
 #include <typeinfo>
 
+#include "../settings.h"
+
 namespace dip {
+
+  enum class ValueDtype { // TODO: INTX and FLOATX should support arbitrary precision types
+    Boolean,     String,
+    Integer16,   Integer32,   Integer64,    IntegerX,   
+    Integer16_U, Integer32_U, Integer64_U,  
+    Float32,     Float64,     Float128,     FloatX
+  };
+
+  extern std::unordered_map<ValueDtype, std::string> ValueDtypeNames;
 
   class BaseValue {
   public:
     typedef std::unique_ptr<BaseValue> PointerType;
     typedef std::vector<int> ShapeType;
-    enum ValueDtype { // TODO: INTX and FLOATX should support arbitrary precision types
-      BOOLEAN,    STRING,
-      INTEGER_16,   INTEGER_32,   INTEGER_64,    INTEGER_X,   
-      INTEGER_16_U,  INTEGER_32_U,  INTEGER_64_U,  
-      FLOAT_32, FLOAT_64, FLOAT_128, FLOAT_X
-    };
-    static constexpr std::string_view ValueDtypeNames[] = {
-      "bool", "str",
-      "int16", "int32", "int64", "intx",
-      "uint16", "uint32", "uint64",
-      "float32", "float64", "float128", "floatx"
-    };
     ValueDtype dtype;
     BaseValue(ValueDtype dt): dtype(dt) {};
     virtual ~BaseValue() = default;
@@ -73,7 +72,7 @@ namespace dip {
   template <typename T>
   class ScalarValue: public BaseScalarValue<T> {
   public:
-    ScalarValue(const T& val, const BaseValue::ValueDtype dt): BaseScalarValue<T>(val, dt) {};
+    ScalarValue(const T& val, const ValueDtype dt): BaseScalarValue<T>(val, dt) {};
   protected:
     void value_to_string(std::ostringstream& oss, int precision=0) const override {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
@@ -104,8 +103,8 @@ namespace dip {
   template <>
   class ScalarValue<std::string> : public BaseScalarValue<std::string> {
   public:
-    ScalarValue(const std::string& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
-    ScalarValue(const std::string& val): ScalarValue(val,BaseValue::STRING) {};
+    ScalarValue(const std::string& val, const ValueDtype dt) : BaseScalarValue(val,dt) {};
+    ScalarValue(const std::string& val): ScalarValue(val,ValueDtype::String) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) const override {    
       if (precision==0)
@@ -121,8 +120,8 @@ namespace dip {
   template <>
   class ScalarValue<bool> : public BaseScalarValue<bool> {
   public:
-    ScalarValue(const bool& val, const BaseValue::ValueDtype dt) : BaseScalarValue(val,dt) {};
-    ScalarValue(const bool& val): ScalarValue(val,BaseValue::BOOLEAN) {};
+    ScalarValue(const bool& val, const ValueDtype dt) : BaseScalarValue(val,dt) {};
+    ScalarValue(const bool& val): ScalarValue(val,ValueDtype::Boolean) {};
   private:
     void value_to_string(std::ostringstream& oss, int precision=0) const override {    
       if (precision==0)
@@ -204,8 +203,8 @@ namespace dip {
   template <typename T>
   class ArrayValue: public BaseArrayValue<T> {
   public:
-    ArrayValue(const T& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
-    ArrayValue(const std::vector<T>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
+    ArrayValue(const T& val, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<T>(val,sh,dt) {};
+    ArrayValue(const std::vector<T>&  arr, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<T>(arr,sh,dt) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       if (precision==0) precision=DISPLAY_FLOAT_PRECISION;
@@ -240,10 +239,10 @@ namespace dip {
   template <>
   class ArrayValue<std::string>: public BaseArrayValue<std::string> {
   public:
-    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
-    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
-    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,BaseValue::STRING) {};
-    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,BaseValue::STRING) {};
+    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<std::string>(val,sh,dt) {};
+    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<std::string>(arr,sh,dt) {};
+    ArrayValue(const std::string& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,ValueDtype::String) {};
+    ArrayValue(const std::vector<std::string>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,ValueDtype::String) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       oss << "'" << value[offset] << "'";
@@ -265,10 +264,10 @@ namespace dip {
   template <>
   class ArrayValue<bool>: public BaseArrayValue<bool> {
   public:
-    ArrayValue(const bool& val, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
-    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh, const BaseValue::ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
-    ArrayValue(const bool& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,BaseValue::BOOLEAN) {};
-    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,BaseValue::BOOLEAN) {};
+    ArrayValue(const bool& val, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<bool>(val,sh,dt) {};
+    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh, const ValueDtype dt): BaseArrayValue<bool>(arr,sh,dt) {};
+    ArrayValue(const bool& val, const BaseValue::ShapeType& sh): ArrayValue(val,sh,ValueDtype::Boolean) {};
+    ArrayValue(const std::vector<bool>&  arr, const BaseValue::ShapeType& sh): ArrayValue(arr,sh,ValueDtype::Boolean) {};
   private:
     void value_to_string(std::ostringstream& oss, size_t& offset, int precision=0) const override {
       if (value[offset])
@@ -296,23 +295,23 @@ namespace dip {
     if constexpr (std::is_same_v<T, bool>)
       return std::make_unique<ScalarValue<bool>>(ScalarValue<bool>(value));
     else if constexpr (std::is_same_v<T, short>)
-      return std::make_unique<ScalarValue<short>>(ScalarValue<short>(value, BaseValue::INTEGER_16));
+      return std::make_unique<ScalarValue<short>>(ScalarValue<short>(value, ValueDtype::Integer16));
     else if constexpr (std::is_same_v<T, unsigned short>)
-      return std::make_unique<ScalarValue<unsigned short>>(ScalarValue<unsigned short>(value, BaseValue::INTEGER_16_U));
+      return std::make_unique<ScalarValue<unsigned short>>(ScalarValue<unsigned short>(value, ValueDtype::Integer16_U));
     else if constexpr (std::is_same_v<T, int>)
-      return std::make_unique<ScalarValue<int>>(ScalarValue<int>(value, BaseValue::INTEGER_32));
+      return std::make_unique<ScalarValue<int>>(ScalarValue<int>(value, ValueDtype::Integer32));
     else if constexpr (std::is_same_v<T, unsigned int>)
-      return std::make_unique<ScalarValue<unsigned int>>(ScalarValue<unsigned int>(value, BaseValue::INTEGER_32_U));
+      return std::make_unique<ScalarValue<unsigned int>>(ScalarValue<unsigned int>(value, ValueDtype::Integer32_U));
     else if constexpr (std::is_same_v<T, long long>)
-      return std::make_unique<ScalarValue<long long>>(ScalarValue<long long>(value, BaseValue::INTEGER_64));
+      return std::make_unique<ScalarValue<long long>>(ScalarValue<long long>(value, ValueDtype::Integer64));
     else if constexpr (std::is_same_v<T, unsigned long long>)
-      return std::make_unique<ScalarValue<unsigned long long>>(ScalarValue<unsigned long long>(value, BaseValue::INTEGER_64_U));
+      return std::make_unique<ScalarValue<unsigned long long>>(ScalarValue<unsigned long long>(value, ValueDtype::Integer64_U));
     else if constexpr (std::is_same_v<T, float>)
-      return std::make_unique<ScalarValue<float>>(ScalarValue<float>(value, BaseValue::FLOAT_32));
+      return std::make_unique<ScalarValue<float>>(ScalarValue<float>(value, ValueDtype::Float32));
     else if constexpr (std::is_same_v<T, double>)
-      return std::make_unique<ScalarValue<double>>(ScalarValue<double>(value, BaseValue::FLOAT_64));
+      return std::make_unique<ScalarValue<double>>(ScalarValue<double>(value, ValueDtype::Float64));
     else if constexpr (std::is_same_v<T, long double>)
-      return std::make_unique<ScalarValue<long double>>(ScalarValue<long double>(value, BaseValue::FLOAT_128));
+      return std::make_unique<ScalarValue<long double>>(ScalarValue<long double>(value, ValueDtype::Float128));
     else if constexpr (std::is_same_v<T, std::string>)
       return std::make_unique<ScalarValue<std::string>>(ScalarValue<std::string>(value));
     else
@@ -327,23 +326,23 @@ namespace dip {
     if constexpr (std::is_same_v<T, bool>)
       return std::make_unique<ArrayValue<bool>>(ArrayValue<bool>(arr, sh));
     else if constexpr (std::is_same_v<T, short>)
-      return std::make_unique<ArrayValue<short>>(ArrayValue<short>(arr, sh, BaseValue::INTEGER_16));
+      return std::make_unique<ArrayValue<short>>(ArrayValue<short>(arr, sh, ValueDtype::Integer16));
     else if constexpr (std::is_same_v<T, unsigned short>)
-      return std::make_unique<ArrayValue<unsigned short>>(ArrayValue<unsigned short>(arr, sh, BaseValue::INTEGER_16_U));
+      return std::make_unique<ArrayValue<unsigned short>>(ArrayValue<unsigned short>(arr, sh, ValueDtype::Integer16_U));
     else if constexpr (std::is_same_v<T, int>)
-      return std::make_unique<ArrayValue<int>>(ArrayValue<int>(arr, sh, BaseValue::INTEGER_32));
+      return std::make_unique<ArrayValue<int>>(ArrayValue<int>(arr, sh, ValueDtype::Integer32));
     else if constexpr (std::is_same_v<T, unsigned int>)
-      return std::make_unique<ArrayValue<unsigned int>>(ArrayValue<unsigned int>(arr, sh, BaseValue::INTEGER_32_U));
+      return std::make_unique<ArrayValue<unsigned int>>(ArrayValue<unsigned int>(arr, sh, ValueDtype::Integer32_U));
     else if constexpr (std::is_same_v<T, long long>)
-      return std::make_unique<ArrayValue<long long>>(ArrayValue<long long>(arr, sh, BaseValue::INTEGER_64));
+      return std::make_unique<ArrayValue<long long>>(ArrayValue<long long>(arr, sh, ValueDtype::Integer64));
     else if constexpr (std::is_same_v<T, unsigned long long>)
-      return std::make_unique<ArrayValue<unsigned long long>>(ArrayValue<unsigned long long>(arr, sh, BaseValue::INTEGER_64_U));
+      return std::make_unique<ArrayValue<unsigned long long>>(ArrayValue<unsigned long long>(arr, sh, ValueDtype::Integer64_U));
     else if constexpr (std::is_same_v<T, float>)
-      return std::make_unique<ArrayValue<float>>(ArrayValue<float>(arr, sh, BaseValue::FLOAT_32));
+      return std::make_unique<ArrayValue<float>>(ArrayValue<float>(arr, sh, ValueDtype::Float32));
     else if constexpr (std::is_same_v<T, double>)
-      return std::make_unique<ArrayValue<double>>(ArrayValue<double>(arr, sh, BaseValue::FLOAT_64));
+      return std::make_unique<ArrayValue<double>>(ArrayValue<double>(arr, sh, ValueDtype::Float64));
     else if constexpr (std::is_same_v<T, long double>)
-      return std::make_unique<ArrayValue<long double>>(ArrayValue<long double>(arr, sh, BaseValue::FLOAT_128));
+      return std::make_unique<ArrayValue<long double>>(ArrayValue<long double>(arr, sh, ValueDtype::Float128));
     else if constexpr (std::is_same_v<T, std::string>)
       return std::make_unique<ArrayValue<std::string>>(ArrayValue<std::string>(arr, sh));
     else 

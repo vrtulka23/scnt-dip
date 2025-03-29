@@ -5,12 +5,13 @@
 
 namespace dip {
 
+  enum class RequestType {
+    Function, Reference
+  };
+  
   class Environment {
   private:
   public:
-    enum RequestType {
-      FUNCTION, REFERENCE
-    };
     SourceList sources;
     UnitList units;
     NodeList nodes;

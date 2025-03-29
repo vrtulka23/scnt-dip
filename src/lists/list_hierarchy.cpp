@@ -5,7 +5,7 @@
 
 namespace dip {
 
-  void HierarchyList::record(BaseNode::PointerType node, const std::vector<BaseNode::NodeDtype>& excluded) {
+  void HierarchyList::record(BaseNode::PointerType node, const std::vector<NodeDtype>& excluded) {
     if (node->name=="")
       return;
     for (auto dtype: excluded)

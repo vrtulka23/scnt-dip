@@ -13,14 +13,14 @@ TEST(ParseArrays, BooleanValue) {
   dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"true","false","true","true","true","false"}));
   EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
-  EXPECT_EQ(node->dtype, dip::BaseNode::BOOLEAN);
+  EXPECT_EQ(node->dtype, dip::NodeDtype::Boolean);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_EQ(vnode->value->to_string(), "[[true, false, true], [true, true, false]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::BOOLEAN);
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::Boolean);
 
 }
 
@@ -33,14 +33,14 @@ TEST(ParseArrays, IntegerValue) {
   dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","-4","-5","-678910111"}));
   EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
-  EXPECT_EQ(node->dtype, dip::BaseNode::INTEGER);
+  EXPECT_EQ(node->dtype, dip::NodeDtype::Integer);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_EQ(vnode->value->to_string(), "[[1, 2, 3], [-4, -5, -678910111]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::INTEGER_32);
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::Integer32);
 
 }
 
@@ -53,14 +53,14 @@ TEST(ParseArrays, FloatValue) {
   dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2.2","3.3e3","-4","-5.5","-6.6e6"}));
   EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
-  EXPECT_EQ(node->dtype, dip::BaseNode::FLOAT);
+  EXPECT_EQ(node->dtype, dip::NodeDtype::Float);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_EQ(vnode->value->to_string(), "[[1.0000, 2.2000, 3300.0], [-4.0000, -5.5000, -6.6000e+06]]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::FLOAT_64);
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::Float64);
 
 }
 
@@ -73,14 +73,14 @@ TEST(ParseArrays, StringValue) {
   dip::BaseNode::PointerType node = env.nodes.at(0);
   EXPECT_EQ(node->value_raw, std::vector<std::string>({"position","velo,ci\"ty","acce]lera'tion","jerk","snap","crackle"}));
   EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
-  EXPECT_EQ(node->dtype, dip::BaseNode::STRING);
+  EXPECT_EQ(node->dtype, dip::NodeDtype::String);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
   EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,2},{3,3}}));
   
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_EQ(vnode->value->to_string(), "[['position', 'velo,ci\"ty', 'acce]lera'tion'], ['jerk', 'snap', 'crackle']]");
-  EXPECT_EQ(vnode->value->dtype, dip::BaseValue::STRING);
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::String);
 
 }
 

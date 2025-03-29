@@ -73,7 +73,7 @@ namespace dip {
   // Hierarchy list
   
   struct Parent {
-    int indent;
+    size_t indent;
     std::string name;
   };
   
@@ -81,7 +81,7 @@ namespace dip {
   private:
     std::vector<Parent> parents;
   public:
-    void record(BaseNode::PointerType node, const std::vector<BaseNode::NodeDtype>& excluded);
+    void record(BaseNode::PointerType node, const std::vector<NodeDtype>& excluded);
   };
 
   // Branching list
@@ -100,7 +100,7 @@ namespace dip {
   struct Branch {
     std::vector<size_t> cases;        // list of case IDs
     std::vector<CaseType> types;      // list of case types
-    std::map<std::string, int> nodes; // number of node definitions
+    std::map<std::string, size_t> nodes; // number of node definitions
   };
   
   class BranchingList {

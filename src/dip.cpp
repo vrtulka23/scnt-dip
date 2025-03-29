@@ -107,7 +107,7 @@ namespace dip {
     Environment target = env;
     while (queue.size()>0) {
       BaseNode::PointerType node = queue.pop_front();
-      if (!target.branching.false_case() or node->dtype==BaseNode::CASE) {
+      if (!target.branching.false_case() or node->dtype==NodeDtype::Case) {
 	// TODO: value injecting
 	// Perform specific node parsing only outside of case or inside of valid case
 	BaseNode::NodeListType parsed = node->parse(target);
@@ -124,7 +124,7 @@ namespace dip {
       // Add nodes to the node list
       if (std::find(nodes_notypes.begin(), nodes_notypes.end(), node->dtype) != nodes_notypes.end()) {
 	continue;
-      } else if (node->dtype==BaseNode::CASE) {
+      } else if (node->dtype==NodeDtype::Case) {
 	target.branching.solve_case(node);
       }	else if (target.branching.false_case()) {
 	continue;
@@ -153,7 +153,7 @@ namespace dip {
 	  }
 	}
 	if (new_node) {
-	  if (node->dtype==BaseNode::MODIFICATION) {
+	  if (node->dtype==NodeDtype::Modification) {
 	    std::string prefix = source.name+"_"+std::string(STRING_SOURCE);
 	    if (node->line.source.name.compare(0, prefix.size(), prefix) == 0)
 	      throw std::runtime_error("Modifying undefined node: "+node->line.code);

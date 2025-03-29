@@ -16,13 +16,13 @@ namespace dip {
     return nullptr;
   }
 
-  FloatNode::FloatNode(Parser& parser): BaseNode(parser, BaseNode::FLOAT) {
+  FloatNode::FloatNode(Parser& parser): BaseNode(parser, NodeDtype::Float) {
     if (dtype_raw[2]=="32") {
-      value_dtype = BaseValue::FLOAT_32;
+      value_dtype = ValueDtype::Float32;
     } else if (dtype_raw[2]=="64" or dtype_raw[2]=="") {
-      value_dtype = BaseValue::FLOAT_64;
+      value_dtype = ValueDtype::Float64;
     } else if (dtype_raw[2]=="128" and max_float_size==128) {
-      value_dtype = BaseValue::FLOAT_128;
+      value_dtype = ValueDtype::Float128;
     } else {
       throw std::runtime_error("Value data type cannot be determined from the node settings");
     }
@@ -30,13 +30,13 @@ namespace dip {
   
   BaseNode::NodeListType FloatNode::parse(Environment& env) {
     switch (value_origin) {
-    case ValueOrigin::FUNCTION:
-      set_value(env.request_value(value_raw.at(0), Environment::FUNCTION, units_raw));
+    case ValueOrigin::Function:
+      set_value(env.request_value(value_raw.at(0), RequestType::Function, units_raw));
       break;
-    case ValueOrigin::REFERENCE:
-      set_value(env.request_value(value_raw.at(0), Environment::REFERENCE, units_raw));
+    case ValueOrigin::Reference:
+      set_value(env.request_value(value_raw.at(0), RequestType::Reference, units_raw));
       break;
-    case ValueOrigin::REFERENCE_RAW: {
+    case ValueOrigin::ReferenceRaw: {
       std::string source_code = env.request_code(value_raw.at(0));
       std::vector<std::string> source_value_raw;
       BaseValue::ShapeType source_value_shape;
@@ -55,12 +55,12 @@ namespace dip {
   BaseValue::PointerType FloatNode::cast_scalar_value(const std::string& value_input) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
-    case BaseValue::FLOAT_32:
-      return std::make_unique<ScalarValue<float>>(std::stof(value_input), BaseValue::FLOAT_32);
-    case BaseValue::FLOAT_64:
-      return std::make_unique<ScalarValue<double>>(std::stod(value_input), BaseValue::FLOAT_64);
-    case BaseValue::FLOAT_128:
-      return std::make_unique<ScalarValue<long double>>(std::stold(value_input), BaseValue::FLOAT_128);
+    case ValueDtype::Float32:
+      return std::make_unique<ScalarValue<float>>(std::stof(value_input), ValueDtype::Float32);
+    case ValueDtype::Float64:
+      return std::make_unique<ScalarValue<double>>(std::stod(value_input), ValueDtype::Float64);
+    case ValueDtype::Float128:
+      return std::make_unique<ScalarValue<long double>>(std::stold(value_input), ValueDtype::Float128);
     default:
       throw std::runtime_error("Value cannot be casted as "+dtype_raw[2]+" bit floating-point type from the given string: "+value_input);
     }
@@ -69,23 +69,23 @@ namespace dip {
   BaseValue::PointerType FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
-    case BaseValue::FLOAT_32: {
+    case ValueDtype::Float32: {
       std::vector<float> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stof(s));
-      return std::make_unique<ArrayValue<float>>(arr, shape, BaseValue::FLOAT_32);
+      return std::make_unique<ArrayValue<float>>(arr, shape, ValueDtype::Float32);
     }
-    case BaseValue::FLOAT_64: {
+    case ValueDtype::Float64: {
       std::vector<double> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stod(s));
-      return std::make_unique<ArrayValue<double>>(arr, shape, BaseValue::FLOAT_64);
+      return std::make_unique<ArrayValue<double>>(arr, shape, ValueDtype::Float64);
     }
-    case BaseValue::FLOAT_128: {
+    case ValueDtype::Float128: {
       std::vector<long double> arr;
       arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stold(s));
-      return std::make_unique<ArrayValue<long double>>(arr, shape, BaseValue::FLOAT_128);
+      return std::make_unique<ArrayValue<long double>>(arr, shape, ValueDtype::Float128);
     }
     default:
       std::ostringstream oss;
@@ -99,14 +99,14 @@ namespace dip {
     // TODO: variable precision x should be implemented
     BaseValue::PointerType ovalue;
     switch (value_dtype) {
-    case BaseValue::FLOAT_32:
-      ovalue = std::make_unique<ScalarValue<float>>(std::stof(option_value), BaseValue::FLOAT_32);
+    case ValueDtype::Float32:
+      ovalue = std::make_unique<ScalarValue<float>>(std::stof(option_value), ValueDtype::Float32);
       break;
-    case BaseValue::FLOAT_64:
-      ovalue = std::make_unique<ScalarValue<double>>(std::stod(option_value), BaseValue::FLOAT_64);
+    case ValueDtype::Float64:
+      ovalue = std::make_unique<ScalarValue<double>>(std::stod(option_value), ValueDtype::Float64);
       break;
-    case BaseValue::FLOAT_128:
-      ovalue = std::make_unique<ScalarValue<long double>>(std::stold(option_value), BaseValue::FLOAT_128);
+    case ValueDtype::Float128:
+      ovalue = std::make_unique<ScalarValue<long double>>(std::stold(option_value), ValueDtype::Float128);
       break;
     default:
       throw std::runtime_error("Option value cannot be casted as "+dtype_raw[2]+" bit float type from the given string: "+option_value);
