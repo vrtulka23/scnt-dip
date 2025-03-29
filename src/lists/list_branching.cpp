@@ -5,7 +5,7 @@
 namespace dip {
 
   // Get ID of a current branch
-  std::string BranchingList::get_branch_id() {
+  size_t BranchingList::get_branch_id() {
     if (state.size()>0) {
       return state.back();
     } else
@@ -13,20 +13,21 @@ namespace dip {
   }
 
   // Get ID of a current case
-  std::string BranchingList::get_case_id(std::string branch_id) {
-    if (branch_id.empty())
+  std::string BranchingList::get_case_id(size_t branch_id) {
+    if (branch_id==0)
       branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
-    if (branch.cases.empty())
-      throw std::runtime_error("Branch with an ID '"+branch_id+"' does not have any cases");
-    else
+    if (branch.cases.empty()) {
+      std::string branch_name = std::string(1, SIGN_CONDITION)+"B"+std::to_string(num_branches);
+      throw std::runtime_error("Branch with an ID '"+branch_name+"' does not have any cases");
+    } else {
       return branch.cases.back();
+    }
   }
 
   // Start a new branch
   int BranchingList::open_branch(const std::string& case_id) {
-    num_branches++;
-    std::string branch_id = std::string(1, SIGN_CONDITION)+"B"+std::to_string(num_branches);
+    size_t branch_id = ++num_branches;
     state.push_back(branch_id);
     branches[branch_id] = Branch({case_id}, {CaseType::Case});
     return 0;
@@ -34,7 +35,7 @@ namespace dip {
 
   // Go to a new case within a branch
   int BranchingList::switch_case(const std::string& case_id, const CaseType case_type) {
-    std::string branch_id = get_branch_id();
+    size_t branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
     branch.cases.push_back(case_id);
     branch.types.push_back(case_type);
@@ -58,7 +59,7 @@ namespace dip {
   bool BranchingList::false_case() {
     if (state.empty())
       return false;
-    std::string branch_id = get_branch_id();
+    size_t branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
     int num_true = 0;
     // count number of cases with a true value in the current branch
@@ -128,12 +129,12 @@ namespace dip {
 	branch_part = open_branch(case_id);
       }
       // get current branch id
-      std::string branch_id = get_branch_id();
+      size_t branch_id = get_branch_id();
       // take into account values of the parent nodes
       // std::cout << "case " << branch_id << " " << branch_part << " " << case_id << " " << cnode->case_type << " " << cnode->value;
       bool case_value = cnode->value;
       if (state.size()>1) {
-	std::string parent_branch_id = state[state.size()-2];
+	size_t parent_branch_id = state[state.size()-2];
 	std::string parent_case_id = get_case_id(parent_branch_id);
 	Case& cs = cases.at(parent_case_id);
 	case_value &= cs.value;
@@ -161,7 +162,7 @@ namespace dip {
     }
     // register node to a branch
     if (!state.empty()) {
-      std::string branch_id = get_branch_id();
+      size_t branch_id = get_branch_id();
       node->branch_id = branch_id;
       node->case_id = get_case_id();
       std::string node_name = clean_name(node->name);

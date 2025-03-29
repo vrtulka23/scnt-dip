@@ -91,7 +91,7 @@ namespace dip {
     std::string code;          // code line with the case
     std::string expr;          // case logical expression
     bool value;                // final value of the case
-    std::string branch_id;     // branch ID
+    size_t branch_id;          // branch ID
     size_t branch_part;        // part on the branch
     std::string case_id;       // case ID
     CaseType case_type;        // one of the types: case/else/end
@@ -105,13 +105,13 @@ namespace dip {
   
   class BranchingList {
   private:
-    std::vector<std::string> state;         // list of openned branches
-    std::map<std::string, Branch> branches; // all branches
+    std::vector<size_t> state;         // list of openned branches
+    std::map<size_t, Branch> branches; // all branches
     std::map<std::string, Case> cases;      // all cases
     int num_cases;                          
     int num_branches;
-    std::string get_branch_id();
-    std::string get_case_id(std::string branch_id="");
+    size_t get_branch_id();
+    std::string get_case_id(size_t branch_id=0);
     int open_branch(const std::string& case_id);
     int switch_case(const std::string& case_id, const CaseType case_type);
     void close_branch();

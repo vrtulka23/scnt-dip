@@ -82,7 +82,7 @@ namespace dip {
       OPTIONS, CONSTANT, FORMAT, CONDITION, TAGS, DESCRIPTION
     };
     NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable in Node class
-    std::string branch_id;
+    size_t branch_id;
     std::string case_id;
     typedef std::shared_ptr<BaseNode> PointerType;
     typedef std::deque<BaseNode::PointerType> NodeListType;
