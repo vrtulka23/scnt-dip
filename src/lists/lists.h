@@ -93,12 +93,12 @@ namespace dip {
     bool value;                // final value of the case
     size_t branch_id;          // branch ID
     size_t branch_part;        // part on the branch
-    std::string case_id;       // case ID
+    size_t case_id;            // case ID
     CaseType case_type;        // one of the types: case/else/end
   };
 
   struct Branch {
-    std::vector<std::string> cases;   // list of case IDs
+    std::vector<size_t> cases;        // list of case IDs
     std::vector<CaseType> types;      // list of case types
     std::map<std::string, int> nodes; // number of node definitions
   };
@@ -107,13 +107,13 @@ namespace dip {
   private:
     std::vector<size_t> state;         // list of openned branches
     std::map<size_t, Branch> branches; // all branches
-    std::map<std::string, Case> cases;      // all cases
+    std::map<size_t, Case> cases;      // all cases
     int num_cases;                          
     int num_branches;
     size_t get_branch_id();
-    std::string get_case_id(size_t branch_id=0);
-    int open_branch(const std::string& case_id);
-    int switch_case(const std::string& case_id, const CaseType case_type);
+    size_t get_case_id(size_t branch_id=0);
+    int open_branch(const size_t case_id);
+    int switch_case(const size_t case_id, const CaseType case_type);
     void close_branch();
   public:
     BranchingList(): num_cases(0), num_branches(0) {};

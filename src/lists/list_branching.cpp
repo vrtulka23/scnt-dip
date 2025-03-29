@@ -13,7 +13,7 @@ namespace dip {
   }
 
   // Get ID of a current case
-  std::string BranchingList::get_case_id(size_t branch_id) {
+  size_t BranchingList::get_case_id(size_t branch_id) {
     if (branch_id==0)
       branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
@@ -26,7 +26,7 @@ namespace dip {
   }
 
   // Start a new branch
-  int BranchingList::open_branch(const std::string& case_id) {
+  int BranchingList::open_branch(const size_t case_id) {
     size_t branch_id = ++num_branches;
     state.push_back(branch_id);
     branches[branch_id] = Branch({case_id}, {CaseType::Case});
@@ -34,7 +34,7 @@ namespace dip {
   }
 
   // Go to a new case within a branch
-  int BranchingList::switch_case(const std::string& case_id, const CaseType case_type) {
+  int BranchingList::switch_case(const size_t case_id, const CaseType case_type) {
     size_t branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
     branch.cases.push_back(case_id);
@@ -63,13 +63,13 @@ namespace dip {
     Branch& branch = branches.at(branch_id);
     int num_true = 0;
     // count number of cases with a true value in the current branch
-    for (std::string case_id: branch.cases) {
+    for (size_t case_id: branch.cases) {
       Case& cs = cases.at(case_id);
       if (cs.value==true)
 	num_true++;
     }
     // get the value of the current case
-    std::string case_id = get_case_id();
+    size_t case_id = get_case_id();
     Case& cs = cases.at(case_id);
     // the current case is false if this is the first true case in a branch
     return (num_true!=1 or !cs.value);
@@ -88,7 +88,7 @@ namespace dip {
       std::string path_new = matchResult[1].str();
       std::string path_old;
       if (!state.empty()) {
-	std::string case_id = get_case_id();
+	size_t case_id = get_case_id();
 	Case& cs = cases.at(case_id);
 	path_old = cs.path;
       }
@@ -106,7 +106,7 @@ namespace dip {
       }
       // determine branch part and ID
       size_t branch_part;
-      std::string case_id = std::string(1,SIGN_CONDITION) + "C" + matchResult[2].str();
+      size_t case_id = std::stoull(matchResult[2].str()); 
       if (path_new==path_old) {
 	branch_part = switch_case(case_id, cnode->case_type);
       } else if (path_new.size()<path_old.size()) {
@@ -114,7 +114,7 @@ namespace dip {
 	while (path_new!=path_old and path_old.size()>0) {
 	  close_branch();
 	  if (state.size()>0) {
-	    std::string case_id_old = get_case_id();
+	    size_t case_id_old = get_case_id();
 	    Case& cs = cases.at(case_id_old);
 	    path_old = cs.path;
 	  } else {
@@ -135,7 +135,7 @@ namespace dip {
       bool case_value = cnode->value;
       if (state.size()>1) {
 	size_t parent_branch_id = state[state.size()-2];
-	std::string parent_case_id = get_case_id(parent_branch_id);
+	size_t parent_case_id = get_case_id(parent_branch_id);
 	Case& cs = cases.at(parent_case_id);
 	case_value &= cs.value;
 	// std::cout << " " << case_value << " " << parent_branch_id << parent_case_id;
@@ -154,7 +154,7 @@ namespace dip {
   void BranchingList::prepare_node(BaseNode::PointerType node) {
     if (state.empty())
       return;
-    std::string case_id = get_case_id();
+    size_t case_id = get_case_id();
     Case& cs = cases.at(case_id);
     // ending case at lower indent
     if (!(node->name.rfind(cs.path, 0) == 0)) {
