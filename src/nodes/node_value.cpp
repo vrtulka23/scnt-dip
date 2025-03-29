@@ -19,7 +19,7 @@ namespace dip {
     return cast_value(value_raw, value_shape);
   }
 
-  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string> value_input, const BaseValue::ShapeType& shape) {
+  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string>& value_input, const BaseValue::ShapeType& shape) {
     if (!dimension.empty()) {
       return cast_array_value(value_input, shape);
     } else if (value_input.size()>1) {

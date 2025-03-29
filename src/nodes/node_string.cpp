@@ -43,7 +43,7 @@ namespace dip {
     return {};
   }
 
-  BaseValue::PointerType StringNode::cast_scalar_value(const std::string value_input) const {
+  BaseValue::PointerType StringNode::cast_scalar_value(const std::string& value_input) const {
     return std::make_unique<ScalarValue<std::string>>(value_input, value_dtype);
   }
 
@@ -51,7 +51,7 @@ namespace dip {
     return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, value_dtype);
   }
   
-  void StringNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
+  void StringNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
     BaseValue::PointerType ovalue = std::make_unique<ScalarValue<std::string>>(option_value, value_dtype);
     options.push_back({std::move(ovalue), option_value, option_units});
   }

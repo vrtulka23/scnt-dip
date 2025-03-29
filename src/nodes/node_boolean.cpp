@@ -43,7 +43,7 @@ namespace dip {
     return {};
   }
   
-  BaseValue::PointerType BooleanNode::cast_scalar_value(const std::string value_input) const {
+  BaseValue::PointerType BooleanNode::cast_scalar_value(const std::string& value_input) const {
     if (value_input==KEYWORD_TRUE)
       return std::make_unique<ScalarValue<bool>>(true, value_dtype);
     else if (value_input==KEYWORD_FALSE)
@@ -65,7 +65,7 @@ namespace dip {
     return std::make_unique<ArrayValue<bool>>(bool_values, shape, value_dtype);    
   }
 
-  void BooleanNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
+  void BooleanNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
     throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.code);
   }
   

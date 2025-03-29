@@ -11,7 +11,7 @@ namespace dip {
 
   const std::array<std::string, 3> Parser::ESCAPE_SYMBOLS = {"\\\"", "\\'", "\\n"};
   
-  void Parser::strip(const std::string text) {
+  void Parser::strip(const std::string& text) {
     code = code.substr(text.length(), code.length());
   }
 

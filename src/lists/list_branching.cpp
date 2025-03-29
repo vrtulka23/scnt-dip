@@ -24,7 +24,7 @@ namespace dip {
   }
 
   // Start a new branch
-  int BranchingList::open_branch(const std::string case_id) {
+  int BranchingList::open_branch(const std::string& case_id) {
     num_branches++;
     std::string branch_id = std::string(1, SIGN_CONDITION)+"B"+std::to_string(num_branches);
     state.push_back(branch_id);
@@ -33,7 +33,7 @@ namespace dip {
   }
 
   // Go to a new case within a branch
-  int BranchingList::switch_case(const std::string case_id, const std::string case_type) {
+  int BranchingList::switch_case(const std::string& case_id, const std::string& case_type) {
     std::string branch_id = get_branch_id();
     Branch& branch = branches.at(branch_id);
     branch.cases.push_back(case_id);

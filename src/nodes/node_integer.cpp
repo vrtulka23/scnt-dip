@@ -52,7 +52,7 @@ namespace dip {
     return {};
   }  
     
-  BaseValue::PointerType IntegerNode::cast_scalar_value(const std::string value_input) const {
+  BaseValue::PointerType IntegerNode::cast_scalar_value(const std::string& value_input) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::INTEGER_16_U:
@@ -85,34 +85,40 @@ namespace dip {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::INTEGER_16_U: {
-	std::vector<unsigned short> arr;
-	for (auto s: value_inputs) arr.push_back((unsigned short)std::stoul(s));
-	return std::make_unique<ArrayValue<unsigned short>>(arr, shape, BaseValue::INTEGER_16_U);
+      std::vector<unsigned short> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back((unsigned short)std::stoul(s));
+      return std::make_unique<ArrayValue<unsigned short>>(arr, shape, BaseValue::INTEGER_16_U);
     }
     case BaseValue::INTEGER_16: {
-	std::vector<short> arr;
-	for (auto s: value_inputs) arr.push_back((short)std::stoi(s));
-	return std::make_unique<ArrayValue<short>>(arr, shape, BaseValue::INTEGER_16);
+      std::vector<short> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back((short)std::stoi(s));
+      return std::make_unique<ArrayValue<short>>(arr, shape, BaseValue::INTEGER_16);
     }
     case BaseValue::INTEGER_32_U: {
-	std::vector<unsigned int> arr;
-	for (auto s: value_inputs) arr.push_back(std::stoul(s));
-	return std::make_unique<ArrayValue<unsigned int>>(arr, shape, BaseValue::INTEGER_32_U);
+      std::vector<unsigned int> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back(std::stoul(s));
+      return std::make_unique<ArrayValue<unsigned int>>(arr, shape, BaseValue::INTEGER_32_U);
     }
     case BaseValue::INTEGER_32: {
-	std::vector<int> arr;
-	for (auto s: value_inputs) arr.push_back(std::stoi(s));
-	return std::make_unique<ArrayValue<int>>(arr, shape, BaseValue::INTEGER_32);
+      std::vector<int> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back(std::stoi(s));
+      return std::make_unique<ArrayValue<int>>(arr, shape, BaseValue::INTEGER_32);
     }
     case BaseValue::INTEGER_64_U: {
-	std::vector<unsigned long long> arr;
-	for (auto s: value_inputs) arr.push_back(std::stoull(s));
-	return std::make_unique<ArrayValue<unsigned long long>>(arr, shape, BaseValue::INTEGER_64_U);
+      std::vector<unsigned long long> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back(std::stoull(s));
+      return std::make_unique<ArrayValue<unsigned long long>>(arr, shape, BaseValue::INTEGER_64_U);
     }
     case BaseValue::INTEGER_64: {
-	std::vector<long long> arr;
-	for (auto s: value_inputs) arr.push_back(std::stoll(s));
-	return std::make_unique<ArrayValue<long long>>(arr, shape, BaseValue::INTEGER_64);
+      std::vector<long long> arr;
+      arr.reserve(value_inputs.size());
+      for (auto s: value_inputs) arr.push_back(std::stoll(s));
+      return std::make_unique<ArrayValue<long long>>(arr, shape, BaseValue::INTEGER_64);
     }
     default:
       std::ostringstream oss;
@@ -126,28 +132,28 @@ namespace dip {
     }    
   }
 
-  void IntegerNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
+  void IntegerNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
     // TODO: variable precision x should be implemented
     BaseValue::PointerType ovalue;
     switch (value_dtype) {
     case BaseValue::INTEGER_16_U:
-	ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), BaseValue::INTEGER_16_U);
-	break;
+      ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), BaseValue::INTEGER_16_U);
+      break;
     case BaseValue::INTEGER_16:
-	ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), BaseValue::INTEGER_16);
-	break;
+      ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), BaseValue::INTEGER_16);
+      break;
     case BaseValue::INTEGER_32_U:
-	ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), BaseValue::INTEGER_32_U);
-	break;
+      ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), BaseValue::INTEGER_32_U);
+      break;
     case BaseValue::INTEGER_32:
-	ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), BaseValue::INTEGER_32);
-	break;
+      ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), BaseValue::INTEGER_32);
+      break;
     case BaseValue::INTEGER_64_U:
-	ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), BaseValue::INTEGER_64_U);
-	break;
+      ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), BaseValue::INTEGER_64_U);
+      break;
     case BaseValue::INTEGER_64:
-	ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), BaseValue::INTEGER_64);
-	break;
+      ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), BaseValue::INTEGER_64);
+      break;
     default:
       if (dtype_raw[0]=="u")
 	throw std::runtime_error("Option value cannot be casted as unsigned "+dtype_raw[0]+" bit integer type from the given string: "+option_value);

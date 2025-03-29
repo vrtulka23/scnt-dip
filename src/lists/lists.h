@@ -112,8 +112,8 @@ namespace dip {
     int num_branches;
     std::string get_branch_id();
     std::string get_case_id(std::string branch_id="");
-    int open_branch(const std::string case_id);
-    int switch_case(const std::string case_id, const std::string case_type);
+    int open_branch(const std::string& case_id);
+    int switch_case(const std::string& case_id, const std::string& case_type);
     void close_branch();
   public:
     BranchingList(): num_cases(0), num_branches(0) {};

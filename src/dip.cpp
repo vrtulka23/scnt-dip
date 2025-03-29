@@ -86,15 +86,15 @@ namespace dip {
     env.sources.append(sname, senv);
   }
   
-  void DIP::add_unit(const std::string& name, const double value, const std::string unit) {
+  void DIP::add_unit(const std::string& name, const double value, const std::string& unit) {
     // TODO: implement
   }
 
-  void DIP::add_value_function(const std::string name, FunctionList::ValueFunctionType func) {
+  void DIP::add_value_function(const std::string& name, FunctionList::ValueFunctionType func) {
     env.functions.append_value(name, func);
   }
   
-  void DIP::add_node_function(const std::string name, FunctionList::TableFunctionType func) {
+  void DIP::add_node_function(const std::string& name, FunctionList::TableFunctionType func) {
     env.functions.append_table(name, func);
   }
   

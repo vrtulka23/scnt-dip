@@ -52,7 +52,7 @@ namespace dip {
     return {};
   }  
   
-  BaseValue::PointerType FloatNode::cast_scalar_value(const std::string value_input) const {
+  BaseValue::PointerType FloatNode::cast_scalar_value(const std::string& value_input) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case BaseValue::FLOAT_32:
@@ -71,16 +71,19 @@ namespace dip {
     switch (value_dtype) {
     case BaseValue::FLOAT_32: {
       std::vector<float> arr;
+      arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stof(s));
       return std::make_unique<ArrayValue<float>>(arr, shape, BaseValue::FLOAT_32);
     }
     case BaseValue::FLOAT_64: {
       std::vector<double> arr;
+      arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stod(s));
       return std::make_unique<ArrayValue<double>>(arr, shape, BaseValue::FLOAT_64);
     }
     case BaseValue::FLOAT_128: {
       std::vector<long double> arr;
+      arr.reserve(value_inputs.size());
       for (auto s: value_inputs) arr.push_back(std::stold(s));
       return std::make_unique<ArrayValue<long double>>(arr, shape, BaseValue::FLOAT_128);
     }
@@ -92,7 +95,7 @@ namespace dip {
     }
   }
   
-  void FloatNode::set_option(const std::string option_value, const std::string option_units, Environment& env) {
+  void FloatNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
     // TODO: variable precision x should be implemented
     BaseValue::PointerType ovalue;
     switch (value_dtype) {
