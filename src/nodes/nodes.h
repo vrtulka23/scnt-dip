@@ -124,7 +124,7 @@ namespace dip {
   public:
     bool value;             // case value
     int case_id;            // ID of a case
-    std::string case_type;  // type of a case
+    CaseType case_type;     // type of a case
     static BaseNode::PointerType is_node(Parser& parser);
     CaseNode(Parser& parser): BaseNode(parser, BaseNode::CASE), case_id(0), value(false) {};
     BaseNode::NodeListType parse(Environment& env) override;

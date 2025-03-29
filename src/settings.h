@@ -72,6 +72,12 @@ namespace dip {
     };
   };  
 
+  enum class CaseType {
+    Case,   
+    Else,   
+    End     
+  };
+  
   // Forward declarations
   class Environment;
 

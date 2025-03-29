@@ -92,14 +92,14 @@ namespace dip {
     std::string expr;          // case logical expression
     bool value;                // final value of the case
     std::string branch_id;     // branch ID
-    int branch_part;           // pat on the branch
+    size_t branch_part;        // part on the branch
     std::string case_id;       // case ID
-    std::string case_type;     // one of the types: case/else/end
+    CaseType case_type;        // one of the types: case/else/end
   };
 
   struct Branch {
     std::vector<std::string> cases;   // list of case IDs
-    std::vector<std::string> types;   // list of case types
+    std::vector<CaseType> types;      // list of case types
     std::map<std::string, int> nodes; // number of node definitions
   };
   
@@ -113,7 +113,7 @@ namespace dip {
     std::string get_branch_id();
     std::string get_case_id(std::string branch_id="");
     int open_branch(const std::string& case_id);
-    int switch_case(const std::string& case_id, const std::string& case_type);
+    int switch_case(const std::string& case_id, const CaseType case_type);
     void close_branch();
   public:
     BranchingList(): num_cases(0), num_branches(0) {};
