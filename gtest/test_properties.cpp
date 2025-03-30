@@ -74,7 +74,7 @@ TEST(Properties, Description) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Could not find a node that can have a description:   !descr 'This is a group node'");
+    EXPECT_STREQ(e.what(), "Could not find a node that can have the following property:   !descr 'This is a group node'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

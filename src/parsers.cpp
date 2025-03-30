@@ -80,7 +80,7 @@ namespace dip {
       if (node==nullptr) node = FormatNode::is_node(parser);
       if (node==nullptr) node = TagsNode::is_node(parser);
       if (node==nullptr) node = DescriptionNode::is_node(parser);
-      // if (node==nullptr) node = ConditionNode::is_node(parser);
+      if (node==nullptr) node = ConditionNode::is_node(parser);
       if (node==nullptr) parser.part_name();
       if (node==nullptr) node = GroupNode::is_node(parser);
       if (node==nullptr) node = ImportNode::is_node(parser);

@@ -39,6 +39,7 @@ namespace dip {
   constexpr std::string_view KEYWORD_TRUE        = "true";
   constexpr std::string_view KEYWORD_FALSE       = "false";
   constexpr std::string_view KEYWORD_CONSTANT    = "constant";
+  constexpr std::string_view KEYWORD_CONDITION   = "condition";
   constexpr std::string_view KEYWORD_DESCRIPTION = "descr";
   constexpr std::string_view KEYWORD_FORMAT      = "format";
   constexpr std::string_view KEYWORD_TAGS        = "tags";

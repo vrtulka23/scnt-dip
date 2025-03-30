@@ -131,47 +131,6 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
   };
   
-  class OptionsNode: public BaseNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    OptionsNode(Parser& parser): BaseNode(parser, NodeDtype::Options) {};
-    BaseNode::NodeListType parse(Environment& env) override;
-  };
-  
-  class ConstantNode: public BaseNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    ConstantNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
-    BaseNode::NodeListType parse(Environment& env) override;
-  };
-  
-  class FormatNode: public BaseNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    FormatNode(Parser& parser): BaseNode(parser, NodeDtype::Format) {};
-    BaseNode::NodeListType parse(Environment& env) override;
-  };
-
-  class TagsNode: public BaseNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    TagsNode(Parser& parser): BaseNode(parser, NodeDtype::Tags) {};
-    BaseNode::NodeListType parse(Environment& env) override;
-  };
-  
-  class DescriptionNode: public BaseNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    DescriptionNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
-    BaseNode::NodeListType parse(Environment& env) override;
-  };
-  
-  /*
-  class ConditionNode: public BaseNode {
-  public:
-  };
-  */
-  
   class GroupNode: public BaseNode {
   public:
     static BaseNode::PointerType is_node(Parser& parser);
@@ -211,6 +170,7 @@ namespace dip {
     std::vector<std::string> tags;
     bool constant;
     std::string description;
+    std::string condition;
     std::vector<OptionStruct> options;
     std::string format;
     ValueNode(): constant(false) {};
@@ -266,6 +226,7 @@ namespace dip {
     typedef std::shared_ptr<QuantityNode> PointerType;
     Quantity::PointerType units;
     void set_units(Quantity::PointerType units_input=nullptr);
+    virtual ~QuantityNode() = default;
   };
   
   class IntegerNode: public QuantityNode {
@@ -293,6 +254,58 @@ namespace dip {
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
   };  
+  
+  /*
+   *  Property nodes
+   */
+  
+  class PropertyNode: public virtual BaseNode {
+  public:
+    BaseNode::NodeListType parse(Environment& env) override;
+    virtual void set_property(Environment& env, ValueNode::PointerType vnode) = 0;
+  };
+  
+  class OptionsNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    OptionsNode(Parser& parser): BaseNode(parser, NodeDtype::Options) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
+  
+  class ConstantNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    ConstantNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
+  
+  class FormatNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    FormatNode(Parser& parser): BaseNode(parser, NodeDtype::Format) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
+
+  class TagsNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    TagsNode(Parser& parser): BaseNode(parser, NodeDtype::Tags) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
+  
+  class DescriptionNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    DescriptionNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
+  
+  class ConditionNode: public PropertyNode {
+  public:
+    static BaseNode::PointerType is_node(Parser& parser);
+    ConditionNode(Parser& parser): BaseNode(parser, NodeDtype::Condition) {};
+    void set_property(Environment& env, ValueNode::PointerType vnode) override;
+  };
   
   // helper function that create a scalar value node pointer from a C++ data type
   template <typename T>

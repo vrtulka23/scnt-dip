@@ -152,6 +152,13 @@ namespace dip {
   }
   
   bool Parser::kwd_condition() {
+    constexpr auto pstr = ce_concat<50>("^([", SIGN_VALIDATION, "]", KEYWORD_CONDITION, "[ ]*)");
+    std::regex pattern(pstr.data());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      strip(matchResult[1].str());
+      return true;
+    }
     return false;
   }
   
