@@ -80,6 +80,16 @@ namespace dip {
     if (value==nullptr) 
       throw std::runtime_error("Declared node has undefined value: "+line.code);
   }
+
+  void ValueNode::validate_condition() const {
+    if (!condition.empty()) {
+      if (condition==KEYWORD_FALSE)
+	throw std::runtime_error("Node does not satisfy the given condition: "+condition);
+      else if (condition==KEYWORD_TRUE)
+	return;
+      // TODO: implement expression solver
+    }
+  }
   
   void ValueNode::validate_options() const {
     if (options.size()>0) {

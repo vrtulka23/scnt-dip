@@ -119,6 +119,8 @@ namespace dip {
 	  continue;
 	}
       }
+      // Register previous node
+      target.previous_node = node->dtype;
       // Create hierarchical names
       target.hierarchy.record(node, nodes_nohierarchy);
       // Add nodes to the node list
@@ -168,7 +170,7 @@ namespace dip {
       if (vnode) {
 	vnode->validate_definition();
 	vnode->validate_options();
-	// TODO Check conditions
+	vnode->validate_condition();
 	vnode->validate_format();
       } else {
 	throw std::runtime_error("Detected non-value node in the node list: "+target.nodes.at(i)->line.code);

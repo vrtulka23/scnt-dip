@@ -74,7 +74,7 @@ TEST(Properties, Description) {
     d.parse();
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
-    EXPECT_STREQ(e.what(), "Could not find a node that can have the following property:   !descr 'This is a group node'");
+    EXPECT_STREQ(e.what(), "Only value nodes (bool, int, float and str) can have properties:   !descr 'This is a group node'");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
@@ -156,6 +156,33 @@ TEST(Properties, Tags) {
     FAIL() << "Expected std::runtime_error";
   } catch (const std::runtime_error& e) {
     EXPECT_STREQ(e.what(), "The indent '0' of a property is not higher than the indent '2' of a preceding node: !tags '[a-z]+'");
+  } catch (...) {
+    FAIL() << "Expected std::runtime_error";
+  }
+  
+}
+
+TEST(Properties, Condition) {
+  
+  dip::DIP d;    
+  d.add_string("foo str = 'bar'");
+  d.add_string("  !condition true");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // condition is not returned as a separate node
+  
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
+  EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->condition, "true");
+    
+  // Throw an error if indent is not higher
+  d = dip::DIP();
+  d.add_string("foo str = 'bar'");
+  d.add_string("  !condition false");
+  try {
+    d.parse();
+    FAIL() << "Expected std::runtime_error";
+  } catch (const std::runtime_error& e) {
+    EXPECT_STREQ(e.what(), "Node does not satisfy the given condition: false");
   } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }

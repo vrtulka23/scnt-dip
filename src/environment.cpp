@@ -10,7 +10,7 @@ namespace dip {
       return {request.substr(0, pos), request.substr(pos + 1)};
   }
   
-  Environment::Environment() {
+  Environment::Environment(): previous_node(NodeDtype::None) {
     
   }
 

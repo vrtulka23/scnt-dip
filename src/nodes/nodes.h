@@ -185,6 +185,7 @@ namespace dip {
     virtual BaseNode::PointerType clone(const std::string& nm) const = 0;
     void validate_constant() const;
     void validate_definition() const;
+    void validate_condition() const;
     virtual void validate_options() const;
     virtual void validate_format() const;
   private:
