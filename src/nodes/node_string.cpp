@@ -62,6 +62,17 @@ namespace dip {
     else
       return std::make_shared<StringNode>(nm, std::move(value->clone()));
   }
+
+  bool StringNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+    if (ValueNode::set_property(property, values, units, env)) {
+      return true;
+    } else if (property==PropertyType::Format) {
+      this->format = values.at(0);
+      return true;
+    } else {
+      return false;
+    }
+  }
   
   void StringNode::validate_format() const {
     if (format.size()>0) {

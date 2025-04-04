@@ -79,7 +79,7 @@ TEST(ParseTables, EmptySpaceTrimming) {
 
 }
 
-TEST(ParseTables, DimensionMismatch) {
+TEST(ParseTables, ExceptionDimensionMismatch) {
   
   dip::DIP d;    
   d.add_string("foo table = \"\"\"");
@@ -101,7 +101,7 @@ TEST(ParseTables, DimensionMismatch) {
 
 }
 
-TEST(ParseTables, MissingColumn) {
+TEST(ParseTables, ExceptionMissingColumn) {
   
   dip::DIP d;    
   d.add_string("foo table = \"\"\"");

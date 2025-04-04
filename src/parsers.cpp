@@ -75,12 +75,7 @@ namespace dip {
       if (node==nullptr) node = UnitNode::is_node(parser);
       if (node==nullptr) node = SourceNode::is_node(parser);
       if (node==nullptr) node = CaseNode::is_node(parser);
-      if (node==nullptr) node = OptionsNode::is_node(parser);
-      if (node==nullptr) node = ConstantNode::is_node(parser);
-      if (node==nullptr) node = FormatNode::is_node(parser);
-      if (node==nullptr) node = TagsNode::is_node(parser);
-      if (node==nullptr) node = DescriptionNode::is_node(parser);
-      if (node==nullptr) node = ConditionNode::is_node(parser);
+      if (node==nullptr) node = PropertyNode::is_node(parser);      
       if (node==nullptr) parser.part_name();
       if (node==nullptr) node = GroupNode::is_node(parser);
       if (node==nullptr) node = ImportNode::is_node(parser);
@@ -109,7 +104,7 @@ namespace dip {
     return nodes;
   }
 
-  BaseNode::NodeListType parse_table_nodes(std::queue<Line>& lines) { 
+  BaseNode::NodeListType parse_table_nodes(std::queue<Line>& lines, const char delimiter) { 
     // parse nodes from a table header
     BaseNode::NodeListType nodes;
     while(!lines.empty()) {
@@ -150,7 +145,7 @@ namespace dip {
       Parser parser(line);
       for (size_t i=0; i<nodes.size(); i++) {
 	if (i>0)
-	  parser.part_delimiter(SEPARATOR_TABLE_COLUMNS);
+	  parser.part_delimiter(delimiter);
 	auto node = nodes.at(i);
 	parser.value_raw.clear();
 	if (parser.part_string()) {

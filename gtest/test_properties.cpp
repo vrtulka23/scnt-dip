@@ -275,13 +275,12 @@ TEST(Properties, OptionsString) {
   d.add_string("  !options ['bar','snap','pow']");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
- 
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_TRUE(vnode);
   EXPECT_EQ(vnode->options[0].value->to_string(), "bar");
   EXPECT_EQ(vnode->options[1].value->to_string(), "snap");
   EXPECT_EQ(vnode->options[2].value->to_string(), "pow");
- 
+  
   // validate if node value is in options
   d = dip::DIP();
   d.add_string("foo str = 'baz'");
@@ -297,5 +296,46 @@ TEST(Properties, OptionsString) {
   
 }
 
+TEST(Properties, OptionsMultiline) {
+  
+  dip::DIP d;    
+  d.add_string("jerk str = 'snap'");
+  d.add_string("  = snap");
+  d.add_string("  = crackle");
+  d.add_string("  = pop");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
+   
+}
 
-// TODO: create a new property called 'delimiter' for the table node
+TEST(Properties, TableDelimiter) {
+  
+  dip::DIP d;    
+  d.add_string("foo table = \"\"\"bar int");
+  d.add_string("baz bool");
+  d.add_string("---");
+  d.add_string("1 true");
+  d.add_string("2 false");
+  d.add_string("\"\"\"");
+  //d.add_string("  !delimiter ,");
+  dip::Environment env = d.parse();
+  EXPECT_EQ(env.nodes.size(), 2);
+
+  dip::BaseNode::PointerType node = env.nodes.at(0);
+  EXPECT_EQ(node->name  , "foo.bar");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2"}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2}));
+  dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
+  EXPECT_EQ(vnode->value->to_string(), "[1, 2]");
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::Integer32);
+
+  node = env.nodes.at(1);
+  EXPECT_EQ(node->name, "foo.baz");
+  EXPECT_EQ(node->value_raw, std::vector<std::string>({"true","false"}));
+  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2}));
+  vnode = std::dynamic_pointer_cast<dip::ValueNode>(node);
+  EXPECT_EQ(vnode->value->to_string(), "[true, false]");
+  EXPECT_EQ(vnode->value->dtype, dip::ValueDtype::Boolean);
+  
+}
+

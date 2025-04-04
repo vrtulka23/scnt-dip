@@ -22,8 +22,7 @@ namespace dip {
       NodeDtype::Empty,NodeDtype::Unit,NodeDtype::Source
     };
     static constexpr std::array<NodeDtype,6> nodes_properties = {
-      NodeDtype::Options,NodeDtype::Constant,NodeDtype::Format,
-      NodeDtype::Condition,NodeDtype::Tags,NodeDtype::Description
+      NodeDtype::Property
     };
     static constexpr std::array<NodeDtype,1> nodes_hierarchy  = {
       NodeDtype::Group

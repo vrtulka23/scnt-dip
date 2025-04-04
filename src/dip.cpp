@@ -104,11 +104,22 @@ namespace dip {
 
   Environment DIP::parse() {
     NodeList queue = parse_code_nodes(lines);
+    // parse property nodes
+    BaseNode::PointerType previous_node = nullptr;
+    for (size_t i = 0; i < queue.size(); ++i) {
+      BaseNode::PointerType current_node = queue.at(i);
+      if (current_node->dtype==NodeDtype::Property) {
+	std::cout << current_node->line.code << std::endl;
+	//previous_node.set_property(current_node);
+      } else {
+	previous_node = current_node;
+      }
+    }
+    // parse other nodes
     Environment target = env;
     while (queue.size()>0) {
       BaseNode::PointerType node = queue.pop_front();
       if (!target.branching.false_case() or node->dtype==NodeDtype::Case) {
-	// TODO: value injecting
 	// Perform specific node parsing only outside of case or inside of valid case
 	BaseNode::NodeListType parsed = node->parse(target);
 	if (parsed.size()>0) {

@@ -94,69 +94,22 @@ namespace dip {
     }
     return false;
   }
-  
-  bool Parser::kwd_options() {
-    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_OPTIONS, "[ ]*");
+
+  bool Parser::kwd_property(PropertyType& ptype) {
+    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "](", PATTERN_KEY, "+)[ ]*");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
+      std::string key = matchResult[1].str();
+      if (key==KEYWORD_OPTIONS)	          ptype = PropertyType::Options;
+      else if (key==KEYWORD_CONSTANT)	  ptype = PropertyType::Constant;
+      else if (key==KEYWORD_FORMAT)	  ptype = PropertyType::Format;
+      else if (key==KEYWORD_TAGS)	  ptype = PropertyType::Tags;
+      else if (key==KEYWORD_DESCRIPTION)  ptype = PropertyType::Description;
+      else if (key==KEYWORD_CONDITION)	  ptype = PropertyType::Condition;
+      else if (key==KEYWORD_DELIMITER)	  ptype = PropertyType::Delimiter;
       dimension.push_back({0,-1});
       strip(matchResult[0].str());
-      return true;
-    }
-    return false;
-  }
-  
-  bool Parser::kwd_constant() {
-    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_CONSTANT);
-    std::regex pattern(pstr.data());
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      strip(matchResult[0].str());
-      return true;
-    }
-    return false;
-  } 
-  
-  bool Parser::kwd_format() {
-    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_FORMAT, "[ ]*");
-    std::regex pattern(pstr.data());
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      strip(matchResult[0].str());
-      return true;
-    }
-    return false;
-  }
-  
-  bool Parser::kwd_tags() {
-    constexpr auto pstr = ce_concat<50>("^[", SIGN_VALIDATION, "]", KEYWORD_TAGS, "[ ]*");
-    std::regex pattern(pstr.data());
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      strip(matchResult[0].str());
-      return true;
-    }
-    return false;
-  }
-  
-  bool Parser::kwd_description() {
-    constexpr auto pstr = ce_concat<50>("^([", SIGN_VALIDATION, "]", KEYWORD_DESCRIPTION, "[ ]*)");
-    std::regex pattern(pstr.data());
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      strip(matchResult[1].str());
-      return true;
-    }
-    return false;
-  }
-  
-  bool Parser::kwd_condition() {
-    constexpr auto pstr = ce_concat<50>("^([", SIGN_VALIDATION, "]", KEYWORD_CONDITION, "[ ]*)");
-    std::regex pattern(pstr.data());
-    std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      strip(matchResult[1].str());
       return true;
     }
     return false;
@@ -177,7 +130,7 @@ namespace dip {
     return false;
   }
   
-  bool Parser::part_name(bool required) {
+  bool Parser::part_name(const bool required) {
     constexpr auto pstr = ce_concat<50>("^", PATTERN_PATH, "+");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
@@ -193,7 +146,7 @@ namespace dip {
     return false;
   }
   
-  bool Parser::part_key(bool required) {
+  bool Parser::part_key(const bool required) {
     constexpr auto pstr = ce_concat<50>("^", PATTERN_KEY, "+");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
@@ -210,7 +163,7 @@ namespace dip {
     return false;
   }
   
-  bool Parser::part_type(bool required) {
+  bool Parser::part_type(const bool required) {
     std::smatch matchResult;
     std::regex pattern;
     pattern = "^[ ]+(u|)(bool|int|float|str|table)(16|32|64|128|x|)";
@@ -256,7 +209,7 @@ namespace dip {
     return false;
   }
 
-  bool Parser::part_equal(bool required) {
+  bool Parser::part_equal(const bool required) {
     constexpr auto pstr = ce_concat<50>("^[ ]*[", SIGN_EQUAL, "][ ]*");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
@@ -373,7 +326,7 @@ namespace dip {
     return false;
   }
 
-  bool Parser::part_delimiter(char symbol, bool required) {
+  bool Parser::part_delimiter(const char symbol, const bool required) {
     std::ostringstream oss;
     oss << "^[ ]*[" << symbol << "][ ]*";
     std::regex pattern(oss.str());

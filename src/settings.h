@@ -15,12 +15,12 @@ namespace dip {
   constexpr std::string_view TABLE_SOURCE   = "TABLE";
 
   // Parsing separators
-  constexpr char SEPARATOR_NEWLINE                  = '\n';
-  constexpr char SEPARATOR_DIMENSION                = ',';
-  constexpr char SEPARATOR_ARRAY                    = ',';
-  constexpr char SEPARATOR_SLICE                    = ':';
-  constexpr char SEPARATOR_TABLE_COLUMNS            = ' ';
-  constexpr std::string_view SEPARATOR_TABLE_HEADER = "---";
+  constexpr char SEPARATOR_NEWLINE                   = '\n';
+  constexpr char SEPARATOR_DIMENSION                 = ',';
+  constexpr char SEPARATOR_ARRAY                     = ',';
+  constexpr char SEPARATOR_SLICE                     = ':';
+  constexpr char SEPARATOR_TABLE_COLUMNS             = ' ';
+  constexpr std::string_view SEPARATOR_TABLE_HEADER  = "---";
 				        
   constexpr char SIGN_QUERY             = '?';
   constexpr char SIGN_WILDCARD          = '*';
@@ -44,6 +44,7 @@ namespace dip {
   constexpr std::string_view KEYWORD_FORMAT      = "format";
   constexpr std::string_view KEYWORD_TAGS        = "tags";
   constexpr std::string_view KEYWORD_OPTIONS     = "options";
+  constexpr std::string_view KEYWORD_DELIMITER   = "delimiter";
   constexpr std::string_view KEYWORD_CASE        = "case";
   constexpr std::string_view KEYWORD_ELSE        = "else";
   constexpr std::string_view KEYWORD_END         = "end";

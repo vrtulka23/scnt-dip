@@ -67,6 +67,31 @@ namespace dip {
     set_value(std::move(value));
   }
 
+
+  bool ValueNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+    switch (property) {
+    case PropertyType::Options:
+      // TODO: account for multidimensional arrays as individual options
+      for (auto value_option: values)
+	this->set_option(value_option, units, env); 
+      return true;
+    case PropertyType::Constant:
+      this->constant = true;
+      return true;
+    case PropertyType::Tags:
+      this->tags = values;
+      return true;
+    case PropertyType::Description:
+      this->description += values.at(0);
+      return true;
+    case PropertyType::Condition:
+      this->condition = values.at(0);
+      return true;
+    default:
+      return false;
+    }
+  }
+  
   /*
    * Validation of node properties and values
    */

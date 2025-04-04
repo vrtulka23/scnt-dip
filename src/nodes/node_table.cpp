@@ -18,10 +18,10 @@ namespace dip {
     return nullptr;
   }
 
-  inline BaseNode::NodeListType parse_nodes(const std::string& value_raw, const std::string& source_name) {
+  inline BaseNode::NodeListType parse_nodes(const std::string& value_raw, const std::string& source_name, const char delimiter) {
     std::queue<Line> lines;
     parse_lines(lines, value_raw, source_name);
-    return parse_table_nodes(lines);
+    return parse_table_nodes(lines, delimiter);
   }
   
   BaseNode::NodeListType TableNode::parse(Environment& env) {
@@ -35,10 +35,10 @@ namespace dip {
       nodes = env.request_nodes(value_raw.at(0), RequestType::Reference);
       break;
     case ValueOrigin::ReferenceRaw:
-      nodes = parse_nodes(env.request_code(value_raw.at(0)), source_name);
+      nodes = parse_nodes(env.request_code(value_raw.at(0)), source_name, delimiter);
       break;
     case ValueOrigin::String:
-      nodes = parse_nodes(value_raw.at(0), source_name);
+      nodes = parse_nodes(value_raw.at(0), source_name, delimiter);
       break;
     default:
       throw std::runtime_error("Table nodes could not be parsed: "+line.code);
@@ -55,4 +55,13 @@ namespace dip {
     return nodes;
   }
 
+  bool TableNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+    std::string delimiter_raw = values.at(0);
+    if (property==PropertyType::Delimiter and !delimiter_raw.empty()) {
+      delimiter = delimiter_raw[0];
+      return true;
+    }
+    return false;
+  }
+  
 }  

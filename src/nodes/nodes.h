@@ -13,7 +13,21 @@
 namespace dip {
 
   enum class ValueOrigin {
-    String, Reference, ReferenceRaw, Function, Expression
+    String, Reference, ReferenceRaw, Function, Expression, Property
+  };
+
+  enum class NodeDtype {
+    None, Empty,                                           // empty
+    Unit, Source,                                          // environment
+    Group, Case, Import,                                   // node structure
+    Boolean, Integer, Float, String, Table, Modification,  // data handling
+    Property,                                              // properties
+  };
+  
+  enum class PropertyType {
+    None,                                                  // not a property
+    Constant, Condition, Tags, Description,                // global properties
+    Format, Options, Delimiter                             // specific properties
   };
 
   class Node {
@@ -26,7 +40,7 @@ namespace dip {
     std::vector<std::string> value_raw;    // raw value string(s)
     BaseValue::ShapeType value_shape;      // shape of an array value
     ValueOrigin value_origin;              // origin of the value; in Python there were separate variables: value_ref, value_expr, value_func
-    //std::tuple<std::string,> value_slice;
+    // TODO: std::tuple<std::string,> value_slice;
     std::string units_raw;                 // raw units string
     DimensionType dimension;               // list of array dimensions
     Node(): indent(0), value_origin(ValueOrigin::String) {};
@@ -50,18 +64,13 @@ namespace dip {
     bool kwd_case();
     bool kwd_unit();
     bool kwd_source();
-    bool kwd_options();
-    bool kwd_constant();
-    bool kwd_format();
-    bool kwd_tags();
-    bool kwd_description();
-    bool kwd_condition();
+    bool kwd_property(PropertyType& ptype);
     bool part_indent();
-    bool part_name(bool required=true);
-    bool part_key(bool required=true);
-    bool part_type(bool required=true);
+    bool part_name(const bool required=true);
+    bool part_key(const bool required=true);
+    bool part_type(const bool required=true);
     bool part_dimension();
-    bool part_equal(bool required=true);
+    bool part_equal(const bool required=true);
     bool part_reference(const bool inject=false);
     bool part_expression();
     bool part_function();
@@ -71,15 +80,9 @@ namespace dip {
     bool part_slice();
     bool part_units();
     bool part_comment();
-    bool part_delimiter(char symbol, bool required=true);
+    bool part_delimiter(const char symbol, const bool required=true);
   };
 
-  enum class NodeDtype {
-    None, Empty, Group, Unit, Source, Case, Modification, Import,
-    Boolean, String, Integer, Float, Table,
-    Options, Constant, Format, Condition, Tags, Description
-  };
-  
   class BaseNode: virtual public Node {
   public:
     NodeDtype dtype;                       // data type of a node; in Python this was 'keyword' variable in Node class
@@ -92,6 +95,7 @@ namespace dip {
     BaseNode(Parser& parser, const NodeDtype dt);
     virtual ~BaseNode() = default;
     virtual NodeListType parse(Environment& env);
+    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env);
   };
 
   class EmptyNode: public BaseNode {
@@ -145,9 +149,11 @@ namespace dip {
   
   class TableNode: public BaseNode {
   public:
+    char delimiter;
     static BaseNode::PointerType is_node(Parser& parser);
-    TableNode(Parser& parser): BaseNode(parser, NodeDtype::Table) {};
+    TableNode(Parser& parser): BaseNode(parser, NodeDtype::Table), delimiter(SEPARATOR_TABLE_COLUMNS) {};
     BaseNode::NodeListType parse(Environment& env) override;
+    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
   };
 
   /*
@@ -183,6 +189,7 @@ namespace dip {
     void modify_value(BaseNode::PointerType node, Environment& env);
     virtual void set_option(const std::string& option_value, const std::string& option_units, Environment& env) = 0;
     virtual BaseNode::PointerType clone(const std::string& nm) const = 0;
+    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
     void validate_constant() const;
     void validate_definition() const;
     void validate_condition() const;
@@ -215,6 +222,7 @@ namespace dip {
     BaseNode::NodeListType parse(Environment& env) override;
     void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
+    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
     void validate_format() const override;
   };
 
@@ -259,53 +267,13 @@ namespace dip {
   /*
    *  Property nodes
    */
-  
+
   class PropertyNode: public virtual BaseNode {
   public:
+    PropertyType ptype; 
+    static BaseNode::PointerType is_node(Parser& parser);
+    PropertyNode(Parser& parser, PropertyType pt): BaseNode(parser, NodeDtype::Property), ptype(pt) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    virtual void set_property(Environment& env, ValueNode::PointerType vnode) = 0;
-  };
-  
-  class OptionsNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    OptionsNode(Parser& parser): BaseNode(parser, NodeDtype::Options) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
-  };
-  
-  class ConstantNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    ConstantNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
-  };
-  
-  class FormatNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    FormatNode(Parser& parser): BaseNode(parser, NodeDtype::Format) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
-  };
-
-  class TagsNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    TagsNode(Parser& parser): BaseNode(parser, NodeDtype::Tags) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
-  };
-  
-  class DescriptionNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    DescriptionNode(Parser& parser): BaseNode(parser, NodeDtype::Constant) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
-  };
-  
-  class ConditionNode: public PropertyNode {
-  public:
-    static BaseNode::PointerType is_node(Parser& parser);
-    ConditionNode(Parser& parser): BaseNode(parser, NodeDtype::Condition) {};
-    void set_property(Environment& env, ValueNode::PointerType vnode) override;
   };
   
   // helper function that create a scalar value node pointer from a C++ data type

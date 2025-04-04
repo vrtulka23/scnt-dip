@@ -3,7 +3,7 @@
 #include "nodes.h"
 
 namespace dip {
-
+  
   BaseNode::BaseNode(Parser& parser, const NodeDtype dt): dtype(dt) {
     line = parser.line;
     indent = parser.indent;
@@ -18,6 +18,11 @@ namespace dip {
   
   BaseNode::NodeListType BaseNode::parse(Environment& env) {
     return {};
+  }
+
+  bool BaseNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+    throw std::runtime_error("Properties are not implemented for this node: "+line.code);
+    return false;
   }
   
 }
