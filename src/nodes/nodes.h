@@ -13,7 +13,7 @@
 namespace dip {
 
   enum class ValueOrigin {
-    String, Reference, ReferenceRaw, Function, Expression, Property
+    String, Reference, ReferenceRaw, Function, Expression
   };
 
   enum class NodeDtype {
