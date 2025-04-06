@@ -216,6 +216,7 @@ TEST(Properties, OptionsInteger) {
 
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options.size(), 3);
   EXPECT_EQ(vnode->options[0].value->to_string(), "16");
   EXPECT_EQ(vnode->options[1].value->to_string(), "32");
   EXPECT_EQ(vnode->options[2].value->to_string(), "64");
@@ -247,6 +248,7 @@ TEST(Properties, OptionsFloat) {
 
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options.size(), 3);
   EXPECT_EQ(vnode->options[0].value->to_string(), "1.0000");
   EXPECT_EQ(vnode->options[1].value->to_string(), "2.3400");
   EXPECT_EQ(vnode->options[2].value->to_string(), "5.6000e+07");
@@ -277,6 +279,7 @@ TEST(Properties, OptionsString) {
   EXPECT_EQ(env.nodes.size(), 1);  // tags is not returned as a separate node
   dip::ValueNode::PointerType vnode = std::dynamic_pointer_cast<dip::ValueNode>(env.nodes.at(0));
   EXPECT_TRUE(vnode);
+  EXPECT_EQ(vnode->options.size(), 3);
   EXPECT_EQ(vnode->options[0].value->to_string(), "bar");
   EXPECT_EQ(vnode->options[1].value->to_string(), "snap");
   EXPECT_EQ(vnode->options[2].value->to_string(), "pow");
@@ -314,10 +317,10 @@ TEST(Properties, TableDelimiter) {
   d.add_string("foo table = \"\"\"bar int");
   d.add_string("baz bool");
   d.add_string("---");
-  d.add_string("1 true");
-  d.add_string("2 false");
+  d.add_string("1, true");
+  d.add_string("2, false");
   d.add_string("\"\"\"");
-  //d.add_string("  !delimiter ,");
+  d.add_string("  !delimiter ,");
   dip::Environment env = d.parse();
   EXPECT_EQ(env.nodes.size(), 2);
 

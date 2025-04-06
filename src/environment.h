@@ -18,7 +18,6 @@ namespace dip {
     HierarchyList hierarchy;
     BranchingList branching;
     FunctionList functions;
-    NodeDtype previous_node;  // keeps track of the previously parsed node; needed for node properties
     Environment();
     std::string request_code(const std::string& source_name) const;
     BaseValue::PointerType request_value(const std::string& request, const RequestType rtype, const std::string& to_unit="") const;

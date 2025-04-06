@@ -144,8 +144,19 @@ namespace dip {
       // split a table line into node values
       Parser parser(line);
       for (size_t i=0; i<nodes.size(); i++) {
-	if (i>0)
-	  parser.part_delimiter(delimiter);
+	// parse delimiter
+	if (i>0) {  
+	  auto node = nodes.at(i-1);
+	  if (node->value_raw.back().back()==delimiter) {
+	    // delimiter was parsed with the first value (e.g. if value was not given in quote marks)
+	    node->value_raw.back().pop_back();
+	    parser.part_indent();
+	  } else {
+	    // delimiter still needs to be parsed
+	    parser.part_delimiter(delimiter);
+	  }
+	}
+	// parse a column value
 	auto node = nodes.at(i);
 	parser.value_raw.clear();
 	if (parser.part_string()) {

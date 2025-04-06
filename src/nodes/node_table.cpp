@@ -55,7 +55,7 @@ namespace dip {
     return nodes;
   }
 
-  bool TableNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+  bool TableNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
     std::string delimiter_raw = values.at(0);
     if (property==PropertyType::Delimiter and !delimiter_raw.empty()) {
       delimiter = delimiter_raw[0];

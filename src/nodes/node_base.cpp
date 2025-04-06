@@ -20,7 +20,7 @@ namespace dip {
     return {};
   }
 
-  bool BaseNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+  bool BaseNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
     throw std::runtime_error("Properties are not implemented for this node: "+line.code);
     return false;
   }

@@ -102,15 +102,26 @@ namespace dip {
     return "DIP";
   }
 
+  // Set nodes that can preceeding an option
+  static constexpr std::array<NodeDtype,13> preceeding_nodes = {
+    NodeDtype::Boolean,NodeDtype::Integer,NodeDtype::Float,NodeDtype::String,NodeDtype::Table
+  };
+  
   Environment DIP::parse() {
     NodeList queue = parse_code_nodes(lines);
-    // parse property nodes
+    // set properties to nodes
     BaseNode::PointerType previous_node = nullptr;
     for (size_t i = 0; i < queue.size(); ++i) {
       BaseNode::PointerType current_node = queue.at(i);
       if (current_node->dtype==NodeDtype::Property) {
-	std::cout << current_node->line.code << std::endl;
-	//previous_node.set_property(current_node);
+	PropertyNode::PointerType pnode = std::dynamic_pointer_cast<PropertyNode>(current_node);
+	if (std::find(preceeding_nodes.begin(), preceeding_nodes.end(), previous_node->dtype) == preceeding_nodes.end())
+	  throw std::runtime_error("Only value nodes (bool, int, float and str) can have properties: "+pnode->line.code);
+	if (previous_node->indent>=pnode->indent)
+	  throw std::runtime_error("The indent '"+std::to_string(pnode->indent)+"' of a property is not higher than the indent '"+
+				   std::to_string(previous_node->indent)+"' of a preceding node: "+pnode->line.code);
+	if (!previous_node->set_property(pnode->ptype, pnode->value_raw, pnode->units_raw))
+	  throw std::runtime_error("Property could not be set: "+pnode->line.code);
       } else {
 	previous_node = current_node;
       }
@@ -119,6 +130,8 @@ namespace dip {
     Environment target = env;
     while (queue.size()>0) {
       BaseNode::PointerType node = queue.pop_front();
+      if (node->dtype==NodeDtype::Property)
+	continue;
       if (!target.branching.false_case() or node->dtype==NodeDtype::Case) {
 	// Perform specific node parsing only outside of case or inside of valid case
 	BaseNode::NodeListType parsed = node->parse(target);
@@ -130,8 +143,6 @@ namespace dip {
 	  continue;
 	}
       }
-      // Register previous node
-      target.previous_node = node->dtype;
       // Create hierarchical names
       target.hierarchy.record(node, nodes_nohierarchy);
       // Add nodes to the node list

@@ -95,32 +95,6 @@ namespace dip {
     }
   }
   
-  void FloatNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
-    // TODO: variable precision x should be implemented
-    BaseValue::PointerType ovalue;
-    switch (value_dtype) {
-    case ValueDtype::Float32:
-      ovalue = std::make_unique<ScalarValue<float>>(std::stof(option_value), ValueDtype::Float32);
-      break;
-    case ValueDtype::Float64:
-      ovalue = std::make_unique<ScalarValue<double>>(std::stod(option_value), ValueDtype::Float64);
-      break;
-    case ValueDtype::Float128:
-      ovalue = std::make_unique<ScalarValue<long double>>(std::stold(option_value), ValueDtype::Float128);
-      break;
-    default:
-      throw std::runtime_error("Option value cannot be casted as "+dtype_raw[2]+" bit float type from the given string: "+option_value);
-    }
-    QuantityNode* qnode = dynamic_cast<QuantityNode*>(this);
-    if (qnode and !option_units.empty()) {
-      if (qnode->units==nullptr)
-	throw std::runtime_error("Trying to convert '"+option_units+"' into a nondimensional quantity: "+line.code);
-      else
-	ovalue->convert_units(option_units, qnode->units);
-    }
-    options.push_back({std::move(ovalue), option_value, option_units});
-  }
-  
   BaseNode::PointerType FloatNode::clone(const std::string& nm) const {
     if (value==nullptr) 
       return std::make_shared<FloatNode>(nm, nullptr, value->dtype);

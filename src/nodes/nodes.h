@@ -95,7 +95,7 @@ namespace dip {
     BaseNode(Parser& parser, const NodeDtype dt);
     virtual ~BaseNode() = default;
     virtual NodeListType parse(Environment& env);
-    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env);
+    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units);
   };
 
   class EmptyNode: public BaseNode {
@@ -153,7 +153,7 @@ namespace dip {
     static BaseNode::PointerType is_node(Parser& parser);
     TableNode(Parser& parser): BaseNode(parser, NodeDtype::Table), delimiter(SEPARATOR_TABLE_COLUMNS) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
+    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
   };
 
   /*
@@ -187,9 +187,8 @@ namespace dip {
     BaseValue::PointerType cast_value(std::vector<std::string>& value_input, const BaseValue::ShapeType& shape);
     void set_value(BaseValue::PointerType value_input=nullptr);
     void modify_value(BaseNode::PointerType node, Environment& env);
-    virtual void set_option(const std::string& option_value, const std::string& option_units, Environment& env) = 0;
     virtual BaseNode::PointerType clone(const std::string& nm) const = 0;
-    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
+    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
     void validate_constant() const;
     void validate_definition() const;
     void validate_condition() const;
@@ -207,7 +206,6 @@ namespace dip {
     BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::Boolean), ValueNode(nm, std::move(val), ValueDtype::Boolean) {};
     BooleanNode(Parser& parser): BaseNode(parser, NodeDtype::Boolean), ValueNode(ValueDtype::Boolean) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
     void validate_options() const override;
   };  
@@ -220,9 +218,8 @@ namespace dip {
     StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::String), ValueNode(nm, std::move(val), ValueDtype::String) {};
     StringNode(Parser& parser): BaseNode(parser, NodeDtype::String), ValueNode(ValueDtype::String) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
-    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) override;
+    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
     void validate_format() const override;
   };
 
@@ -247,7 +244,6 @@ namespace dip {
     IntegerNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): BaseNode(NodeDtype::Boolean), ValueNode(nm, std::move(val), vdt) {};
     IntegerNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
   };  
   
@@ -260,7 +256,6 @@ namespace dip {
     FloatNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): BaseNode(NodeDtype::Float), ValueNode(nm, std::move(val), vdt) {};
     FloatNode(Parser& parser);
     BaseNode::NodeListType parse(Environment& env) override;
-    void set_option(const std::string& option_value, const std::string& option_units, Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
   };  
   
@@ -270,10 +265,10 @@ namespace dip {
 
   class PropertyNode: public virtual BaseNode {
   public:
+    typedef std::shared_ptr<PropertyNode> PointerType;
     PropertyType ptype; 
     static BaseNode::PointerType is_node(Parser& parser);
     PropertyNode(Parser& parser, PropertyType pt): BaseNode(parser, NodeDtype::Property), ptype(pt) {};
-    BaseNode::NodeListType parse(Environment& env) override;
   };
   
   // helper function that create a scalar value node pointer from a C++ data type

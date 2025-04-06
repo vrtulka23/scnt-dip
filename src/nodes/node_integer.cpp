@@ -132,44 +132,6 @@ namespace dip {
     }    
   }
 
-  void IntegerNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
-    // TODO: variable precision x should be implemented
-    BaseValue::PointerType ovalue;
-    switch (value_dtype) {
-    case ValueDtype::Integer16_U:
-      ovalue = std::make_unique<ScalarValue<unsigned short>>((unsigned short)std::stoul(option_value), ValueDtype::Integer16_U);
-      break;
-    case ValueDtype::Integer16:
-      ovalue = std::make_unique<ScalarValue<short>>((short)std::stoi(option_value), ValueDtype::Integer16);
-      break;
-    case ValueDtype::Integer32_U:
-      ovalue = std::make_unique<ScalarValue<unsigned int>>(std::stoul(option_value), ValueDtype::Integer32_U);
-      break;
-    case ValueDtype::Integer32:
-      ovalue = std::make_unique<ScalarValue<int>>(std::stoi(option_value), ValueDtype::Integer32);
-      break;
-    case ValueDtype::Integer64_U:
-      ovalue = std::make_unique<ScalarValue<unsigned long long>>(std::stoull(option_value), ValueDtype::Integer64_U);
-      break;
-    case ValueDtype::Integer64:
-      ovalue = std::make_unique<ScalarValue<long long>>(std::stoll(option_value), ValueDtype::Integer64);
-      break;
-    default:
-      if (dtype_raw[0]=="u")
-	throw std::runtime_error("Option value cannot be casted as unsigned "+dtype_raw[0]+" bit integer type from the given string: "+option_value);
-      else
-	throw std::runtime_error("Option value cannot be casted as "+dtype_raw[0]+" bit integer type from the given string: "+option_value);
-    }
-    QuantityNode* qnode = dynamic_cast<QuantityNode*>(this);
-    if (qnode and !option_units.empty()) {
-      if (qnode->units==nullptr)
-	throw std::runtime_error("Trying to convert '"+option_units+"' into a nondimensional quantity: "+line.code);
-      else
-	ovalue->convert_units(option_units, qnode->units);
-    }
-    options.push_back({std::move(ovalue), option_value, option_units});
-  }
-  
   BaseNode::PointerType IntegerNode::clone(const std::string& nm) const {
     if (value==nullptr) 
       return std::make_shared<IntegerNode>(nm, nullptr, value->dtype);

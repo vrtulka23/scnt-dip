@@ -51,11 +51,6 @@ namespace dip {
     return std::make_unique<ArrayValue<std::string>>(value_inputs, shape, value_dtype);
   }
   
-  void StringNode::set_option(const std::string& option_value, const std::string& option_units, Environment& env) {
-    BaseValue::PointerType ovalue = std::make_unique<ScalarValue<std::string>>(option_value, value_dtype);
-    options.push_back({std::move(ovalue), option_value, option_units});
-  }
-
   BaseNode::PointerType StringNode::clone(const std::string& nm) const {
     if (value==nullptr) 
       return std::make_shared<StringNode>(nm, nullptr);
@@ -63,8 +58,8 @@ namespace dip {
       return std::make_shared<StringNode>(nm, std::move(value->clone()));
   }
 
-  bool StringNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
-    if (ValueNode::set_property(property, values, units, env)) {
+  bool StringNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
+    if (ValueNode::set_property(property, values, units)) {
       return true;
     } else if (property==PropertyType::Format) {
       this->format = values.at(0);

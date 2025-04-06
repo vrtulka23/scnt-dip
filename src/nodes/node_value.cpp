@@ -27,7 +27,6 @@ namespace dip {
     } else {
       return cast_scalar_value(value_input.at(0));
     }
-
   }
 
   void ValueNode::set_value(BaseValue::PointerType value_input) {
@@ -67,25 +66,28 @@ namespace dip {
     set_value(std::move(value));
   }
 
-
-  bool ValueNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units, Environment& env) {
+  bool ValueNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
     switch (property) {
     case PropertyType::Options:
-      // TODO: account for multidimensional arrays as individual options
-      for (auto value_option: values)
-	this->set_option(value_option, units, env); 
+      for (auto value_option: values) {
+	if (dtype==NodeDtype::Boolean)
+	      throw std::runtime_error("Option property is not implemented for boolean nodes: "+line.code);
+	// TODO: account for multidimensional arrays as individual options
+	BaseValue::PointerType ovalue = cast_scalar_value(value_option);
+	options.push_back({std::move(ovalue), value_option, units});
+      }
       return true;
     case PropertyType::Constant:
-      this->constant = true;
+      constant = true;
       return true;
     case PropertyType::Tags:
-      this->tags = values;
+      tags = values;
       return true;
     case PropertyType::Description:
-      this->description += values.at(0);
+      description += values.at(0);
       return true;
     case PropertyType::Condition:
-      this->condition = values.at(0);
+      condition = values.at(0);
       return true;
     default:
       return false;
