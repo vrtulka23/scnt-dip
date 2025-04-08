@@ -38,8 +38,8 @@ namespace dip {
       break;
     case ValueOrigin::ReferenceRaw: {
       std::string source_code = env.request_code(value_raw.at(0));
-      std::vector<std::string> source_value_raw;
-      BaseValue::ShapeType source_value_shape;
+      Array::StringType source_value_raw;
+      Array::ShapeType source_value_shape;
       parse_value(source_code, source_value_raw, source_value_shape);
       set_value(cast_value(source_value_raw, source_value_shape));
       break;
@@ -48,7 +48,6 @@ namespace dip {
       break;
     }
     // TODO: process expression
-    // TODO: process units
     return {};
   }  
   
@@ -66,7 +65,7 @@ namespace dip {
     }
   }
   
-  BaseValue::PointerType FloatNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
+  BaseValue::PointerType FloatNode::cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const {
     // TODO: variable precision x should be implemented
     switch (value_dtype) {
     case ValueDtype::Float32: {

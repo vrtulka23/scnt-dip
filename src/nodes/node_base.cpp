@@ -13,6 +13,7 @@ namespace dip {
     value_raw = parser.value_raw;
     value_shape = parser.value_shape;
     value_origin = parser.value_origin;
+    value_slice = parser.value_slice;
     units_raw = parser.units_raw;
   }
   
@@ -20,7 +21,7 @@ namespace dip {
     return {};
   }
 
-  bool BaseNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
+  bool BaseNode::set_property(PropertyType property, Array::StringType& values, std::string& units) {
     throw std::runtime_error("Properties are not implemented for this node: "+line.code);
     return false;
   }

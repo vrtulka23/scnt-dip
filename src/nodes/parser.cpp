@@ -108,7 +108,7 @@ namespace dip {
       else if (key==KEYWORD_DESCRIPTION)  ptype = PropertyType::Description;
       else if (key==KEYWORD_CONDITION)	  ptype = PropertyType::Condition;
       else if (key==KEYWORD_DELIMITER)	  ptype = PropertyType::Delimiter;
-      dimension.push_back({0,-1});
+      dimension.push_back({0,Array::max_range});
       strip(matchResult[0].str());
       return true;
     }
@@ -181,26 +181,8 @@ namespace dip {
     std::regex pattern("^\\[([0-9:,]*)\\]");
     std::smatch matchResult;
     if (std::regex_search(code, matchResult, pattern)) {
-      std::istringstream ss_dims(matchResult[1].str());
-      std::string dim;
-      while (getline(ss_dims, dim, SEPARATOR_DIMENSION)) {
-	std::tuple<int,int> slice;
-	std::size_t pos = dim.find_first_of(SEPARATOR_SLICE);
-	if (pos==std::string::npos) {
-	  slice = {std::stoi(dim), std::stoi(dim)};
-	} else {
-	  std::string dmin=dim.substr(0,pos), dmax=dim.substr(pos+1);
-	  if (dmin=="" and dmax=="")
-	    slice = {0, -1};
-	  else if (dmin=="")
-	    slice = {0, std::stoi(dmax)};
-	  else if (dmax=="") {
-	    slice = {std::stoi(dmin), -1};
-	  } else
-	    slice = {std::stoi(dmin), std::stoi(dmax)};
-	}
-	dimension.push_back(slice);
-      }
+      std::string slices = matchResult[1].str();
+      parse_slices(slices, dimension);
       if (dimension.empty())
 	throw std::runtime_error("Dimension settings cannot be empty: "+line.code);
       strip(matchResult[0].str());
@@ -236,6 +218,7 @@ namespace dip {
 	throw std::runtime_error("Reference cannot be empty: "+line.code);
       // TODO: implement inject switch
       strip(matchResult[0].str());
+      part_slice();
       return true;
     }
     return false;
@@ -299,6 +282,16 @@ namespace dip {
   }
   
   bool Parser::part_slice() {
+    std::regex pattern("^\\[([0-9:,]*)\\]");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      std::string slices = matchResult[1].str();
+      parse_slices(slices, value_slice);
+      if (value_slice.empty())
+	return false;
+      strip(matchResult[0].str());
+      return true;
+    }
     return false;
   }
     

@@ -32,17 +32,16 @@ namespace dip {
 
   class Node {
   public:
-    typedef std::vector<std::tuple<int,int>> DimensionType;
     Line line;                             // source code line information; in Python this were 'code' & 'source' variables
     size_t indent;                         // indent of a node
     std::string name;                      // node name
     std::array<std::string,3> dtype_raw;   // data type properties (unsigned/type/precision)
-    std::vector<std::string> value_raw;    // raw value string(s)
-    BaseValue::ShapeType value_shape;      // shape of an array value
+    Array::StringType value_raw;    // raw value string(s)
+    Array::ShapeType value_shape;      // shape of an array value
     ValueOrigin value_origin;              // origin of the value; in Python there were separate variables: value_ref, value_expr, value_func
-    // TODO: std::tuple<std::string,> value_slice;
+    Array::RangeType value_slice;          // slice of an injected node value
     std::string units_raw;                 // raw units string
-    DimensionType dimension;               // list of array dimensions
+    Array::RangeType dimension;            // list of array dimensions
     Node(): indent(0), value_origin(ValueOrigin::String) {};
     Node(const Line& l): line(l), indent(0), value_origin(ValueOrigin::String) {};
     Node(const std::string& nm): name(nm), indent(0), value_origin(ValueOrigin::String) {};
@@ -95,7 +94,7 @@ namespace dip {
     BaseNode(Parser& parser, const NodeDtype dt);
     virtual ~BaseNode() = default;
     virtual NodeListType parse(Environment& env);
-    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units);
+    virtual bool set_property(PropertyType property, Array::StringType& values, std::string& units);
   };
 
   class EmptyNode: public BaseNode {
@@ -153,7 +152,7 @@ namespace dip {
     static BaseNode::PointerType is_node(Parser& parser);
     TableNode(Parser& parser): BaseNode(parser, NodeDtype::Table), delimiter(SEPARATOR_TABLE_COLUMNS) {};
     BaseNode::NodeListType parse(Environment& env) override;
-    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
+    bool set_property(PropertyType property, Array::StringType& values, std::string& units) override;
   };
 
   /*
@@ -162,7 +161,7 @@ namespace dip {
   
   class ValueNode: virtual public BaseNode {
     virtual BaseValue::PointerType cast_scalar_value(const std::string& value_input) const = 0;
-    virtual BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const = 0;
+    virtual BaseValue::PointerType cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const = 0;
   protected:
     struct OptionStruct {
       BaseValue::PointerType value;
@@ -173,7 +172,7 @@ namespace dip {
   public:
     typedef std::shared_ptr<ValueNode> PointerType;
     BaseValue::PointerType value;
-    std::vector<std::string> tags;
+    Array::StringType tags;
     bool constant;
     std::string description;
     std::string condition;
@@ -184,11 +183,11 @@ namespace dip {
     ValueNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt);
     virtual ~ValueNode() = default;
     BaseValue::PointerType cast_value();
-    BaseValue::PointerType cast_value(std::vector<std::string>& value_input, const BaseValue::ShapeType& shape);
+    BaseValue::PointerType cast_value(Array::StringType& value_input, const Array::ShapeType& shape);
     void set_value(BaseValue::PointerType value_input=nullptr);
     void modify_value(BaseNode::PointerType node, Environment& env);
     virtual BaseNode::PointerType clone(const std::string& nm) const = 0;
-    virtual bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
+    virtual bool set_property(PropertyType property, Array::StringType& values, std::string& units) override;
     void validate_constant() const;
     void validate_definition() const;
     void validate_condition() const;
@@ -200,7 +199,7 @@ namespace dip {
   
   class BooleanNode: public ValueNode {
     BaseValue::PointerType cast_scalar_value(const std::string& value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+    BaseValue::PointerType cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const override;
   public:
     static BaseNode::PointerType is_node(Parser& parser);
     BooleanNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::Boolean), ValueNode(nm, std::move(val), ValueDtype::Boolean) {};
@@ -212,14 +211,14 @@ namespace dip {
   
   class StringNode: public ValueNode {
     BaseValue::PointerType cast_scalar_value(const std::string& value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+    BaseValue::PointerType cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const override;
   public:
     static BaseNode::PointerType is_node(Parser& parser);
     StringNode(const std::string& nm, BaseValue::PointerType val): BaseNode(NodeDtype::String), ValueNode(nm, std::move(val), ValueDtype::String) {};
     StringNode(Parser& parser): BaseNode(parser, NodeDtype::String), ValueNode(ValueDtype::String) {};
     BaseNode::NodeListType parse(Environment& env) override;
     BaseNode::PointerType clone(const std::string& nm) const override;
-    bool set_property(PropertyType property, std::vector<std::string>& values, std::string& units) override;
+    bool set_property(PropertyType property, Array::StringType& values, std::string& units) override;
     void validate_format() const override;
   };
 
@@ -237,7 +236,7 @@ namespace dip {
   
   class IntegerNode: public QuantityNode {
     BaseValue::PointerType cast_scalar_value(const std::string& value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+    BaseValue::PointerType cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const override;
   public:
     static constexpr size_t max_int_size = sizeof(long long) * CHAR_BIT;
     static BaseNode::PointerType is_node(Parser& parser);
@@ -249,7 +248,7 @@ namespace dip {
   
   class FloatNode: public QuantityNode {
     BaseValue::PointerType cast_scalar_value(const std::string& value_input) const override;
-    BaseValue::PointerType cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const override;
+    BaseValue::PointerType cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const override;
   public:
     static constexpr size_t max_float_size = sizeof(long double) * CHAR_BIT;
     static BaseNode::PointerType is_node(Parser& parser);
@@ -303,7 +302,7 @@ namespace dip {
 
   // helper function that create a array value node pointer from a C++ data type
   template <typename T>
-  BaseNode::PointerType create_array_node(const std::string& name, const std::vector<T>&  arr, BaseValue::ShapeType sh={}) {
+  BaseNode::PointerType create_array_node(const std::string& name, const std::vector<T>&  arr, Array::ShapeType sh={}) {
     if (sh.empty())
       sh.push_back(arr.size());
     BaseValue::PointerType ptr_value = create_array_value<T>(arr, sh);

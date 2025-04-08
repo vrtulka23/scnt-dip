@@ -11,8 +11,8 @@ namespace dip {
     ss << "name(" << name << ") ";
     ss << "value_raw(" << value_raw.at(0) << ") ";
     ss << "dimension(";
-    for (auto slice: dimension)
-      ss << std::get<0>(slice) << SEPARATOR_SLICE << std::get<1>(slice) << SEPARATOR_DIMENSION;
+    for (auto range: dimension)
+      ss << range.dmin << SEPARATOR_SLICE << range.dmax << SEPARATOR_DIMENSION;
     if (!dimension.empty())
       ss.seekp(-1, std::ios_base::end);
     ss << ") ";

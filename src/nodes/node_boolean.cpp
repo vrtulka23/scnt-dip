@@ -30,8 +30,8 @@ namespace dip {
       break;
     case ValueOrigin::ReferenceRaw: {
       std::string source_code = env.request_code(value_raw.at(0));
-      std::vector<std::string> source_value_raw;
-      BaseValue::ShapeType source_value_shape;
+      Array::StringType source_value_raw;
+      Array::ShapeType source_value_shape;
       parse_value(source_code, source_value_raw, source_value_shape);
       set_value(cast_value(source_value_raw, source_value_shape));
       break;
@@ -52,7 +52,7 @@ namespace dip {
       throw std::runtime_error("Value cannot be casted as boolean from the given string: "+value_input);
   }
   
-  BaseValue::PointerType BooleanNode::cast_array_value(const std::vector<std::string>& value_inputs, const BaseValue::ShapeType& shape) const {
+  BaseValue::PointerType BooleanNode::cast_array_value(const Array::StringType& value_inputs, const Array::ShapeType& shape) const {
     std::vector<bool> bool_values;
     for (auto value: value_inputs) {
       if (value==KEYWORD_TRUE)

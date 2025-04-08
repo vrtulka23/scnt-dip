@@ -11,12 +11,12 @@ TEST(ParseDimensions, Array2D) {
   dip::Environment env = d.parse();
   
   dip::BaseNode::PointerType node = env.nodes.at(0);
-  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","1","0","0","0","1"}));
-  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
+  EXPECT_EQ(node->value_raw, dip::Array::StringType({"1","1","0","0","0","1"}));
+  EXPECT_EQ(node->value_shape, dip::Array::ShapeType({2,3}));
   EXPECT_EQ(node->dtype, dip::NodeDtype::Integer);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,-1},{3,3}}));
+  EXPECT_EQ(node->dimension, dip::Array::RangeType({{2,dip::Array::max_range},{3,3}}));
   
 }
 
@@ -27,12 +27,12 @@ TEST(ParseDimensions, Array3D) {
   dip::Environment env = d.parse();
   
   dip::BaseNode::PointerType node = env.nodes.at(0);
-  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","4","5","6","7","8","9","10","11","12"}));
-  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3,2}));
+  EXPECT_EQ(node->value_raw, dip::Array::StringType({"1","2","3","4","5","6","7","8","9","10","11","12"}));
+  EXPECT_EQ(node->value_shape, dip::Array::ShapeType({2,3,2}));
   EXPECT_EQ(node->dtype, dip::NodeDtype::Integer);
   EXPECT_EQ(node->indent, 0);
   EXPECT_EQ(node->name, "foo");
-  EXPECT_EQ(node->dimension, dip::Node::DimensionType({{2,-1},{0,3},{2,2}}));
+  EXPECT_EQ(node->dimension, dip::Array::RangeType({{2,dip::Array::max_range},{0,3},{2,2}}));
   
 }
 
@@ -57,8 +57,8 @@ TEST(ParseDimensions, ExactDimensions) {
   d.add_string("foo int[2,3] = [[1,2,3],[4,5,6]]");  
   dip::Environment env = d.parse();
   dip::BaseNode::PointerType node = env.nodes.at(0);
-  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3","4","5","6"}));
-  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({2,3}));
+  EXPECT_EQ(node->value_raw, dip::Array::StringType({"1","2","3","4","5","6"}));
+  EXPECT_EQ(node->value_shape, dip::Array::ShapeType({2,3}));
   
   d = dip::DIP();
   d.add_string("foo int[2,3] = [[1,2,3,4]]");  
@@ -79,8 +79,8 @@ TEST(ParseDimensions, DimensionRanges) {
   d.add_string("foo int[:2,2:] = [[1,2,3]]");  
   dip::Environment env = d.parse();
   dip::BaseNode::PointerType node = env.nodes.at(0);
-  EXPECT_EQ(node->value_raw, std::vector<std::string>({"1","2","3"}));
-  EXPECT_EQ(node->value_shape, dip::BaseValue::ShapeType({1,3}));
+  EXPECT_EQ(node->value_raw, dip::Array::StringType({"1","2","3"}));
+  EXPECT_EQ(node->value_shape, dip::Array::ShapeType({1,3}));
 
   d = dip::DIP();
   d.add_string("foo int[2:,:2] = [[1,2,3]]");  

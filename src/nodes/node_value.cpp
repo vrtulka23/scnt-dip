@@ -6,7 +6,7 @@ namespace dip {
 
   ValueNode::ValueNode(const std::string& nm, BaseValue::PointerType val, const ValueDtype vdt): constant(false), value_dtype(vdt) {
     name=nm;
-    BaseValue::ShapeType dims = val->get_shape();
+    Array::ShapeType dims = val->get_shape();
     if (val->get_size()>1) {
       dimension.clear();
       for (int dim: dims)
@@ -19,7 +19,7 @@ namespace dip {
     return cast_value(value_raw, value_shape);
   }
 
-  BaseValue::PointerType ValueNode::cast_value(std::vector<std::string>& value_input, const BaseValue::ShapeType& shape) {
+  BaseValue::PointerType ValueNode::cast_value(Array::StringType& value_input, const Array::ShapeType& shape) {
     if (!dimension.empty()) {
       return cast_array_value(value_input, shape);
     } else if (value_input.size()>1) {
@@ -42,6 +42,8 @@ namespace dip {
       }
     }
     if (value!=nullptr) {
+      if (!value_slice.empty())
+	value = value->slice(value_slice);
       if (dimension.empty()) {
 	if (value->get_size()>1)
 	  throw std::runtime_error("Assigning array value to the scalar node: "+line.code);
@@ -66,7 +68,7 @@ namespace dip {
     set_value(std::move(value));
   }
 
-  bool ValueNode::set_property(PropertyType property, std::vector<std::string>& values, std::string& units) {
+  bool ValueNode::set_property(PropertyType property, Array::StringType& values, std::string& units) {
     switch (property) {
     case PropertyType::Options:
       for (auto value_option: values) {
@@ -142,23 +144,23 @@ namespace dip {
   }
 
   void ValueNode::validate_dimensions() const {
-    BaseValue::ShapeType vdim = value->get_shape();
-    if (dimension.size()!=vdim.size())
+    Array::ShapeType vdim = value->get_shape();
+    if (dimension.size()!=vdim.size()) 
       throw std::runtime_error("Number of value dimensions does not match that of node: "+std::to_string(vdim.size())+"!="+std::to_string(dimension.size()));
-    for (int i=0; i<dimension.size(); i++) {
-      int dmin = std::get<0>(dimension[i]);
-      int dmax = std::get<1>(dimension[i]);
-      if (dmax<0)
+    for (size_t i=0; i<dimension.size(); i++) {
+      int dmin = dimension[i].dmin; // must be int and not size_t because
+      int dmax = dimension[i].dmax; // dimension ranges can be -1
+      if (dmax==Array::max_range)
 	dmax = vdim[i];
       if (vdim[i]<dmin or dmax<vdim[i]) {
 	std::ostringstream nss, vss;
-	for (int j=0; j<dimension.size(); j++) {
+	for (size_t j=0; j<dimension.size(); j++) {
 	  if (j>0) {
 	    nss << ",";
 	    vss << ",";
 	  }
-	  dmin = std::get<0>(dimension[j]);
-	  dmax = std::get<1>(dimension[j]);
+	  dmin = dimension[j].dmin;
+	  dmax = dimension[j].dmax;
 	  if (dmin==0 and dmax<0)
 	    nss << SEPARATOR_SLICE;
 	  else if (dmin==dmax)

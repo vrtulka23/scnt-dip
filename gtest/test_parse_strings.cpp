@@ -65,6 +65,6 @@ TEST(ParseStrings, CommentSymbol) {
   EXPECT_EQ(node->value_raw.at(0), "baz#foo");
   node = env.nodes.at(2);
   EXPECT_EQ(node->name, "baz");
-  EXPECT_EQ(node->value_raw, std::vector<std::string>({"foo#","bar"}));  
+  EXPECT_EQ(node->value_raw, dip::Array::StringType({"foo#","bar"}));  
   
 }
