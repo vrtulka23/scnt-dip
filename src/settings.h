@@ -36,8 +36,14 @@ namespace dip {
   constexpr std::string_view SIGN_BLOCK = "\"\"\"";
 
   // Keywords
+  constexpr std::string_view KEYWORD_BOOLEAN     = "bool";
+  constexpr std::string_view KEYWORD_INTEGER     = "int";
+  constexpr std::string_view KEYWORD_FLOAT       = "float";
+  constexpr std::string_view KEYWORD_STRING      = "str";
+  
   constexpr std::string_view KEYWORD_TRUE        = "true";
   constexpr std::string_view KEYWORD_FALSE       = "false";
+  
   constexpr std::string_view KEYWORD_CONSTANT    = "constant";
   constexpr std::string_view KEYWORD_CONDITION   = "condition";
   constexpr std::string_view KEYWORD_DESCRIPTION = "descr";
@@ -45,9 +51,11 @@ namespace dip {
   constexpr std::string_view KEYWORD_TAGS        = "tags";
   constexpr std::string_view KEYWORD_OPTIONS     = "options";
   constexpr std::string_view KEYWORD_DELIMITER   = "delimiter";
+  
   constexpr std::string_view KEYWORD_CASE        = "case";
   constexpr std::string_view KEYWORD_ELSE        = "else";
   constexpr std::string_view KEYWORD_END         = "end";
+  
   constexpr std::string_view KEYWORD_SOURCE      = "source";
   constexpr std::string_view KEYWORD_UNIT        = "unit";
 

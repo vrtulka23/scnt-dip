@@ -31,6 +31,7 @@ namespace dip {
     virtual BaseValue::PointerType slice(const Array::RangeType& slice) = 0;
     virtual void convert_units(const std::string& from_units, const Quantity::PointerType& to_quantity) = 0;
     virtual void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) = 0;
+    virtual explicit operator bool() const = 0;
   };
 
   
@@ -102,6 +103,9 @@ namespace dip {
       quantity = quantity.convert(to_units);
       this->value = quantity.value.magnitude.value.value.at(0);
     };
+    explicit operator bool() const override {
+      return static_cast<bool>(this->value);
+    }
   };
   
   template <>
@@ -118,6 +122,9 @@ namespace dip {
     };
     BaseValue::PointerType clone() const override {
       return std::make_unique<ScalarValue<std::string>>(this->value, this->dtype);
+    }
+    explicit operator bool() const override {
+      return static_cast<bool>(value.size());
     }
   };
 
@@ -138,6 +145,9 @@ namespace dip {
     };
     BaseValue::PointerType clone() const override {
       return std::make_unique<ScalarValue<bool>>(this->value, this->dtype);
+    }
+    explicit operator bool() const override {
+      return value;
     }
   };
 
@@ -246,6 +256,11 @@ namespace dip {
     void convert_units(const Quantity::PointerType& from_quantity, const std::string& to_units) override {
       throw std::runtime_error("Array value of type '"+std::string(ValueDtypeNames[dtype])+"' does not support unit conversion.");
     };
+    explicit operator bool() const override {
+      // TODO: Implement bool conversion of arrays
+      throw std::runtime_error("Bool conversion of arrays is not implemented!!!");
+      return false;
+    }
   };
   
   template <typename T>

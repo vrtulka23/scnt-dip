@@ -118,6 +118,10 @@ namespace dip {
   /*
    * Node Parts
    */
+
+  bool Parser::part_space(const bool required) {
+    return false;
+  }
   
   bool Parser::part_indent() {
     std::regex pattern("^[ ]+");
@@ -146,27 +150,10 @@ namespace dip {
     return false;
   }
   
-  bool Parser::part_key(const bool required) {
-    constexpr auto pstr = ce_concat<50>("^", PATTERN_KEY, "+");
+  bool Parser::part_type(const bool required) {
+    constexpr auto pstr = ce_concat<70>("^[ ]+(u|)(", KEYWORD_BOOLEAN, "|", KEYWORD_INTEGER, "|", KEYWORD_FLOAT, "|", KEYWORD_STRING, "|table)(16|32|64|128|x|)");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
-    if (std::regex_search(code, matchResult, pattern)) {
-      value_raw.push_back(matchResult[0].str());
-      value_origin = ValueOrigin::String;
-      strip(matchResult[0].str());
-      if (do_continue() and code[0]!=' ')
-	throw std::runtime_error("Key has an invalid format: "+line.code);
-      return true;
-    } else if (required) {
-      throw std::runtime_error("Key has an invalid format: "+line.code);
-    }
-    return false;
-  }
-  
-  bool Parser::part_type(const bool required) {
-    std::smatch matchResult;
-    std::regex pattern;
-    pattern = "^[ ]+(u|)(bool|int|float|str|table)(16|32|64|128|x|)";
     if (std::regex_search(code, matchResult, pattern)) {
       dtype_raw = {matchResult[1].str(), matchResult[2].str(), matchResult[3].str()};
       strip(matchResult[0].str());
@@ -177,6 +164,72 @@ namespace dip {
     return false;
   }
 
+  bool Parser::part_literal() {
+    std::string trimmed = code;
+    trimmed.erase(0, trimmed.find_first_not_of(" \t\n\r"));
+    trimmed.erase(trimmed.find_last_not_of(" \t\n\r") + 1);
+    // Check Boolean
+    if (trimmed == KEYWORD_TRUE || trimmed == KEYWORD_FALSE) {
+      dtype_raw = {"", std::string(KEYWORD_BOOLEAN), ""};
+      value_raw.push_back(trimmed);
+      value_origin = ValueOrigin::String;
+      return true;
+    }
+    // Check String (quoted with "" or '')
+    if ((trimmed.front() == '"' && trimmed.back() == '"') ||
+        (trimmed.front() == '\'' && trimmed.back() == '\'')) {
+      dtype_raw = {"", std::string(KEYWORD_STRING), ""};
+      value_raw.push_back(trimmed.substr(1, trimmed.length() - 2));
+      value_origin = ValueOrigin::String;
+      return true;
+    }
+    // Check Integer
+    size_t i = 0;
+    if (trimmed[i] == '+' || trimmed[i] == '-') ++i;
+    if (i < trimmed.size() && std::all_of(trimmed.begin() + i, trimmed.end(), ::isdigit)) {
+      dtype_raw = {"", std::string(KEYWORD_INTEGER), ""};
+      value_raw.push_back(trimmed);
+      value_origin = ValueOrigin::String;
+      return true;
+    }
+    // Check Float
+    bool has_digits = false;
+    while (i < trimmed.size() && std::isdigit(trimmed[i])) {
+      ++i;
+      has_digits = true;
+    }
+    bool is_float = false;
+    if (i < trimmed.size() && trimmed[i] == '.') {
+      ++i;
+      is_float = true;
+      while (i < trimmed.size() && std::isdigit(trimmed[i])) {
+	++i;
+	has_digits = true;
+      }
+    }
+    if (has_digits && i < trimmed.size() && (trimmed[i] == 'e' || trimmed[i] == 'E')) {
+      ++i;
+      if (trimmed[i] == '+' || trimmed[i] == '-') ++i;
+      bool exp_digits = false;
+      while (i < trimmed.size() && std::isdigit(trimmed[i])) {
+	++i;
+	exp_digits = true;
+      }
+      if (exp_digits && i == trimmed.size()) {
+	dtype_raw = {"", std::string(KEYWORD_FLOAT), ""};
+	value_raw.push_back(trimmed);
+	value_origin = ValueOrigin::String;
+	return true;
+      }
+    } else if (is_float && has_digits && i == trimmed.size()) {
+      dtype_raw = {"", std::string(KEYWORD_FLOAT), ""};
+      value_raw.push_back(trimmed);
+      value_origin = ValueOrigin::String;
+      return true;
+    }
+    return false;
+  }
+  
   bool Parser::part_dimension() {
     std::regex pattern("^\\[([0-9:,]*)\\]");
     std::smatch matchResult;
@@ -204,7 +257,7 @@ namespace dip {
     return false;
   }
 
-  bool Parser::part_reference(const bool inject) {
+  bool Parser::part_reference() {
     constexpr auto pstr = ce_concat<50>("^[ ]*[{](", PATTERN_KEY, "*([?]", PATTERN_PATH, "*|))[}]");
     std::regex pattern(pstr.data());
     std::smatch matchResult;
@@ -216,7 +269,6 @@ namespace dip {
 	value_origin = ValueOrigin::ReferenceRaw;
       else
 	throw std::runtime_error("Reference cannot be empty: "+line.code);
-      // TODO: implement inject switch
       strip(matchResult[0].str());
       part_slice();
       return true;
@@ -238,6 +290,21 @@ namespace dip {
   }
     
   bool Parser::part_expression() {
+    std::regex pattern("^[(](\"\"\"([^\"]*)\"\"\"|\"([^\"]*)\"|\'([^\']*)\')[)]");
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      if (matchResult[2].length())
+	value_raw.push_back( matchResult[2].str() );
+      else if (matchResult[3].length())
+	value_raw.push_back( matchResult[3].str() );
+      else if (matchResult[4].length())
+	value_raw.push_back( matchResult[4].str() );
+      else
+	throw std::runtime_error("Expression cannot be an empty string: "+line.code);
+      value_origin = ValueOrigin::Expression;      
+      strip(matchResult[0].str());
+      return true;
+    }
     return false;
   }
     
@@ -267,8 +334,25 @@ namespace dip {
     return false;
   }
   
+  bool Parser::part_keyword(const bool required) {
+    constexpr auto pstr = ce_concat<50>("^", PATTERN_KEY, "+");
+    std::regex pattern(pstr.data());
+    std::smatch matchResult;
+    if (std::regex_search(code, matchResult, pattern)) {
+      value_raw.push_back(matchResult[0].str());
+      value_origin = ValueOrigin::Keyword;
+      strip(matchResult[0].str());
+      if (do_continue() and code[0]!=' ')
+	throw std::runtime_error("Key has an invalid format: "+line.code);
+      return true;
+    } else if (required) {
+      throw std::runtime_error("Key has an invalid format: "+line.code);
+    }
+    return false;
+  }
+  
   bool Parser::part_value() {
-    if (part_reference(true))
+    if (part_reference())
       return true;
     if (part_function())
       return true;

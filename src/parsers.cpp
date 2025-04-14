@@ -117,6 +117,7 @@ namespace dip {
       // parse a node from the current line
       Parser parser(line);
       parser.part_name();
+      parser.part_space();
       parser.part_type();
       parser.part_dimension();
       parser.part_units();

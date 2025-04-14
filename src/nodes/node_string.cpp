@@ -36,6 +36,10 @@ namespace dip {
       set_value(cast_value(source_value_raw, source_value_shape));
       break;
     }
+    case ValueOrigin::Expression: {
+      // TODO: implement template expression
+      break;
+    }
     default:
       break;
     }

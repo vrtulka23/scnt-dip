@@ -36,6 +36,12 @@ namespace dip {
       set_value(cast_value(source_value_raw, source_value_shape));
       break;
     }
+    case ValueOrigin::Expression: {
+      LogicalSolver solver(env);
+      LogicalAtom result = solver.solve(value_raw.at(0));
+      set_value(std::move(result.value));
+      break;
+    }
     default:
       break;
     }

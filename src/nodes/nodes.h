@@ -13,7 +13,7 @@
 namespace dip {
 
   enum class ValueOrigin {
-    String, Reference, ReferenceRaw, Function, Expression
+    Keyword, String, Reference, ReferenceRaw, Function, Expression
   };
 
   enum class NodeDtype {
@@ -36,8 +36,8 @@ namespace dip {
     size_t indent;                         // indent of a node
     std::string name;                      // node name
     std::array<std::string,3> dtype_raw;   // data type properties (unsigned/type/precision)
-    Array::StringType value_raw;    // raw value string(s)
-    Array::ShapeType value_shape;      // shape of an array value
+    Array::StringType value_raw;           // raw value string(s)
+    Array::ShapeType value_shape;          // shape of an array value
     ValueOrigin value_origin;              // origin of the value; in Python there were separate variables: value_ref, value_expr, value_func
     Array::RangeType value_slice;          // slice of an injected node value
     std::string units_raw;                 // raw units string
@@ -64,17 +64,19 @@ namespace dip {
     bool kwd_unit();
     bool kwd_source();
     bool kwd_property(PropertyType& ptype);
+    bool part_space(const bool required=true);
     bool part_indent();
     bool part_name(const bool required=true);
-    bool part_key(const bool required=true);
     bool part_type(const bool required=true);
+    bool part_literal();
     bool part_dimension();
     bool part_equal(const bool required=true);
-    bool part_reference(const bool inject=false);
+    bool part_reference();
     bool part_expression();
     bool part_function();
     bool part_array();
     bool part_string();
+    bool part_keyword(const bool required=true);
     bool part_value();
     bool part_slice();
     bool part_units();

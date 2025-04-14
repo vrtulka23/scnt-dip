@@ -12,7 +12,7 @@ namespace dip {
     if (parser.kwd_unit()) {
       // TODO: implement import of a unit
       // TODO: implement injection of a unit
-      parser.part_key();
+      parser.part_keyword();
       parser.part_equal();
       parser.part_string();
       parser.part_comment();
