@@ -8,7 +8,7 @@
 
 namespace dip {
 
-  struct Settings {
+  struct LogicalSettings {
     Environment* env;
   };
   
@@ -23,17 +23,24 @@ namespace dip {
     LogicalAtom(LogicalAtom&& a) noexcept = default;
     LogicalAtom& operator=(LogicalAtom&& a) noexcept = default;
     
-    static BaseValue::PointerType from_string(std::string s, Settings* settings);
+    static BaseValue::PointerType from_string(std::string s, LogicalSettings* settings);
     std::string to_string();
+    void comparison_equal(LogicalAtom *other);
+    void comparison_not_equal(LogicalAtom *other);
+    void comparison_lower_equal(LogicalAtom *other);
+    void comparison_greater_equal(LogicalAtom *other);
+    void comparison_lower(LogicalAtom *other);
+    void comparison_greater(LogicalAtom *other);
+    void logical_not();
     void logical_and(LogicalAtom* other);
     void logical_or(LogicalAtom* other);
   };
 
   class LogicalSolver {
   public:
-    std::unique_ptr<exs::Solver<LogicalAtom, Settings>> solver;
+    std::unique_ptr<exs::Solver<LogicalAtom, LogicalSettings>> solver;
     LogicalSolver(Environment& env);
-    LogicalAtom solve(const std::string& expression);
+    LogicalAtom eval(const std::string& expression);
   };
   
   class NumericalSolver {

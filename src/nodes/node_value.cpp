@@ -124,7 +124,7 @@ namespace dip {
     if (options.size()>0) {
       bool match = false;
       for (int i=0; i<options.size(); i++) {
-	if (options[i].value and value->equals_to(options[i].value.get()))
+	if (options[i].value and *value==options[i].value.get())
 	  match = true;
       }
       if (!match) {

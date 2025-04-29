@@ -38,7 +38,7 @@ namespace dip {
     }
     case ValueOrigin::Expression: {
       LogicalSolver solver(env);
-      LogicalAtom result = solver.solve(value_raw.at(0));
+      LogicalAtom result = solver.eval(value_raw.at(0));
       set_value(std::move(result.value));
       break;
     }
