@@ -14,6 +14,11 @@ set(CMAKE_INSTALL_BINDIR bin)
 set(CMAKE_INSTALL_LIBDIR lib)
 set(CMAKE_INSTALL_INCLUDEDIR include)
 
+# set environmental variables
+file(READ "settings.env" ENV_CONTENTS)
+string(REGEX MATCH "CODE_VERSION=([^\n\r]*)" _ ${ENV_CONTENTS})
+string(REGEX REPLACE ".*CODE_VERSION=([^\n\r]*).*" "\\1" CODE_VERSION "${_}")
+
 # compile libraries and executables
 ###################################
 
@@ -22,31 +27,9 @@ message("Code version: ${CODE_VERSION}")
 find_package(SCNT-EXS REQUIRED)
 find_package(SCNT-PUQ REQUIRED)
 
-message("Building library: dip-cpp")
-file(GLOB source_files "src/*.cpp" "src/**/*.cpp")
-add_library(dip-cpp STATIC ${source_files})
-target_compile_definitions(dip-cpp PRIVATE)
-target_link_libraries(dip-cpp PRIVATE puq-cpp)
-
-message("Compiling executable: dip")
-file(GLOB example_files "exec/dip/*.cpp" "exec/dip/**/*.cpp")
-add_executable(dip ${example_files} )
-target_compile_definitions(dip PRIVATE CODE_VERSION="${CODE_VERSION}")
-target_link_libraries(dip PRIVATE dip-cpp)
-
-# add Google tests
-###################
-
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
-enable_testing()
-
-file(GLOB test_files "gtest/*.cpp")
-add_executable(TestSolver ${test_files})
-target_link_libraries(TestSolver PRIVATE GTest::gtest_main dip-cpp)
-
-include(GoogleTest)
-gtest_discover_tests(TestSolver)
+add_subdirectory(src)        # build dip-cpp library
+add_subdirectory(exec/dip)   # build dip executable
+add_subdirectory(gtest)      # build gtest executable
 
 # create cmake export files
 ###########################

@@ -1,8 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
-. settings.env
+# load settings and export variables
+set -a          
+source settings.env 
+set +a
+
 DIR_ROOT=$(pwd)
 
 function clean_code {
@@ -15,7 +19,7 @@ function build_code {
     if [[ ! -d $DIR_BUILD ]]; then
 	    mkdir $DIR_BUILD
     fi
-    cmake -B $DIR_BUILD -DCODE_VERSION="${CODE_VERSION}" 
+    cmake -B $DIR_BUILD  #-DCODE_VERSION="${CODE_VERSION}" 
     cd $DIR_BUILD
     make -j 10
     cd $DIR_ROOT
