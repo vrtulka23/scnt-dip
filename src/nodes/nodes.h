@@ -8,7 +8,7 @@
 #include <iomanip>
 
 #include "../settings.h"
-#include "values.h"
+#include "../values/values.h"
 
 namespace dip {
 

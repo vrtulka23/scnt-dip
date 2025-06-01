@@ -16,6 +16,9 @@ namespace dip {
 
   extern std::unordered_map<ValueDtype, std::string> ValueDtypeNames;
 
+  template <typename T>
+  class ArrayValue;
+  
   class BaseValue {
   public:
     typedef std::unique_ptr<BaseValue> PointerType;
@@ -33,6 +36,16 @@ namespace dip {
     virtual bool operator==(const BaseValue* other) const = 0;
     virtual bool operator<(const BaseValue* other) const = 0;
     virtual explicit operator bool() const = 0;
+    virtual explicit operator short() const = 0;
+    virtual explicit operator unsigned short() const = 0;
+    virtual explicit operator int() const = 0;
+    virtual explicit operator unsigned int() const = 0;
+    virtual explicit operator long long() const = 0;
+    virtual explicit operator unsigned long long() const = 0;
+    virtual explicit operator float() const = 0;
+    virtual explicit operator double() const = 0;
+    virtual explicit operator long double() const = 0;
+    virtual explicit operator std::string() const = 0;
   };
 
 }

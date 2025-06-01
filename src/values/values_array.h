@@ -130,8 +130,37 @@ namespace dip {
     explicit operator bool() const override {
       // TODO: Implement bool conversion of arrays
       throw std::runtime_error("Bool conversion of arrays is not implemented!!!");
-      return false;
-    }
+    };
+    explicit operator short() const override {
+      throw std::runtime_error("Short conversion of arrays is not implemented!!!");
+    };
+    explicit operator unsigned short() const override {
+      throw std::runtime_error("Unsigned short conversion of arrays is not implemented!!!");
+    };
+    explicit operator int() const override {
+      throw std::runtime_error("Integer conversion of arrays is not implemented!!!");
+    };
+    explicit operator unsigned int() const override {
+      throw std::runtime_error("Unsigned integer conversion of arrays is not implemented!!!");
+    };
+    explicit operator long long() const override {
+      throw std::runtime_error("Long long conversion of arrays is not implemented!!!");
+    };
+    explicit operator unsigned long long() const override {
+      throw std::runtime_error("Unsigned long long conversion of arrays is not implemented!!!");
+    };
+    explicit operator float() const override {
+      throw std::runtime_error("Float conversion of arrays is not implemented!!!");
+    };
+    explicit operator double() const override {
+      throw std::runtime_error("Double conversion of arrays is not implemented!!!");
+    };
+    explicit operator long double() const override {
+      throw std::runtime_error("Double conversion of arrays is not implemented!!!");
+    };
+    explicit operator std::string() const override {
+      throw std::runtime_error("Double conversion of arrays is not implemented!!!");
+    };
   };
   
   template <typename T>

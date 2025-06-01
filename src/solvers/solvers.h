@@ -4,7 +4,7 @@
 #include <scnt-exs/exs.h>
 
 #include "../environment.h"
-#include "../nodes/values.h"
+#include "../values/values.h"
 
 namespace dip {
 
